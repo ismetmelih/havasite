@@ -1,0 +1,6 @@
+.quake-body { background: radial-gradient(ellipse at 85% 0%, #211508 0%, var(--bg) 55%); }
+
+#magRange { width: 130px; }
+#magRangeVal { font-weight: 700; min-width: 34px; display: inline-block; }
+
+.side-row .row-title .mag-inline { color: var(--c-quake-2); font-weight: 800; }

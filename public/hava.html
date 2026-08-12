@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Hava Durumu — TürkiyeCanlı</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🇹🇷</text></svg>" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="css/base.css" />
+<link rel="stylesheet" href="css/weather.css" />
+</head>
+<body class="weather-body">
+
+<nav class="site-nav">
+  <a class="brand" href="index.html"><span class="dot"></span> Türkiye<span class="text-quake">Canlı</span></a>
+  <button class="hamburger" aria-label="Menü"><span></span><span></span><span></span></button>
+  <div class="nav-links">
+    <a href="index.html" data-page="index.html">Ana Sayfa</a>
+    <a href="hava.html" data-page="hava.html" class="active">Hava Durumu</a>
+    <a href="deprem.html" data-page="deprem.html">Depremler</a>
+    <a href="yangin.html" data-page="yangin.html">Yangınlar</a>
+  </div>
+  <div class="nav-user" id="navUser"></div>
+</nav>
+
+<header class="page-head weather-theme">
+  <div class="container page-head-row">
+    <div>
+      <span class="eyebrow text-weather">HAVA DURUMU</span>
+      <h1>Anlık &amp; detaylı hava durumu</h1>
+      <p class="page-sub" id="lastUpdated">Yükleniyor…</p>
+    </div>
+    <div class="search-wrap">
+      <div class="search-box">
+        <input type="text" id="citySearch" placeholder="Şehir ara (ör. Antalya)" autocomplete="off" />
+        <div class="search-results" id="searchResults" hidden></div>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="geoBtn" type="button">📍 Konumum</button>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+
+  <section class="weather-current card reveal" id="currentCard">
+    <div class="wc-left">
+      <div class="wc-icon" id="wcIcon"></div>
+      <div>
+        <div class="wc-city" id="wcCity">—</div>
+        <div class="wc-desc" id="wcDesc">Yükleniyor…</div>
+      </div>
+    </div>
+    <div class="wc-temp">
+      <span id="wcTemp">--</span><span class="deg">°C</span>
+    </div>
+    <div class="wc-stats">
+      <div class="wc-stat"><span class="label">Hissedilen</span><span class="val" id="wcFeels">--°</span></div>
+      <div class="wc-stat"><span class="label">Nem</span><span class="val" id="wcHumidity">--%</span></div>
+      <div class="wc-stat"><span class="label">Basınç</span><span class="val" id="wcPressure">-- hPa</span></div>
+      <div class="wc-stat wc-wind">
+        <span class="label">Rüzgâr</span>
+        <span class="val wind-val">
+          <span class="compass" id="wcCompass" style="--deg:0deg"><span class="needle"></span></span>
+          <span id="wcWind">-- km/s</span>
+        </span>
+      </div>
+      <div class="wc-stat"><span class="label">Gün doğumu</span><span class="val" id="wcSunrise">--:--</span></div>
+      <div class="wc-stat"><span class="label">Gün batımı</span><span class="val" id="wcSunset">--:--</span></div>
+    </div>
+  </section>
+
+  <section class="hourly-section reveal">
+    <h3>Önümüzdeki 24 saat</h3>
+    <div class="hourly-strip" id="hourlyStrip">
+      <div class="skeleton" style="height:110px;width:100%;border-radius:14px"></div>
+    </div>
+  </section>
+
+  <section class="daily-section reveal">
+    <h3>7 günlük tahmin</h3>
+    <div class="daily-grid" id="dailyGrid">
+      <div class="skeleton" style="height:150px;width:100%;border-radius:14px;grid-column:1/-1"></div>
+    </div>
+  </section>
+
+  <section class="map-section reveal">
+    <div class="map-head">
+      <h3>Türkiye geneli sıcaklık haritası</h3>
+      <span class="badge badge-live"><span class="live-blip"></span> 30 şehir</span>
+    </div>
+    <div id="weatherMap" class="map-box"></div>
+    <div class="legend temp-legend">
+      <span>Soğuk</span>
+      <div class="legend-bar temp-bar"></div>
+      <span>Sıcak</span>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div>© <span id="year"></span> TürkiyeCanlı — veri kaynağı: Open-Meteo (gayriresmî kullanım).</div>
+    <div class="sources"><a href="hava.html">Hava</a><a href="deprem.html">Deprem</a><a href="yangin.html">Yangın</a></div>
+  </div>
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="js/cities.js"></script>
+<script src="js/main.js"></script>
+<script src="js/weather-icons.js"></script>
+<script src="js/weather.js"></script>
+</body>
+</html>

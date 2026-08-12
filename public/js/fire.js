@@ -1,0 +1,257 @@
+(function () {
+  "use strict";
+
+  const REFRESH_MS = 5 * 60 * 1000; // FIRMS verisi siklikla degismiyor
+  let map, layer;
+  let rawData = [];
+  let demoMode = false;
+  let lastOk = false;
+
+  const DEMO_DATA = buildDemoData();
+
+  document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("year") && (document.getElementById("year").textContent = new Date().getFullYear());
+    initMap();
+    setupFilters();
+    document.getElementById("demoBtn").addEventListener("click", () => {
+      demoMode = true;
+      rawData = DEMO_DATA;
+      document.getElementById("setupPanel").hidden = true;
+      document.getElementById("demoBanner").hidden = false;
+      document.getElementById("lastUpdated").textContent = "Örnek veri gösteriliyor";
+      render();
+    });
+
+    fetchFires();
+    setInterval(fetchFires, REFRESH_MS);
+  });
+
+  function initMap() {
+    map = L.map("fireMap", { scrollWheelZoom: false }).setView([39.0, 35.2], 5.6);
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+      attribution: "&copy; OpenStreetMap &copy; CARTO",
+      subdomains: "abcd",
+      maxZoom: 19,
+    }).addTo(map);
+    layer = L.layerGroup().addTo(map);
+  }
+
+  function setupFilters() {
+    document.getElementById("daySelect").addEventListener("change", () => { if (!demoMode) fetchFires(); });
+    document.getElementById("sourceSelect").addEventListener("change", () => { if (!demoMode) fetchFires(); });
+    document.getElementById("confSelect").addEventListener("change", render);
+  }
+
+  async function fetchFires() {
+    const days = document.getElementById("daySelect").value;
+    const source = document.getElementById("sourceSelect").value;
+    try {
+      const r = await fetch(`/api/fires?days=${days}&source=${source}`);
+      const data = await r.json();
+
+      if (data.ok) {
+        if (demoMode) {
+          demoMode = false;
+          document.getElementById("demoBanner").hidden = true;
+          window.showToast("Gerçek FIRMS verisi bulundu, örnek veri kapatıldı.", { accent: "var(--c-fire)" });
+        }
+        lastOk = true;
+        rawData = data.data;
+        document.getElementById("setupPanel").hidden = true;
+        document.getElementById("lastUpdated").textContent = `Son güncelleme: ${window.formatClock(new Date())} · kaynak: ${data.source || source}`;
+        render();
+        return;
+      }
+
+      if (data.reason === "no_key" && !demoMode) {
+        document.getElementById("setupPanel").hidden = false;
+        document.getElementById("lastUpdated").textContent = "API anahtarı bekleniyor";
+        rawData = [];
+        render();
+        return;
+      }
+
+      if (!demoMode) {
+        document.getElementById("lastUpdated").textContent = lastOk
+          ? "Veri alınamadı, önceki veriler gösteriliyor."
+          : "Veri alınamadı, tekrar denenecek…";
+      }
+    } catch {
+      if (!demoMode) document.getElementById("lastUpdated").textContent = "Bağlantı hatası, tekrar denenecek…";
+    }
+  }
+
+  function frpColor(frp) {
+    const stops = [
+      [0, [255, 210, 122]],
+      [5, [255, 138, 61]],
+      [15, [227, 73, 72]],
+      [45, [161, 18, 27]],
+    ];
+    if (frp <= stops[0][0]) return rgb(stops[0][1]);
+    if (frp >= stops[stops.length - 1][0]) return rgb(stops[stops.length - 1][1]);
+    for (let i = 0; i < stops.length - 1; i++) {
+      const [f0, c0] = stops[i];
+      const [f1, c1] = stops[i + 1];
+      if (frp >= f0 && frp <= f1) {
+        const f = (frp - f0) / (f1 - f0);
+        return rgb(c0.map((v, idx) => Math.round(v + (c1[idx] - v) * f)));
+      }
+    }
+    return "#e34948";
+    function rgb(c) { return `rgb(${c[0]},${c[1]},${c[2]})`; }
+  }
+
+  function fireSize(frp) {
+    return Math.max(10, Math.min(42, 10 + Math.sqrt(Math.max(frp, 0)) * 4));
+  }
+
+  function confLevel(raw) {
+    if (raw === undefined || raw === null || raw === "") return 1;
+    const n = Number(raw);
+    if (!Number.isNaN(n)) return n >= 80 ? 2 : n >= 40 ? 1 : 0;
+    const s = String(raw).toLowerCase();
+    if (s.startsWith("h")) return 2;
+    if (s.startsWith("n")) return 1;
+    return 0;
+  }
+
+  function confLabel(raw) {
+    const lvl = confLevel(raw);
+    return lvl === 2 ? "Yüksek" : lvl === 1 ? "Orta" : "Düşük";
+  }
+
+  function filteredData() {
+    const confFilter = document.getElementById("confSelect").value;
+    return rawData
+      .filter((f) => {
+        if (confFilter === "all") return true;
+        const lvl = confLevel(f.confidence);
+        return confFilter === "high" ? lvl === 2 : lvl >= 1;
+      })
+      .sort((a, b) => (b.frp || 0) - (a.frp || 0));
+  }
+
+  function render() {
+    const list = filteredData();
+    renderMap(list);
+    renderList(list);
+    renderStats(list);
+  }
+
+  function renderMap(list) {
+    layer.clearLayers();
+    list.forEach((f) => {
+      const size = fireSize(f.frp);
+      const color = frpColor(f.frp);
+      const html = `
+        <div class="pulse-marker fire-pulse">
+          <div class="ring" style="width:${size * 1.6}px;height:${size * 1.6}px;background:${color}22;border:1.5px solid ${color}"></div>
+          <div class="dot" style="width:${size}px;height:${size}px;background:${color}"></div>
+        </div>`;
+      const icon = L.divIcon({ className: "", html, iconSize: [size, size], iconAnchor: [size / 2, size / 2] });
+      const marker = L.marker([f.lat, f.lon], { icon }).addTo(layer);
+      const near = window.nearestCity ? window.nearestCity(f.lat, f.lon) : null;
+      marker.bindPopup(
+        `<div class="map-pop"><strong>${near ? window.escapeHtml(near.city.name) + " yakını" : "Tespit"}</strong><br/>
+         FRP: ${f.frp?.toFixed ? f.frp.toFixed(1) : f.frp} MW · Güven: ${confLabel(f.confidence)}<br/>
+         ${window.escapeHtml(f.date || "")} ${window.escapeHtml(f.time || "")} UTC</div>`
+      );
+    });
+  }
+
+  function renderList(list) {
+    const wrap = document.getElementById("fireList");
+    document.getElementById("sideCount").innerHTML = `<span class="live-blip"></span> ${list.length}`;
+
+    if (!list.length) {
+      wrap.innerHTML = `<div class="sr-empty" style="padding:20px;color:var(--text-muted);text-align:center">${
+        demoMode || lastOk ? "Seçili filtrede tespit bulunamadı." : "Henüz veri yok."
+      }</div>`;
+      return;
+    }
+
+    wrap.innerHTML = list
+      .slice(0, 150)
+      .map((f) => {
+        const color = frpColor(f.frp);
+        const near = window.nearestCity ? window.nearestCity(f.lat, f.lon) : null;
+        return `
+        <div class="side-row" data-lat="${f.lat}" data-lon="${f.lon}">
+          <span class="mag-chip" style="background:${color}">${f.frp?.toFixed ? Math.round(f.frp) : "-"}</span>
+          <div class="row-main">
+            <div class="row-title">${near ? window.escapeHtml(near.city.name) + " yakını" : `${f.lat.toFixed(2)}, ${f.lon.toFixed(2)}`}</div>
+            <div class="row-sub">Güven: ${confLabel(f.confidence)} · ${window.escapeHtml(f.date || "")} ${window.escapeHtml(f.time || "")}</div>
+          </div>
+        </div>`;
+      })
+      .join("");
+
+    wrap.querySelectorAll(".side-row").forEach((row) => {
+      row.addEventListener("click", () => {
+        map.flyTo([parseFloat(row.dataset.lat), parseFloat(row.dataset.lon)], 9, { duration: 0.8 });
+      });
+    });
+  }
+
+  function renderStats(list) {
+    document.getElementById("statCountSub").textContent = demoMode ? "örnek veri" : "seçili aralıkta";
+    if (!list.length) {
+      document.getElementById("statCount").textContent = "0";
+      document.getElementById("statMaxFrp").textContent = "—";
+      document.getElementById("statRegion").textContent = "—";
+      document.getElementById("statRegionSub").textContent = "—";
+      document.getElementById("statDayNight").textContent = "—";
+      return;
+    }
+    document.getElementById("statCount").textContent = list.length;
+
+    const maxF = list.reduce((a, b) => ((b.frp || 0) > (a.frp || 0) ? b : a), list[0]);
+    document.getElementById("statMaxFrp").textContent = maxF.frp ? maxF.frp.toFixed(1) : "—";
+
+    const cityCounts = new Map();
+    list.forEach((f) => {
+      const near = window.nearestCity ? window.nearestCity(f.lat, f.lon) : null;
+      if (!near) return;
+      cityCounts.set(near.city.name, (cityCounts.get(near.city.name) || 0) + 1);
+    });
+    let topCity = "—", topCount = 0;
+    cityCounts.forEach((count, name) => { if (count > topCount) { topCount = count; topCity = name; } });
+    document.getElementById("statRegion").textContent = topCity;
+    document.getElementById("statRegionSub").textContent = topCount ? `${topCount} tespit` : "—";
+
+    const day = list.filter((f) => (f.daynight || "").toUpperCase().startsWith("D")).length;
+    const pct = Math.round((day / list.length) * 100);
+    document.getElementById("statDayNight").textContent = `${pct}% / ${100 - pct}%`;
+  }
+
+  function buildDemoData() {
+    const hotspots = [
+      { lat: 37.05, lon: 28.38, name: "Muğla" },
+      { lat: 36.86, lon: 31.44, name: "Antalya/Manavgat" },
+      { lat: 40.15, lon: 26.41, name: "Çanakkale" },
+      { lat: 37.6, lon: 27.0, name: "Aydın" },
+      { lat: 37.3, lon: 36.3, name: "Osmaniye" },
+    ];
+    const rows = [];
+    let id = 0;
+    hotspots.forEach((h) => {
+      const n = 2 + Math.floor(Math.random() * 3);
+      for (let i = 0; i < n; i++) {
+        id++;
+        rows.push({
+          lat: h.lat + (Math.random() - 0.5) * 0.6,
+          lon: h.lon + (Math.random() - 0.5) * 0.6,
+          frp: Math.round((Math.random() * 55 + 2) * 10) / 10,
+          confidence: ["l", "n", "n", "h"][Math.floor(Math.random() * 4)],
+          date: new Date().toISOString().slice(0, 10),
+          time: `${String(Math.floor(Math.random() * 24)).padStart(2, "0")}${String(Math.floor(Math.random() * 60)).padStart(2, "0")}`,
+          satellite: "DEMO",
+          instrument: "ÖRNEK",
+          daynight: Math.random() > 0.5 ? "D" : "N",
+        });
+      }
+    });
+    return rows;
+  }
+})();

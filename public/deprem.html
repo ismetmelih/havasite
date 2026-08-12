@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Depremler — TürkiyeCanlı</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🇹🇷</text></svg>" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="css/base.css" />
+<link rel="stylesheet" href="css/quake.css" />
+</head>
+<body class="quake-body">
+
+<nav class="site-nav">
+  <a class="brand" href="index.html"><span class="dot"></span> Türkiye<span class="text-quake">Canlı</span></a>
+  <button class="hamburger" aria-label="Menü"><span></span><span></span><span></span></button>
+  <div class="nav-links">
+    <a href="index.html" data-page="index.html">Ana Sayfa</a>
+    <a href="hava.html" data-page="hava.html">Hava Durumu</a>
+    <a href="deprem.html" data-page="deprem.html" class="active">Depremler</a>
+    <a href="yangin.html" data-page="yangin.html">Yangınlar</a>
+  </div>
+  <div class="nav-user" id="navUser"></div>
+</nav>
+
+<header class="page-head">
+  <div class="container page-head-row">
+    <div>
+      <span class="eyebrow text-quake">DEPREMLER</span>
+      <h1>Türkiye canlı deprem haritası</h1>
+      <p class="page-sub" id="lastUpdated">Yükleniyor…</p>
+    </div>
+    <span class="badge badge-live"><span class="live-blip"></span> Kandilli · her 25 sn yenilenir</span>
+  </div>
+</header>
+
+<main class="container">
+
+  <div class="stat-tiles reveal">
+    <div class="stat-tile">
+      <span class="stat-label">Son Deprem</span>
+      <span class="stat-value" id="statLast">—</span>
+      <span class="stat-sub" id="statLastSub">—</span>
+    </div>
+    <div class="stat-tile">
+      <span class="stat-label">Görüntülenen Toplam</span>
+      <span class="stat-value" id="statCount">—</span>
+      <span class="stat-sub">son ~24 saat</span>
+    </div>
+    <div class="stat-tile">
+      <span class="stat-label">En Büyük (24s)</span>
+      <span class="stat-value" id="statMax">—</span>
+      <span class="stat-sub" id="statMaxSub">—</span>
+    </div>
+    <div class="stat-tile">
+      <span class="stat-label">Ortalama Derinlik</span>
+      <span class="stat-value" id="statDepth">—</span>
+      <span class="stat-sub">km</span>
+    </div>
+  </div>
+
+  <div class="filter-bar reveal">
+    <div class="filter-group">
+      <label for="magRange">Min. büyüklük</label>
+      <input type="range" id="magRange" min="0" max="6" step="0.1" value="0" />
+      <span id="magRangeVal">0.0+</span>
+    </div>
+    <div class="filter-group">
+      <label for="timeSelect">Zaman aralığı</label>
+      <select id="timeSelect" class="filter-select">
+        <option value="1">Son 1 saat</option>
+        <option value="6">Son 6 saat</option>
+        <option value="24" selected>Son 24 saat</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label><input type="checkbox" id="onlyFelt" /> Sadece M3.0+</label>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <section class="map-section reveal" style="margin:0;">
+      <div class="map-box" id="quakeMap"></div>
+      <div class="legend quake-legend">
+        <span>Küçük</span>
+        <div class="legend-bar quake-bar"></div>
+        <span>Büyük</span>
+      </div>
+    </section>
+
+    <aside class="side-panel reveal">
+      <div class="side-panel-head">
+        <h3>Son depremler</h3>
+        <span class="badge badge-live" id="sideCount"><span class="live-blip"></span> —</span>
+      </div>
+      <div class="side-list" id="quakeList">
+        <div class="skeleton" style="height:56px;margin:6px;border-radius:10px"></div>
+        <div class="skeleton" style="height:56px;margin:6px;border-radius:10px"></div>
+        <div class="skeleton" style="height:56px;margin:6px;border-radius:10px"></div>
+      </div>
+    </aside>
+  </div>
+
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div>© <span id="year"></span> TürkiyeCanlı — veri kaynağı: Kandilli Rasathanesi (kamuya açık servis üzerinden).</div>
+    <div class="sources"><a href="hava.html">Hava</a><a href="deprem.html">Deprem</a><a href="yangin.html">Yangın</a></div>
+  </div>
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="js/cities.js"></script>
+<script src="js/main.js"></script>
+<script src="js/quake.js"></script>
+</body>
+</html>
