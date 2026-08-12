@@ -194,23 +194,6 @@
 .cat-fire .cat-icon { background: rgba(227, 73, 72, 0.14); color: var(--c-fire-2); }
 .cat-icon svg { width: 34px; height: 34px; }
 
-.icon-sun .rays { transform-origin: 32px 32px; animation: sun-spin 9s linear infinite; }
-@keyframes sun-spin { to { transform: rotate(360deg); } }
-
-.icon-quake .r1 { transform-origin: 32px 32px; animation: quake-ring 2.2s ease-out infinite; }
-.icon-quake .r2 { transform-origin: 32px 32px; animation: quake-ring 2.2s ease-out infinite 1.1s; }
-@keyframes quake-ring {
-  0% { transform: scale(0.6); opacity: 1; }
-  100% { transform: scale(2.1); opacity: 0; }
-}
-
-.icon-fire .flame { animation: flame-flicker 1.8s ease-in-out infinite; transform-origin: 32px 56px; }
-@keyframes flame-flicker {
-  0%, 100% { transform: scale(1) skewX(0deg); }
-  30% { transform: scale(1.04, 0.97) skewX(-2deg); }
-  60% { transform: scale(0.97, 1.05) skewX(2deg); }
-}
-
 .cat-card h3 {
   position: relative;
   z-index: 1;

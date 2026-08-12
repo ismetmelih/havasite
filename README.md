@@ -32,7 +32,7 @@ otomatik yüklenir; internet bağlantısı gerekir.
 
 Yangın sayfasının gerçek veri gösterebilmesi için ücretsiz bir API anahtarı gerekir:
 
-1. https://firms.modis.gov/api/map_key/ adresine git, e-posta adresinle ücretsiz anahtar iste (anında e-postana gelir).
+1. https://firms.modaps.eosdis.nasa.gov/api/map_key/ adresine git, e-posta adresinle ücretsiz anahtar iste (anında e-postana gelir).
 2. `config.json` dosyasını aç, `FIRMS_MAP_KEY` alanına anahtarını yapıştır.
 3. Sunucuyu yeniden başlat (`npm start`).
 
@@ -47,7 +47,7 @@ açıkça etiketlenmiş) verilerle deneyebilirsin.
 - **Hava durumu:** [Open-Meteo](https://open-meteo.com) — anahtarsız, ücretsiz.
 - **Deprem:** [Kandilli Rasathanesi](http://www.koeri.boun.edu.tr) verisini yayınlayan
   kamuya açık [api.orhanaydogdu.com.tr](https://api.orhanaydogdu.com.tr/deprem/kandilli/live) servisi — anahtarsız.
-- **Yangın:** [NASA FIRMS](https://firms.modis.gov) (VIIRS/MODIS uydu aktif ateş tespiti) — ücretsiz anahtar gerekir.
+- **Yangın:** [NASA FIRMS](https://firms.modaps.eosdis.nasa.gov) (VIIRS/MODIS uydu aktif ateş tespiti) — ücretsiz anahtar gerekir.
 
 Bu proje bağımsız/gayriresmîdir; resmî afet/acil durum kararları için ilgili
 resmî kurumların (AFAD, Kandilli, OGM vb.) duyurularını esas al.

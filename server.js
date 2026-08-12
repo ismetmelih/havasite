@@ -115,7 +115,8 @@ function parseCsv(text) {
 }
 
 async function handleFires(req, res, query) {
-  const days = Math.min(Math.max(parseInt(query.days, 10) || 1, 1), 10);
+  // NASA FIRMS 'country' uc noktasi gunluk araligi 1-5 ile sinirlar
+  const days = Math.min(Math.max(parseInt(query.days, 10) || 1, 1), 5);
   const source = ["VIIRS_SNPP_NRT", "VIIRS_NOAA20_NRT", "VIIRS_NOAA21_NRT", "MODIS_NRT"].includes(query.source)
     ? query.source
     : "VIIRS_SNPP_NRT";
@@ -125,7 +126,7 @@ async function handleFires(req, res, query) {
     return sendJson(res, 200, {
       ok: false,
       reason: "no_key",
-      message: "FIRMS_MAP_KEY tanimli degil. config.json dosyasina ucretsiz NASA FIRMS anahtarini ekle: https://firms.modis.gov/api/map_key/",
+      message: "FIRMS_MAP_KEY tanimli degil. config.json dosyasina ucretsiz NASA FIRMS anahtarini ekle: https://firms.modaps.eosdis.nasa.gov/api/map_key/",
       data: [],
     });
   }
@@ -135,8 +136,10 @@ async function handleFires(req, res, query) {
   if (cached) return sendJson(res, 200, cached);
 
   try {
-    // TUR = Turkiye ulke kodu (FIRMS 'National' alan listesi)
-    const upstream = `https://firms.modis.gov/api/area/csv/${key}/${source}/TUR/${days}`;
+    // TUR = Turkiye ulke kodu. Dogru host: firms.modaps.eosdis.nasa.gov
+    // (eski firms.modis.gov adresi artik cozulmuyor / kapatildi)
+    // Ulke koduyla sorgu icin dogru yol 'country', 'area' degil.
+    const upstream = `https://firms.modaps.eosdis.nasa.gov/api/country/csv/${key}/${source}/TUR/${days}`;
     const r = await fetchWithTimeout(upstream, {}, 20000);
     const text = await r.text();
     if (!r.ok) throw new Error(`upstream ${r.status}: ${text.slice(0, 200)}`);
@@ -215,6 +218,6 @@ server.listen(PORT, () => {
   console.log(`  -> http://localhost:${PORT}\n`);
   if (!CONFIG.FIRMS_MAP_KEY || CONFIG.FIRMS_MAP_KEY === "BURAYA_KENDI_ANAHTARINI_YAZ") {
     console.log("  [bilgi] Yangin verisi icin config.json dosyasina NASA FIRMS anahtari ekleyin.");
-    console.log("          Ucretsiz anahtar: https://firms.modis.gov/api/map_key/\n");
+    console.log("          Ucretsiz anahtar: https://firms.modaps.eosdis.nasa.gov/api/map_key/\n");
   }
 });

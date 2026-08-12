@@ -41,6 +41,56 @@
   --font: "Segoe UI", system-ui, -apple-system, "Inter", sans-serif;
 }
 
+/* ---------------- acik tema ---------------- */
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --bg: #f6f7f9;
+  --bg-alt: #eceef2;
+  --surface: #ffffff;
+  --surface-2: #f1f2f6;
+  --surface-hover: #e6e8ee;
+  --border: rgba(11, 15, 25, 0.10);
+  --border-strong: rgba(11, 15, 25, 0.18);
+
+  --text-primary: #10151c;
+  --text-secondary: #4c5563;
+  --text-muted: #7c8494;
+
+  --c-weather: #2a78d6;
+  --c-weather-2: #1c5cab;
+  --c-weather-glow: #1968c4;
+  --c-quake: #d95926;
+  --c-quake-2: #b8481b;
+  --c-fire: #d03b3b;
+  --c-fire-2: #b42a2a;
+
+  --shadow-soft: 0 10px 30px rgba(20, 24, 38, 0.10);
+}
+
+/* Ana sayfa hero'su ve giris ekrani, temadan bagimsiz olarak
+   markanin atmosferik koyu gorunumunu korur (bircok profesyonel
+   sitede oldugu gibi: koyu hero + acik/koyu tema degisen icerik). */
+:root[data-theme="light"] .hero,
+:root[data-theme="light"] .auth-shell {
+  color-scheme: dark;
+  --bg: #090c11;
+  --bg-alt: #0c1119;
+  --surface: #121a25;
+  --surface-2: #182333;
+  --surface-hover: #1e2c40;
+  --border: rgba(255, 255, 255, 0.09);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --text-primary: #f5f7fa;
+  --text-secondary: #aab4c4;
+  --text-muted: #6f7a8b;
+  --c-weather-2: #6da7ec;
+  --c-weather-glow: #38bdf8;
+  --c-quake-2: #f5a35c;
+  --c-fire-2: #ff8a3d;
+  --shadow-soft: 0 10px 40px rgba(0, 0, 0, 0.45);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -51,6 +101,14 @@
 
 html {
   scroll-behavior: smooth;
+}
+
+body,
+.site-nav,
+.card,
+.btn,
+.leaflet-popup-content-wrapper {
+  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
 }
 
 body {
@@ -96,7 +154,7 @@ input {
   align-items: center;
   justify-content: space-between;
   padding: 14px 28px;
-  background: rgba(9, 12, 17, 0.66);
+  background: color-mix(in srgb, var(--bg) 66%, transparent);
   backdrop-filter: blur(16px) saturate(140%);
   -webkit-backdrop-filter: blur(16px) saturate(140%);
   border-bottom: 1px solid var(--border);
@@ -104,8 +162,8 @@ input {
 }
 
 .site-nav.scrolled {
-  background: rgba(9, 12, 17, 0.9);
-  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.35);
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.2);
 }
 
 .brand {
@@ -175,10 +233,71 @@ input {
   background: currentColor;
 }
 
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 6px;
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+}
+.icon-btn:hover {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+}
+.icon-btn svg {
+  width: 18px;
+  height: 18px;
+}
+.icon-btn .theme-icon {
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+.icon-btn:active .theme-icon {
+  transform: rotate(25deg) scale(0.9);
+}
+
 .nav-user {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.user-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px 5px 5px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.user-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: #06101c;
+  background: linear-gradient(135deg, var(--c-weather-glow), var(--c-quake-2));
+  flex-shrink: 0;
 }
 
 .btn {
@@ -445,6 +564,46 @@ input {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--surface-hover);
+}
+
+/* ---------------- kategoriye ozel animasyonlu ikonlar ----------------
+   Ana sayfadaki kategori kartlarinda da, veri sayfalarinin basliginda da
+   kullanilir (.cat-icon ve .page-icon aynı svg yapisini paylasir). */
+.icon-sun .rays { transform-origin: 32px 32px; animation: sun-spin 9s linear infinite; }
+@keyframes sun-spin { to { transform: rotate(360deg); } }
+
+.icon-quake .r1 { transform-origin: 32px 32px; animation: quake-ring 2.2s ease-out infinite; }
+.icon-quake .r2 { transform-origin: 32px 32px; animation: quake-ring 2.2s ease-out infinite 1.1s; }
+@keyframes quake-ring {
+  0% { transform: scale(0.6); opacity: 1; }
+  100% { transform: scale(2.1); opacity: 0; }
+}
+
+.icon-fire .flame { animation: flame-flicker 1.8s ease-in-out infinite; transform-origin: 32px 56px; }
+@keyframes flame-flicker {
+  0%, 100% { transform: scale(1) skewX(0deg); }
+  30% { transform: scale(1.04, 0.97) skewX(-2deg); }
+  60% { transform: scale(0.97, 1.05) skewX(2deg); }
+}
+
+.page-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.page-icon svg { width: 30px; height: 30px; }
+.page-icon.icon-weather { background: rgba(42, 120, 214, 0.14); color: var(--c-weather-glow); }
+.page-icon.icon-quake-wrap { background: rgba(235, 104, 52, 0.14); color: var(--c-quake-2); }
+.page-icon.icon-fire-wrap { background: rgba(227, 73, 72, 0.14); color: var(--c-fire-2); }
+
+.page-head-title {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
 /* ---------------- veri sayfalari ortak duzeni ---------------- */
@@ -734,7 +893,7 @@ select.filter-select {
     top: 62px;
     left: 0;
     right: 0;
-    background: rgba(9, 12, 17, 0.97);
+    background: #0b0f14;
     flex-direction: column;
     align-items: stretch;
     padding: 10px 16px 20px;

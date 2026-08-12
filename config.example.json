@@ -1,5 +1,5 @@
 {
-  "_note": "Bu dosyayi 'config.json' olarak kopyalayip FIRMS_MAP_KEY degerini kendi anahtarinla degistir. Ucretsiz anahtar: https://firms.modis.gov/api/map_key/",
+  "_note": "Bu dosyayi 'config.json' olarak kopyalayip FIRMS_MAP_KEY degerini kendi anahtarinla degistir. Ucretsiz anahtar: https://firms.modaps.eosdis.nasa.gov/api/map_key/",
   "FIRMS_MAP_KEY": "BURAYA_KENDI_ANAHTARINI_YAZ",
   "PORT": 3000
 }

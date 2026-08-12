@@ -6,8 +6,66 @@
     setupNav();
     setupReveal();
     setupUserState();
+    setupThemeToggle();
     markActiveLink();
   });
+
+  // ---------------- tema (acik/koyu) ----------------
+  const THEME_KEY = "havasite_theme";
+  const SUN_ICON = '<svg class="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v2.4M12 19.1v2.4M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"/></svg>';
+  const MOON_ICON = '<svg class="theme-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M20.4 14.7A8.9 8.9 0 0 1 9.3 3.6a.6.6 0 0 0-.7-.8A9.9 9.9 0 1 0 21.2 15.4a.6.6 0 0 0-.8-.7Z"/></svg>';
+
+  function getTheme() {
+    try {
+      return localStorage.getItem(THEME_KEY) === "light" ? "light" : "dark";
+    } catch {
+      return "dark";
+    }
+  }
+
+  function applyTheme(theme, persist = true) {
+    document.documentElement.setAttribute("data-theme", theme);
+    if (persist) {
+      try { localStorage.setItem(THEME_KEY, theme); } catch {}
+    }
+    document.querySelectorAll("[data-theme-icon]").forEach((el) => {
+      el.innerHTML = theme === "light" ? SUN_ICON : MOON_ICON;
+    });
+    document.querySelectorAll("[data-theme-radio]").forEach((el) => {
+      el.classList.toggle("is-selected", el.dataset.themeRadio === theme);
+    });
+  }
+
+  window.HavaTheme = {
+    get: getTheme,
+    set: (t) => applyTheme(t === "light" ? "light" : "dark"),
+  };
+
+  function setupThemeToggle() {
+    applyTheme(getTheme(), false);
+    const btn = document.getElementById("themeToggle");
+    if (btn) {
+      btn.addEventListener("click", () => {
+        applyTheme(getTheme() === "light" ? "dark" : "light");
+      });
+    }
+  }
+
+  // ---------------- kullanici tercihleri (profil ozellestirme) ----------------
+  const PREFS_KEY = "havasite_prefs";
+  const DEFAULT_PREFS = { favoriteCity: "", quakeAlertMag: 3.5 };
+
+  function getPrefs() {
+    try {
+      return { ...DEFAULT_PREFS, ...JSON.parse(localStorage.getItem(PREFS_KEY) || "{}") };
+    } catch {
+      return { ...DEFAULT_PREFS };
+    }
+  }
+  function setPrefs(p) {
+    localStorage.setItem(PREFS_KEY, JSON.stringify(p));
+  }
+  window.HavaPrefs = { get: getPrefs, set: setPrefs };
 
   function setupNav() {
     const nav = document.querySelector(".site-nav");
