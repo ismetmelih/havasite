@@ -260,10 +260,10 @@
       document.getElementById("statDayNight").textContent = "—";
       return;
     }
-    document.getElementById("statCount").textContent = list.length;
+    setStatText("statCount", list.length);
 
     const maxF = list.reduce((a, b) => ((b.frp || 0) > (a.frp || 0) ? b : a), list[0]);
-    document.getElementById("statMaxFrp").textContent = maxF.frp ? maxF.frp.toFixed(1) : "—";
+    setStatText("statMaxFrp", maxF.frp ? maxF.frp.toFixed(1) : "—");
 
     const cityCounts = new Map();
     list.forEach((f) => {
@@ -279,6 +279,16 @@
     const day = list.filter((f) => (f.daynight || "").toUpperCase().startsWith("D")).length;
     const pct = Math.round((day / list.length) * 100);
     document.getElementById("statDayNight").textContent = `${pct}% / ${100 - pct}%`;
+  }
+
+  function setStatText(id, value) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const text = String(value);
+    if (el.textContent !== text) {
+      el.textContent = text;
+      window.flashUpdate && window.flashUpdate(el);
+    }
   }
 
   function buildDemoData() {

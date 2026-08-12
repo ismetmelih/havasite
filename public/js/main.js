@@ -157,7 +157,11 @@
     }
   }
   function setPrefs(p) {
-    localStorage.setItem(PREFS_KEY, JSON.stringify(p));
+    try {
+      localStorage.setItem(PREFS_KEY, JSON.stringify(p));
+    } catch (err) {
+      console.warn("Tercihler kaydedilemedi:", err);
+    }
   }
   window.HavaPrefs = { get: getPrefs, set: setPrefs };
 
@@ -217,10 +221,20 @@
   window.HavaAuth = {
     getUser,
     login(user) {
-      localStorage.setItem("havasite_user", JSON.stringify(user));
+      // localStorage bazi gizlilik modlarinda/kisitli baglamlarda hata firlatabilir;
+      // bu durumda bile giris akisinin tikanmamasi icin hatayi yutuyoruz.
+      try {
+        localStorage.setItem("havasite_user", JSON.stringify(user));
+      } catch (err) {
+        console.warn("Oturum bilgisi kaydedilemedi (localStorage engellenmiş olabilir):", err);
+      }
     },
     logout() {
-      localStorage.removeItem("havasite_user");
+      try {
+        localStorage.removeItem("havasite_user");
+      } catch (err) {
+        console.warn("Oturum bilgisi silinemedi:", err);
+      }
       location.href = "index.html";
     },
   };
@@ -250,6 +264,15 @@
     return String(str).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   }
   window.escapeHtml = escapeHtml;
+
+  // ---------------- deger guncellemesinde kisa "flash" animasyonu ----------------
+  window.flashUpdate = function flashUpdate(el) {
+    if (!el) return;
+    el.classList.remove("value-flash");
+    // reflow tetikleyerek animasyonun her seferinde yeniden oynamasini sagla
+    void el.offsetWidth;
+    el.classList.add("value-flash");
+  };
 
   // ---------------- toast ----------------
   function ensureToastStack() {

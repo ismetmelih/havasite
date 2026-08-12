@@ -345,18 +345,29 @@
       return;
     }
     const last = list[0];
-    document.getElementById("statLast").textContent = `M${last.mag.toFixed(1)}`;
+    setStatText("statLast", `M${last.mag.toFixed(1)}`);
     lastQuakeCityPart = last.closestCity || last.title;
     lastQuakeDateStr = last.date.replace(" ", "T");
     document.getElementById("statLastSub").textContent = `${lastQuakeCityPart} · ${window.timeAgoTR(lastQuakeDateStr)}`;
 
-    document.getElementById("statCount").textContent = list.length;
+    setStatText("statCount", list.length);
 
     const maxQ = list.reduce((a, b) => (b.mag > a.mag ? b : a), list[0]);
-    document.getElementById("statMax").textContent = `M${maxQ.mag.toFixed(1)}`;
+    setStatText("statMax", `M${maxQ.mag.toFixed(1)}`);
     document.getElementById("statMaxSub").textContent = maxQ.closestCity || maxQ.title;
 
     const avgDepth = list.reduce((s, q) => s + q.depth, 0) / list.length;
-    document.getElementById("statDepth").textContent = avgDepth.toFixed(1);
+    setStatText("statDepth", avgDepth.toFixed(1));
+  }
+
+  // deger degistiginde kisa bir "canli" flash animasyonu oynatir
+  function setStatText(id, value) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const text = String(value);
+    if (el.textContent !== text) {
+      el.textContent = text;
+      window.flashUpdate && window.flashUpdate(el);
+    }
   }
 })();

@@ -139,7 +139,13 @@
     spin.hidden = false;
 
     setTimeout(() => {
-      window.HavaAuth.login(user);
+      try {
+        window.HavaAuth.login(user);
+      } catch (err) {
+        // HavaAuth.login kendi icinde de yakaliyor ama son bir guvenlik agi olarak
+        // burada da yutuyoruz ki kullanici hicbir sekilde "takili" kalmasin.
+        console.warn("Giriş sırasında beklenmeyen hata:", err);
+      }
       form.hidden = true;
       document.querySelectorAll(".auth-tabs")[0].style.display = "none";
       const success = document.getElementById("authSuccess");

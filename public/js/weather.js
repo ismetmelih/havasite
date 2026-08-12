@@ -35,6 +35,9 @@
   function safeGetJson(key) {
     try { return JSON.parse(localStorage.getItem(key)); } catch { return null; }
   }
+  function safeSetJson(key, value) {
+    try { localStorage.setItem(key, JSON.stringify(value)); } catch (err) { console.warn("Kaydedilemedi:", err); }
+  }
 
   // ------------- arama -------------
   let searchTimer = null;
@@ -81,7 +84,7 @@
         el.addEventListener("click", () => {
           const c = items[i];
           currentLoc = { name: c.name, lat: c.latitude, lon: c.longitude };
-          localStorage.setItem("havasite_last_city", JSON.stringify(currentLoc));
+          safeSetJson("havasite_last_city", currentLoc);
           results.hidden = true;
           input.value = "";
           loadWeatherFor(currentLoc, false);
@@ -142,7 +145,12 @@
     const isDay = c.is_day === 1;
     document.getElementById("wcIcon").innerHTML = window.WeatherWMO.svg(code, isDay);
     document.getElementById("wcDesc").textContent = window.WeatherWMO.label(code);
-    document.getElementById("wcTemp").textContent = Math.round(c.temperature_2m);
+    const tempEl = document.getElementById("wcTemp");
+    const tempText = String(Math.round(c.temperature_2m));
+    if (tempEl.textContent !== tempText) {
+      tempEl.textContent = tempText;
+      window.flashUpdate && window.flashUpdate(tempEl);
+    }
     document.getElementById("wcFeels").textContent = `${Math.round(c.apparent_temperature)}°`;
     document.getElementById("wcHumidity").textContent = `${c.relative_humidity_2m}%`;
     document.getElementById("wcPressure").textContent = `${Math.round(c.surface_pressure)} hPa`;
@@ -273,7 +281,7 @@
         );
         marker.on("click", () => {
           currentLoc = { name: city.name, lat: city.lat, lon: city.lon };
-          localStorage.setItem("havasite_last_city", JSON.stringify(currentLoc));
+          safeSetJson("havasite_last_city", currentLoc);
           loadWeatherFor(currentLoc, false);
         });
       });

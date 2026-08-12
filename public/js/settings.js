@@ -11,15 +11,30 @@
   });
 
   function setupTabs() {
+    const tabsWrap = document.querySelector(".settings-tabs");
     const tabs = document.querySelectorAll(".settings-tab");
+    const indicator = document.createElement("span");
+    indicator.className = "settings-tab-indicator";
+    tabsWrap.appendChild(indicator);
+
+    function moveIndicator(tab) {
+      indicator.style.width = `${tab.offsetWidth}px`;
+      indicator.style.transform = `translateX(${tab.offsetLeft}px)`;
+    }
+
     tabs.forEach((tab) => {
       tab.addEventListener("click", () => {
         tabs.forEach((t) => t.classList.remove("active"));
         tab.classList.add("active");
         document.querySelectorAll(".settings-panel").forEach((p) => p.classList.remove("active"));
         document.getElementById(`panel-${tab.dataset.tab}`).classList.add("active");
+        moveIndicator(tab);
       });
     });
+
+    // ilk konum + pencere yeniden boyutlaninca hizala
+    requestAnimationFrame(() => moveIndicator(document.querySelector(".settings-tab.active")));
+    window.addEventListener("resize", () => moveIndicator(document.querySelector(".settings-tab.active")));
   }
 
   function setupThemeOptions() {
@@ -161,7 +176,11 @@
     }
   }
   function setChecklistState(state) {
-    localStorage.setItem(CHECKLIST_KEY, JSON.stringify(state));
+    try {
+      localStorage.setItem(CHECKLIST_KEY, JSON.stringify(state));
+    } catch (err) {
+      console.warn("Kontrol listesi kaydedilemedi:", err);
+    }
   }
 
   function setupChecklist() {
@@ -197,6 +216,12 @@
         state[id] = input.checked;
         setChecklistState(state);
         row.classList.toggle("checked", input.checked);
+        if (input.checked) {
+          row.classList.remove("just-checked");
+          void row.offsetWidth;
+          row.classList.add("just-checked");
+          setTimeout(() => row.classList.remove("just-checked"), 450);
+        }
         updateProgress();
       });
     });
