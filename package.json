@@ -1,0 +1,14 @@
+{
+  "name": "havasite",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Turkiye icin canli hava durumu, deprem ve yangin takip sitesi",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

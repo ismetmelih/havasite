@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Türkiye Canlı Takip — Hava Durumu, Deprem &amp; Yangın</title>
+<meta name="description" content="Türkiye için anlık hava durumu, canlı deprem haritası ve uydu tabanlı yangın tespiti tek bir yerde." />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🇹🇷</text></svg>" />
+<link rel="stylesheet" href="css/base.css" />
+<link rel="stylesheet" href="css/home.css" />
+</head>
+<body>
+
+<nav class="site-nav">
+  <a class="brand" href="index.html"><span class="dot"></span> Türkiye<span class="text-quake">Canlı</span></a>
+  <button class="hamburger" aria-label="Menü"><span></span><span></span><span></span></button>
+  <div class="nav-links">
+    <a href="index.html" data-page="index.html" class="active">Ana Sayfa</a>
+    <a href="hava.html" data-page="hava.html">Hava Durumu</a>
+    <a href="deprem.html" data-page="deprem.html">Depremler</a>
+    <a href="yangin.html" data-page="yangin.html">Yangınlar</a>
+  </div>
+  <div class="nav-user" id="navUser"></div>
+</nav>
+
+<header class="hero">
+  <canvas id="heroCanvas" class="hero-canvas"></canvas>
+  <div class="hero-fade"></div>
+  <div class="container hero-content">
+    <span class="badge badge-live reveal in-view"><span class="live-blip"></span> CANLI VERİ AKIŞI</span>
+    <h1 class="reveal in-view">Türkiye'yi <span class="grad-text">anlık</span><br />tek ekrandan takip et</h1>
+    <p class="hero-sub reveal in-view">
+      Hava durumu, deprem ve yangın verilerini gerçek kaynaklardan çekip
+      canlı haritalar üzerinde, saniyeler içinde güncellenen bir panelde sunuyoruz.
+    </p>
+    <div class="hero-cta reveal in-view">
+      <a href="hava.html" class="btn btn-primary">Hava Durumunu Gör →</a>
+      <a href="deprem.html" class="btn btn-ghost">Deprem Haritası</a>
+      <a href="yangin.html" class="btn btn-ghost">Yangın Takibi</a>
+    </div>
+
+    <div class="ticker glass reveal in-view" id="ticker">
+      <div class="ticker-item">
+        <span class="ticker-label">Saat</span>
+        <span class="ticker-value" id="tkClock">--:--:--</span>
+      </div>
+      <div class="ticker-sep"></div>
+      <div class="ticker-item">
+        <span class="ticker-label text-weather">Ankara</span>
+        <span class="ticker-value" id="tkWeather"><span class="skeleton" style="width:52px;height:16px;display:inline-block"></span></span>
+      </div>
+      <div class="ticker-sep"></div>
+      <div class="ticker-item">
+        <span class="ticker-label text-quake">Son Deprem</span>
+        <span class="ticker-value" id="tkQuake"><span class="skeleton" style="width:110px;height:16px;display:inline-block"></span></span>
+      </div>
+      <div class="ticker-sep"></div>
+      <div class="ticker-item">
+        <span class="ticker-label text-fire">Aktif Yangın (24s)</span>
+        <span class="ticker-value" id="tkFire"><span class="skeleton" style="width:40px;height:16px;display:inline-block"></span></span>
+      </div>
+    </div>
+  </div>
+  <div class="scroll-cue reveal in-view"><span></span>aşağı kaydır</div>
+</header>
+
+<main>
+  <section class="section" id="kategoriler">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="eyebrow">3 KATEGORİ · TEK PANEL</span>
+        <h2>Neyi takip etmek istiyorsun?</h2>
+        <p>Her kategori kendi canlı kaynağından beslenir ve haritada anında görselleşir.</p>
+      </div>
+
+      <div class="cat-grid">
+        <a class="cat-card cat-weather reveal-scale" href="hava.html">
+          <div class="cat-icon">
+            <svg viewBox="0 0 64 64" class="icon-sun">
+              <circle cx="32" cy="32" r="12" fill="currentColor"/>
+              <g class="rays" stroke="currentColor" stroke-width="3.5" stroke-linecap="round">
+                <line x1="32" y1="4" x2="32" y2="13"/>
+                <line x1="32" y1="51" x2="32" y2="60"/>
+                <line x1="4" y1="32" x2="13" y2="32"/>
+                <line x1="51" y1="32" x2="60" y2="32"/>
+                <line x1="11" y1="11" x2="17.5" y2="17.5"/>
+                <line x1="46.5" y1="46.5" x2="53" y2="53"/>
+                <line x1="53" y1="11" x2="46.5" y2="17.5"/>
+                <line x1="17.5" y1="46.5" x2="11" y2="53"/>
+              </g>
+            </svg>
+          </div>
+          <h3>Hava Durumu</h3>
+          <p>Anlık sıcaklık, nem, rüzgâr, saatlik &amp; 7 günlük tahmin ve 30 şehirlik canlı harita.</p>
+          <span class="cat-link">İncele <span class="arrow">→</span></span>
+        </a>
+
+        <a class="cat-card cat-quake reveal-scale" href="deprem.html">
+          <div class="cat-icon">
+            <svg viewBox="0 0 64 64" class="icon-quake">
+              <circle class="ring r1" cx="32" cy="32" r="10" fill="none" stroke="currentColor" stroke-width="2.5"/>
+              <circle class="ring r2" cx="32" cy="32" r="10" fill="none" stroke="currentColor" stroke-width="2.5"/>
+              <path d="M6 40 L18 40 L23 28 L28 48 L34 20 L39 40 L58 40" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h3>Depremler</h3>
+          <p>Kandilli kaynaklı canlı deprem verisi, büyüklüğe göre renklendirilmiş harita ve anlık liste.</p>
+          <span class="cat-link">İncele <span class="arrow">→</span></span>
+        </a>
+
+        <a class="cat-card cat-fire reveal-scale" href="yangin.html">
+          <div class="cat-icon">
+            <svg viewBox="0 0 64 64" class="icon-fire">
+              <path class="flame" d="M32 6c4 8-3 11-3 18 0 5 4 7 7 7 5 0 9-4 9-10 6 6 9 14 9 20 0 12-10 21-22 21S10 53 10 41c0-9 5-15 9-20 1 6 5 9 9 9 3 0-3-4 4-24Z" fill="currentColor"/>
+            </svg>
+          </div>
+          <h3>Yangınlar</h3>
+          <p>NASA FIRMS uydu verisiyle aktif ateş tespiti, yoğunluğa göre renklendirilmiş canlı harita.</p>
+          <span class="cat-link">İncele <span class="arrow">→</span></span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section why-section">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="eyebrow">NEDEN BU PANEL</span>
+        <h2>Dağınık kaynaklar yerine tek, canlı, görsel panel</h2>
+      </div>
+      <div class="why-grid">
+        <div class="why-card reveal">
+          <div class="why-num">01</div>
+          <h4>Gerçek zamanlı</h4>
+          <p>Sayfalar açık kaldıkça veriler otomatik olarak periyodik şekilde yenilenir, elle yenilemene gerek kalmaz.</p>
+        </div>
+        <div class="why-card reveal">
+          <div class="why-num">02</div>
+          <h4>Harita odaklı</h4>
+          <p>Sayılar yerine, Türkiye haritası üzerinde konuma göre renklendirilmiş canlı işaretler görürsün.</p>
+        </div>
+        <div class="why-card reveal">
+          <div class="why-num">03</div>
+          <h4>Gerçek kaynaklar</h4>
+          <p>Open-Meteo, Kandilli (kamuya açık servis) ve NASA FIRMS uydu verisi kullanılır — kurgusal veri yok.</p>
+        </div>
+        <div class="why-card reveal">
+          <div class="why-num">04</div>
+          <h4>Tamamen ücretsiz</h4>
+          <p>Hiçbir kategori için ücretli abonelik gerekmez; yalnızca yangın verisi için ücretsiz bir NASA anahtarı gerekir.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div>© <span id="year"></span> TürkiyeCanlı — bağımsız, gayriresmî bir takip panelidir.</div>
+    <div class="sources">
+      <span>Kaynaklar:</span>
+      <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a>
+      <a href="https://api.orhanaydogdu.com.tr/deprem/kandilli/live" target="_blank" rel="noopener">Kandilli (canlı servis)</a>
+      <a href="https://firms.modis.gov" target="_blank" rel="noopener">NASA FIRMS</a>
+    </div>
+  </div>
+</footer>
+
+<script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+<script src="js/cities.js"></script>
+<script src="js/three-bg.js"></script>
+<script src="js/main.js"></script>
+<script src="js/home.js"></script>
+</body>
+</html>

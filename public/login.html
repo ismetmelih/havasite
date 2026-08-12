@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Giriş Yap — TürkiyeCanlı</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🇹🇷</text></svg>" />
+<link rel="stylesheet" href="css/base.css" />
+<link rel="stylesheet" href="css/login.css" />
+</head>
+<body class="login-body">
+
+<nav class="site-nav">
+  <a class="brand" href="index.html"><span class="dot"></span> Türkiye<span class="text-quake">Canlı</span></a>
+  <button class="hamburger" aria-label="Menü"><span></span><span></span><span></span></button>
+  <div class="nav-links">
+    <a href="index.html" data-page="index.html">Ana Sayfa</a>
+    <a href="hava.html" data-page="hava.html">Hava Durumu</a>
+    <a href="deprem.html" data-page="deprem.html">Depremler</a>
+    <a href="yangin.html" data-page="yangin.html">Yangınlar</a>
+  </div>
+  <div class="nav-user" id="navUser"></div>
+</nav>
+
+<main class="auth-shell">
+  <canvas id="heroCanvas" class="auth-canvas"></canvas>
+
+  <section class="auth-info reveal in-view">
+    <span class="badge badge-live"><span class="live-blip"></span> CANLI PANEL</span>
+    <h1>Hesabınla kişisel<br />takip panelini kur</h1>
+    <p>Giriş yaptığında favori şehirlerini, izlediğin bölgeleri ve tercih ettiğin uyarı eşiklerini bu tarayıcıda saklarız.</p>
+    <ul class="auth-feature-list">
+      <li><span class="fi fi-weather">☀</span> Favori şehirler için hızlı hava durumu erişimi</li>
+      <li><span class="fi fi-quake">◎</span> Belirlediğin büyüklük üzerindeki depremler için vurgulama</li>
+      <li><span class="fi fi-fire">🔥</span> Bölgene yakın yangın tespitlerini işaretleme</li>
+    </ul>
+  </section>
+
+  <section class="auth-card-wrap reveal in-view">
+    <div class="auth-card glass" id="authCard">
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-tab="login" type="button">Giriş Yap</button>
+        <button class="auth-tab" data-tab="register" type="button">Kayıt Ol</button>
+        <div class="auth-tab-indicator" id="tabIndicator"></div>
+      </div>
+
+      <form id="loginForm" class="auth-form" novalidate>
+        <label class="field">
+          <span>E-posta</span>
+          <input type="email" name="email" placeholder="ornek@eposta.com" autocomplete="email" required />
+          <small class="field-error"></small>
+        </label>
+        <label class="field">
+          <span>Şifre</span>
+          <input type="password" name="password" placeholder="••••••••" autocomplete="current-password" required minlength="6" />
+          <small class="field-error"></small>
+        </label>
+        <div class="field-row">
+          <label class="checkbox"><input type="checkbox" name="remember" checked /> Beni hatırla</label>
+          <a class="link-muted" href="#" id="forgotLink">Şifremi unuttum</a>
+        </div>
+        <button class="btn btn-primary btn-block" type="submit">
+          <span class="btn-label">Giriş Yap</span>
+          <span class="btn-spin" hidden><span class="spinner"></span></span>
+        </button>
+      </form>
+
+      <form id="registerForm" class="auth-form" novalidate hidden>
+        <label class="field">
+          <span>Ad Soyad</span>
+          <input type="text" name="name" placeholder="Adın Soyadın" autocomplete="name" required minlength="2" />
+          <small class="field-error"></small>
+        </label>
+        <label class="field">
+          <span>E-posta</span>
+          <input type="email" name="email" placeholder="ornek@eposta.com" autocomplete="email" required />
+          <small class="field-error"></small>
+        </label>
+        <label class="field">
+          <span>Şifre</span>
+          <input type="password" name="password" placeholder="En az 6 karakter" autocomplete="new-password" required minlength="6" />
+          <small class="field-error"></small>
+        </label>
+        <label class="field">
+          <span>Şifre (tekrar)</span>
+          <input type="password" name="password2" placeholder="••••••••" autocomplete="new-password" required minlength="6" />
+          <small class="field-error"></small>
+        </label>
+        <button class="btn btn-primary btn-block" type="submit">
+          <span class="btn-label">Hesap Oluştur</span>
+          <span class="btn-spin" hidden><span class="spinner"></span></span>
+        </button>
+      </form>
+
+      <div class="auth-success" id="authSuccess" hidden>
+        <svg viewBox="0 0 52 52" class="check-circle">
+          <circle cx="26" cy="26" r="24" fill="none" />
+          <path fill="none" d="M14 27l8 8 16-16" />
+        </svg>
+        <p>Hoş geldin<span id="successName"></span>! Yönlendiriliyorsun…</p>
+      </div>
+
+      <p class="auth-note">
+        Bu demo bir giriş ekranıdır: girdiğin bilgiler yalnızca bu tarayıcıda (localStorage)
+        saklanır, hiçbir sunucuya gönderilmez.
+      </p>
+    </div>
+  </section>
+</main>
+
+<script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+<script src="js/three-bg.js"></script>
+<script src="js/main.js"></script>
+<script src="js/login.js"></script>
+</body>
+</html>
