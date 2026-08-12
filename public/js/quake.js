@@ -6,6 +6,8 @@
   let rawData = [];
   let knownIds = new Set();
   let firstLoad = true;
+  let lastQuakeCityPart = "—";
+  let lastQuakeDateStr = null;
 
   document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("year") && (document.getElementById("year").textContent = new Date().getFullYear());
@@ -13,7 +15,166 @@
     setupFilters();
     fetchQuakes();
     setInterval(fetchQuakes, REFRESH_MS);
+
+    initGlobe();
+    initTimeline();
+    startPulseTicker();
   });
+
+  // ---------------- canli nabiz: her saniye "X once" metnini tazeler ----------------
+  function startPulseTicker() {
+    setInterval(() => {
+      if (!lastQuakeDateStr) return;
+      const el = document.getElementById("statLastSub");
+      if (el) el.textContent = `${lastQuakeCityPart} · ${window.timeAgoTR(lastQuakeDateStr)}`;
+    }, 1000);
+  }
+
+  // ---------------- 3D deprem globu ----------------
+  function initGlobe() {
+    if (!window.QuakeGlobe) return;
+    const globe = window.QuakeGlobe.create("quakeGlobeCanvas");
+    if (!globe) return;
+    fetch("/api/quakes/history?days=7")
+      .then((r) => r.json())
+      .then((data) => {
+        const badge = document.getElementById("globeCount");
+        if (data.ok) {
+          globe.setQuakes(data.data);
+          badge.innerHTML = `<span class="live-blip"></span> ${data.count} deprem (7 gün)`;
+        } else {
+          badge.innerHTML = `<span class="live-blip"></span> veri alınamadı`;
+        }
+      })
+      .catch(() => {
+        document.getElementById("globeCount").innerHTML = `<span class="live-blip"></span> bağlantı hatası`;
+      });
+  }
+
+  // ---------------- zaman tuneli (son 30 gun replay) ----------------
+  function initTimeline() {
+    const sliderEl = document.getElementById("timelineSlider");
+    const playBtn = document.getElementById("timelinePlay");
+    const dateEl = document.getElementById("timelineDate");
+    const dayStatEl = document.getElementById("timelineDayStat");
+    const speedSel = document.getElementById("timelineSpeed");
+    const countBadge = document.getElementById("timelineCount");
+    if (!sliderEl) return;
+
+    const tMap = L.map("timelineMap", { scrollWheelZoom: true }).setView([39.0, 35.2], 5.4);
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+      attribution: "&copy; OpenStreetMap &copy; CARTO",
+      subdomains: "abcd",
+      maxZoom: 19,
+    }).addTo(tMap);
+    const tLayer = L.layerGroup().addTo(tMap);
+
+    let days = []; // [{key:"2026-08-01", label, quakes:[...]}] eskiden yeniye
+    let playing = false;
+    let playTimer = null;
+
+    fetch("/api/quakes/history?days=30")
+      .then((r) => r.json())
+      .then((data) => {
+        if (!data.ok) {
+          countBadge.innerHTML = `<span class="live-blip"></span> veri alınamadı`;
+          return;
+        }
+        days = buildDayBuckets(data.data, 30);
+        sliderEl.max = String(days.length - 1);
+        sliderEl.value = String(days.length - 1);
+        countBadge.innerHTML = `<span class="live-blip"></span> ${data.count} deprem (30 gün)`;
+        renderTimelineDay(parseInt(sliderEl.value, 10));
+      })
+      .catch(() => {
+        countBadge.innerHTML = `<span class="live-blip"></span> bağlantı hatası`;
+      });
+
+    function buildDayBuckets(list, n) {
+      const buckets = new Map();
+      const today = new Date();
+      for (let i = n - 1; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        const key = d.toISOString().slice(0, 10);
+        buckets.set(key, { key, quakes: [] });
+      }
+      list.forEach((q) => {
+        const key = (q.date || "").slice(0, 10);
+        if (buckets.has(key)) buckets.get(key).quakes.push(q);
+      });
+      return Array.from(buckets.values());
+    }
+
+    function magColorTimeline(mag) {
+      if (mag >= 5) return "#d03b3b";
+      if (mag >= 3.5) return "#eb6834";
+      if (mag >= 2) return "#f5a35c";
+      return "#ffd08a";
+    }
+
+    function renderTimelineDay(idx) {
+      if (!days.length) return;
+      idx = Math.max(0, Math.min(idx, days.length - 1));
+      const day = days[idx];
+      const d = new Date(day.key);
+      dateEl.textContent = d.toLocaleDateString("tr-TR", { day: "2-digit", month: "short" });
+
+      tLayer.clearLayers();
+      let cumMax = null;
+      let cumCount = 0;
+      for (let i = 0; i <= idx; i++) {
+        days[i].quakes.forEach((q) => {
+          cumCount++;
+          if (!cumMax || q.mag > cumMax.mag) cumMax = q;
+          const isToday = i === idx;
+          const size = isToday ? Math.max(8, Math.min(28, 6 + q.mag * 3.6)) : Math.max(5, Math.min(16, 4 + q.mag * 2));
+          const color = magColorTimeline(q.mag);
+          const marker = L.circleMarker([q.lat, q.lon], {
+            radius: size / 2,
+            color,
+            weight: isToday ? 2 : 0.5,
+            fillColor: color,
+            fillOpacity: isToday ? 0.9 : 0.35,
+          });
+          if (isToday) marker.bindTooltip(`M${q.mag.toFixed(1)} — ${q.title}`, { direction: "top" });
+          marker.addTo(tLayer);
+        });
+      }
+
+      const todayCount = day.quakes.length;
+      const todayMax = day.quakes.reduce((a, b) => (!a || b.mag > a.mag ? b : a), null);
+      dayStatEl.textContent = todayCount
+        ? `${d.toLocaleDateString("tr-TR", { day: "2-digit", month: "long" })}: ${todayCount} deprem, en büyüğü M${todayMax.mag.toFixed(1)} (${todayMax.title}). Birikimli toplam: ${cumCount} deprem.`
+        : `${d.toLocaleDateString("tr-TR", { day: "2-digit", month: "long" })}: bu gün deprem kaydı yok. Birikimli toplam: ${cumCount} deprem.`;
+    }
+
+    sliderEl.addEventListener("input", () => renderTimelineDay(parseInt(sliderEl.value, 10)));
+
+    playBtn.addEventListener("click", () => {
+      playing = !playing;
+      playBtn.textContent = playing ? "⏸ Duraklat" : "▶ Oynat";
+      if (playing) {
+        if (parseInt(sliderEl.value, 10) >= days.length - 1) sliderEl.value = "0";
+        stepPlay();
+      } else {
+        clearTimeout(playTimer);
+      }
+    });
+
+    function stepPlay() {
+      if (!playing) return;
+      let idx = parseInt(sliderEl.value, 10);
+      renderTimelineDay(idx);
+      if (idx >= days.length - 1) {
+        playing = false;
+        playBtn.textContent = "▶ Oynat";
+        return;
+      }
+      sliderEl.value = String(idx + 1);
+      playTimer = setTimeout(stepPlay, parseInt(speedSel.value, 10));
+    }
+  }
 
   function initMap() {
     map = L.map("quakeMap", { scrollWheelZoom: true }).setView([39.0, 35.2], 5.6);
@@ -185,7 +346,9 @@
     }
     const last = list[0];
     document.getElementById("statLast").textContent = `M${last.mag.toFixed(1)}`;
-    document.getElementById("statLastSub").textContent = `${last.closestCity || last.title} · ${window.timeAgoTR(last.date.replace(" ", "T"))}`;
+    lastQuakeCityPart = last.closestCity || last.title;
+    lastQuakeDateStr = last.date.replace(" ", "T");
+    document.getElementById("statLastSub").textContent = `${lastQuakeCityPart} · ${window.timeAgoTR(lastQuakeDateStr)}`;
 
     document.getElementById("statCount").textContent = list.length;
 

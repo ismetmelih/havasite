@@ -7,8 +7,102 @@
     setupReveal();
     setupUserState();
     setupThemeToggle();
+    setupEmergencyMode();
     markActiveLink();
   });
+
+  // ---------------- acil durum modu ----------------
+  function setupEmergencyMode() {
+    const fab = document.createElement("button");
+    fab.className = "emergency-fab";
+    fab.type = "button";
+    fab.id = "emergencyFab";
+    fab.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 2.6 17.2a1.7 1.7 0 0 0 1.5 2.6h15.8a1.7 1.7 0 0 0 1.5-2.6L13.7 3.9a1.7 1.7 0 0 0-3.4 0Z"/></svg>
+      ACİL`;
+    document.body.appendChild(fab);
+
+    const overlay = document.createElement("div");
+    overlay.className = "emergency-overlay";
+    overlay.id = "emergencyOverlay";
+    overlay.hidden = true;
+    overlay.innerHTML = `
+      <div class="emergency-panel" role="dialog" aria-modal="true">
+        <div class="emergency-head">
+          <h2>🚨 Acil Durum Modu</h2>
+          <button class="emergency-close" id="emergencyClose" type="button" aria-label="Kapat">✕</button>
+        </div>
+        <div class="em-grid">
+          <div class="em-card">
+            <span class="em-label">Son Deprem</span>
+            <div class="em-value" id="emQuake">Yükleniyor…</div>
+            <div class="em-sub" id="emQuakeSub"></div>
+          </div>
+          <div class="em-card">
+            <span class="em-label">Aktif Yangın Tespiti</span>
+            <div class="em-value" id="emFire">Yükleniyor…</div>
+            <div class="em-sub" id="emFireSub">son 24 saat</div>
+          </div>
+        </div>
+        <div class="em-numbers">
+          <div class="em-number"><div class="num">112</div><div class="lbl">Acil Çağrı Merkezi</div></div>
+          <div class="em-number"><div class="num">122</div><div class="lbl">AFAD İhbar Hattı</div></div>
+        </div>
+        <p class="em-note">
+          Bu ekran gayriresmî bir özet sunar; kendi verilerimizi doğrudan aramadan kontrol etmene yardımcı olur.
+          Resmî ve güncel yönlendirmeler için AFAD Deprem uygulamasını, 112'yi ve yetkili kurum duyurularını esas al.
+          Deprem sırasında/sonrasında "Çök-Kapan-Tutun" kuralını uygula; bina hasarlıysa dışarı çık ve toplanma alanına git.
+        </p>
+      </div>`;
+    document.body.appendChild(overlay);
+
+    function open() {
+      overlay.hidden = false;
+      loadEmergencyData();
+    }
+    function close() {
+      overlay.hidden = true;
+    }
+
+    fab.addEventListener("click", open);
+    document.getElementById("emergencyClose").addEventListener("click", close);
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) close();
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !overlay.hidden) close();
+    });
+
+    async function loadEmergencyData() {
+      try {
+        const r = await fetch("/api/quakes?limit=1");
+        const data = await r.json();
+        if (data.ok && data.data.length) {
+          const q = data.data[0];
+          document.getElementById("emQuake").textContent = `M${q.mag.toFixed(1)} — ${q.closestCity || q.title}`;
+          document.getElementById("emQuakeSub").textContent = window.timeAgoTR(q.date.replace(" ", "T"));
+        } else {
+          document.getElementById("emQuake").textContent = "veri yok";
+        }
+      } catch {
+        document.getElementById("emQuake").textContent = "bağlantı hatası";
+      }
+      try {
+        const r2 = await fetch("/api/fires?days=1");
+        const data2 = await r2.json();
+        if (data2.ok) {
+          document.getElementById("emFire").textContent = `${data2.count} nokta`;
+        } else if (data2.reason === "no_key") {
+          document.getElementById("emFire").textContent = "—";
+          document.getElementById("emFireSub").textContent = "anahtar tanımlı değil";
+        } else {
+          document.getElementById("emFire").textContent = "veri yok";
+        }
+      } catch {
+        document.getElementById("emFire").textContent = "bağlantı hatası";
+      }
+    }
+  }
 
   // ---------------- tema (acik/koyu) ----------------
   const THEME_KEY = "havasite_theme";

@@ -52,6 +52,7 @@
     <div class="settings-tabs">
       <button class="settings-tab active" data-tab="profil" type="button">👤 Profil</button>
       <button class="settings-tab" data-tab="gorunum" type="button">🎨 Görünüm</button>
+      <button class="settings-tab" data-tab="hazirlik" type="button">🎒 Hazırlık</button>
     </div>
 
     <section class="settings-panel active" id="panel-profil">
@@ -160,6 +161,30 @@
           Not: Ana sayfa ve giriş ekranındaki koyu, atmosferik 3D görünüm marka kimliği
           için her zaman korunur — seçtiğin tema site genelindeki panellerde geçerli olur.
         </p>
+      </div>
+    </section>
+
+    <section class="settings-panel" id="panel-hazirlik">
+      <div class="card profile-card">
+        <div class="checklist-head">
+          <div>
+            <h3 style="margin:0 0 4px">Deprem Çantası Kontrol Listesi</h3>
+            <p style="color:var(--text-secondary);margin:0">İşaretledikçe ilerlemen kaydedilir. Standart bir afet hazırlık listesidir.</p>
+          </div>
+          <div class="checklist-badge" id="checklistBadge">
+            <span class="cb-emoji" id="cbEmoji">🎒</span>
+            <span class="cb-text" id="cbText">Başlamadın</span>
+          </div>
+        </div>
+
+        <div class="checklist-progress">
+          <div class="checklist-progress-bar" id="checklistProgressBar" style="width:0%"></div>
+        </div>
+        <div class="checklist-progress-label"><span id="checklistPct">0</span>% tamamlandı (<span id="checklistDone">0</span>/<span id="checklistTotal">0</span>)</div>
+
+        <div id="checklistGroups"></div>
+
+        <button class="btn btn-ghost btn-sm" id="checklistReset" type="button" style="margin-top:10px">Listeyi sıfırla</button>
       </div>
     </section>
 

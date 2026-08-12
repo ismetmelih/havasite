@@ -24,7 +24,63 @@
 
     fetchFires();
     setInterval(fetchFires, REFRESH_MS);
+
+    loadFireRiskIndex();
+    setInterval(loadFireRiskIndex, 20 * 60000);
   });
+
+  // ---------------- basit yangin riski endeksi (sezgisel, gayriresmi) ----------------
+  const RISK_CITIES = [
+    { name: "Muğla", lat: 37.2153, lon: 28.3636 },
+    { name: "Antalya", lat: 36.8969, lon: 30.7133 },
+    { name: "İzmir", lat: 38.4237, lon: 27.1428 },
+    { name: "Çanakkale", lat: 40.1553, lon: 26.4142 },
+  ];
+
+  function clamp01(v) {
+    return Math.max(0, Math.min(1, v));
+  }
+
+  async function loadFireRiskIndex() {
+    const lats = RISK_CITIES.map((c) => c.lat).join(",");
+    const lons = RISK_CITIES.map((c) => c.lon).join(",");
+    try {
+      const r = await fetch(
+        `https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}&current=temperature_2m,relative_humidity_2m,wind_speed_10m&timezone=Europe%2FIstanbul`
+      );
+      const data = await r.json();
+      const arr = Array.isArray(data) ? data : [data];
+
+      let totalScore = 0;
+      const chipsHtml = arr
+        .map((d, i) => {
+          const c = RISK_CITIES[i];
+          const t = d.current.temperature_2m;
+          const h = d.current.relative_humidity_2m;
+          const w = d.current.wind_speed_10m;
+          const score = clamp01((t - 15) / 25) * 0.4 + clamp01((60 - h) / 60) * 0.4 + clamp01(w / 40) * 0.2;
+          totalScore += score;
+          return `<span class="risk-city-chip"><strong>${window.escapeHtml(c.name)}</strong> ${Math.round(t)}°C · %${Math.round(h)} nem · ${Math.round(w)} km/s</span>`;
+        })
+        .join("");
+
+      const avg = totalScore / RISK_CITIES.length;
+      let level, cls, label;
+      if (avg < 0.35) { level = "Düşük"; cls = "risk-good"; label = "🟢"; }
+      else if (avg < 0.55) { level = "Orta"; cls = "risk-warning"; label = "🟡"; }
+      else if (avg < 0.75) { level = "Yüksek"; cls = "risk-serious"; label = "🟠"; }
+      else { level = "Çok Yüksek"; cls = "risk-critical"; label = "🔴"; }
+
+      const levelEl = document.getElementById("riskLevel");
+      levelEl.textContent = `${label} ${level}`;
+      levelEl.className = `risk-level ${cls}`;
+      document.getElementById("riskDesc").textContent =
+        `Ege ve Akdeniz'deki 4 temsili il (Muğla, Antalya, İzmir, Çanakkale) için sıcaklık, nem ve rüzgâr ortalamasına göre tahmini risk seviyesi: ${level.toLowerCase()}.`;
+      document.getElementById("riskCities").innerHTML = chipsHtml;
+    } catch {
+      document.getElementById("riskLevel").textContent = "veri alınamadı";
+    }
+  }
 
   function initMap() {
     map = L.map("fireMap", { scrollWheelZoom: true }).setView([39.0, 35.2], 5.6);

@@ -54,6 +54,19 @@
 
 <main class="container">
 
+  <section class="quake-globe-section reveal">
+    <div class="quake-globe-head">
+      <div>
+        <h3>🌐 Son 7 günün depremleri — 3D görünüm</h3>
+        <p class="field-hint">Büyüklüğe göre renklenip titreşerek beliren noktalar. Fareyle sürükleyip çevirebilirsin.</p>
+      </div>
+      <span class="badge badge-live" id="globeCount"><span class="live-blip"></span> yükleniyor…</span>
+    </div>
+    <div class="quake-globe-box">
+      <canvas id="quakeGlobeCanvas"></canvas>
+    </div>
+  </section>
+
   <div class="stat-tiles reveal">
     <div class="stat-tile">
       <span class="stat-label">Son Deprem</span>
@@ -119,6 +132,30 @@
     </aside>
   </div>
 
+  <section class="timeline-section reveal">
+    <div class="map-head">
+      <div>
+        <h3>⏱ Zaman tüneli — son 30 gün</h3>
+        <p class="field-hint">Oynat'a bas, depremlerin zamanla nasıl yayıldığını izle. Noktalar o güne kadar birikerek kalır.</p>
+      </div>
+      <span class="badge badge-live" id="timelineCount"><span class="live-blip"></span> yükleniyor…</span>
+    </div>
+
+    <div class="map-box" id="timelineMap" style="height:420px;"></div>
+
+    <div class="timeline-controls">
+      <button class="btn btn-primary btn-sm" id="timelinePlay" type="button">▶ Oynat</button>
+      <input type="range" id="timelineSlider" min="0" max="29" value="29" step="1" />
+      <div class="timeline-date" id="timelineDate">—</div>
+      <select id="timelineSpeed" class="filter-select">
+        <option value="900">Yavaş</option>
+        <option value="450" selected>Normal</option>
+        <option value="180">Hızlı</option>
+      </select>
+    </div>
+    <div class="timeline-daystat" id="timelineDayStat">Gün seçildiğinde o güne ait özet burada görünecek.</div>
+  </section>
+
 </main>
 
 <footer class="site-footer">
@@ -129,8 +166,10 @@
 </footer>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
 <script src="js/cities.js"></script>
 <script src="js/main.js"></script>
+<script src="js/quake-globe.js"></script>
 <script src="js/quake.js"></script>
 </body>
 </html>

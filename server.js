@@ -80,20 +80,74 @@ async function handleQuakes(req, res, query) {
     const r = await fetchWithTimeout(upstream);
     if (!r.ok) throw new Error(`upstream ${r.status}`);
     const data = await r.json();
-    const result = (data.result || []).map((q) => ({
-      id: q.earthquake_id,
-      title: q.title,
-      mag: q.mag,
-      depth: q.depth,
-      date: q.date_time,
-      lat: q.geojson?.coordinates?.[1] ?? null,
-      lon: q.geojson?.coordinates?.[0] ?? null,
-      closestCity: q.location_properties?.closestCity?.name || null,
-      epiCenter: q.location_properties?.epiCenter?.name || null,
-    })).filter((q) => q.lat !== null && q.lon !== null);
+    const result = (data.result || []).map(normalizeQuake).filter((q) => q.lat !== null && q.lon !== null);
 
     const payload = { ok: true, updated: new Date().toISOString(), count: result.length, data: result };
     setCache(cacheKey, payload, 25000); // 25 sn
+    sendJson(res, 200, payload);
+  } catch (err) {
+    sendJson(res, 200, { ok: false, reason: "fetch_failed", detail: String(err.message || err), data: [] });
+  }
+}
+
+function normalizeQuake(q) {
+  return {
+    id: q.earthquake_id,
+    title: q.title,
+    mag: q.mag,
+    depth: q.depth,
+    date: q.date_time,
+    lat: q.geojson?.coordinates?.[1] ?? null,
+    lon: q.geojson?.coordinates?.[0] ?? null,
+    closestCity: q.location_properties?.closestCity?.name || null,
+    epiCenter: q.location_properties?.epiCenter?.name || null,
+  };
+}
+
+function ymd(d) {
+  return d.toISOString().slice(0, 10);
+}
+
+async function fetchDayArchive(dateStr) {
+  const upstream = `https://api.orhanaydogdu.com.tr/deprem/kandilli/archive?date=${dateStr}&date_end=${dateStr}&limit=200`;
+  const r = await fetchWithTimeout(upstream, {}, 15000);
+  if (!r.ok) return [];
+  const data = await r.json();
+  return (data.result || []).map(normalizeQuake).filter((q) => q.lat !== null && q.lon !== null);
+}
+
+// ---------- /api/quakes/history ----------
+// Son N gunun deprem arsivini gun gun cekip birlestirir (zaman tuneli / 3D glob icin).
+async function handleQuakeHistory(req, res, query) {
+  const days = Math.min(Math.max(parseInt(query.days, 10) || 30, 1), 30);
+  const cacheKey = `quake-history:${days}`;
+  const cached = getCache(cacheKey);
+  if (cached) return sendJson(res, 200, cached);
+
+  const today = new Date();
+  const dateList = [];
+  for (let i = 0; i < days; i++) {
+    const d = new Date(today);
+    d.setUTCDate(d.getUTCDate() - i);
+    dateList.push(ymd(d));
+  }
+
+  try {
+    // upstream'i bogmamak icin 5'erli gruplar halinde paralel cek
+    const all = [];
+    const CONCURRENCY = 5;
+    for (let i = 0; i < dateList.length; i += CONCURRENCY) {
+      const batch = dateList.slice(i, i + CONCURRENCY);
+      const results = await Promise.all(batch.map((d) => fetchDayArchive(d).catch(() => [])));
+      results.forEach((dayResult) => all.push(...dayResult));
+    }
+    // ayni depremler farkli gunlerde tekrar gelmesin diye id'ye gore tekillestir
+    const seen = new Map();
+    all.forEach((q) => seen.set(q.id, q));
+    const merged = Array.from(seen.values()).sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    const payload = { ok: true, updated: new Date().toISOString(), days, count: merged.length, data: merged };
+    setCache(cacheKey, payload, 20 * 60 * 1000); // 20 dk (arsiv verisi sik degismez)
     sendJson(res, 200, payload);
   } catch (err) {
     sendJson(res, 200, { ok: false, reason: "fetch_failed", detail: String(err.message || err), data: [] });
@@ -205,6 +259,7 @@ const server = http.createServer((req, res) => {
   const pathname = parsed.pathname;
 
   if (pathname === "/api/quakes") return handleQuakes(req, res, parsed.query);
+  if (pathname === "/api/quakes/history") return handleQuakeHistory(req, res, parsed.query);
   if (pathname === "/api/fires") return handleFires(req, res, parsed.query);
   if (pathname === "/api/reload-config") {
     loadConfig();

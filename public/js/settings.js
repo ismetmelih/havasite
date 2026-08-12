@@ -7,6 +7,7 @@
     setupThemeOptions();
     fillCitySelects();
     setupProfile();
+    setupChecklist();
   });
 
   function setupTabs() {
@@ -103,5 +104,137 @@
         window.showToast("Tercihler kaydedildi ✓", { accent: "var(--status-good)" });
       });
     }
+  }
+
+  // ---------------- deprem cantasi checklist + rozet ----------------
+  const CHECKLIST_KEY = "havasite_checklist";
+  const CHECKLIST_DATA = [
+    {
+      group: "Su & Gıda",
+      items: [
+        { id: "su", label: "Su (kişi başı en az 3 litre)" },
+        { id: "kuru-gida", label: "Kuru gıda / enerji bar" },
+        { id: "konserve", label: "Konserve açacaklı gıda" },
+      ],
+    },
+    {
+      group: "Sağlık",
+      items: [
+        { id: "ilk-yardim", label: "İlk yardım çantası" },
+        { id: "ilaclar", label: "Sürekli kullanılan ilaçlar" },
+        { id: "maske", label: "Toz maskesi" },
+        { id: "islak-mendil", label: "Islak mendil / hijyen malzemesi" },
+      ],
+    },
+    {
+      group: "Aydınlatma & İletişim",
+      items: [
+        { id: "fener", label: "El feneri + yedek pil" },
+        { id: "powerbank", label: "Powerbank / şarj kablosu" },
+        { id: "duduk", label: "Düdük" },
+        { id: "pilli-radyo", label: "Pilli radyo" },
+      ],
+    },
+    {
+      group: "Belgeler & Nakit",
+      items: [
+        { id: "kimlik-fotokopi", label: "Kimlik / tapu fotokopileri" },
+        { id: "nakit", label: "Nakit para" },
+        { id: "bulusma-noktasi", label: "Aile buluşma noktası notu" },
+      ],
+    },
+    {
+      group: "Giyim & Barınma",
+      items: [
+        { id: "yedek-kiyafet", label: "Yedek kıyafet" },
+        { id: "battaniye", label: "Battaniye / ısı örtüsü" },
+        { id: "cakmak", label: "Çakmak / kibrit" },
+      ],
+    },
+  ];
+
+  function getChecklistState() {
+    try {
+      return JSON.parse(localStorage.getItem(CHECKLIST_KEY) || "{}");
+    } catch {
+      return {};
+    }
+  }
+  function setChecklistState(state) {
+    localStorage.setItem(CHECKLIST_KEY, JSON.stringify(state));
+  }
+
+  function setupChecklist() {
+    const wrap = document.getElementById("checklistGroups");
+    if (!wrap) return;
+    let state = getChecklistState();
+
+    const totalItems = CHECKLIST_DATA.reduce((s, g) => s + g.items.length, 0);
+    document.getElementById("checklistTotal").textContent = totalItems;
+
+    wrap.innerHTML = CHECKLIST_DATA.map(
+      (g) => `
+      <div class="checklist-group">
+        <h4>${window.escapeHtml(g.group)}</h4>
+        <div class="checklist-items">
+          ${g.items
+            .map(
+              (it) => `
+            <label class="checklist-item ${state[it.id] ? "checked" : ""}" data-id="${it.id}">
+              <input type="checkbox" ${state[it.id] ? "checked" : ""} />
+              <span>${window.escapeHtml(it.label)}</span>
+            </label>`
+            )
+            .join("")}
+        </div>
+      </div>`
+    ).join("");
+
+    wrap.querySelectorAll(".checklist-item input").forEach((input) => {
+      input.addEventListener("change", () => {
+        const row = input.closest(".checklist-item");
+        const id = row.dataset.id;
+        state[id] = input.checked;
+        setChecklistState(state);
+        row.classList.toggle("checked", input.checked);
+        updateProgress();
+      });
+    });
+
+    document.getElementById("checklistReset").addEventListener("click", () => {
+      state = {};
+      setChecklistState(state);
+      wrap.querySelectorAll(".checklist-item").forEach((row) => {
+        row.classList.remove("checked");
+        row.querySelector("input").checked = false;
+      });
+      updateProgress();
+      window.showToast("Liste sıfırlandı.");
+    });
+
+    function updateProgress() {
+      const done = CHECKLIST_DATA.reduce(
+        (s, g) => s + g.items.filter((it) => state[it.id]).length,
+        0
+      );
+      const pct = totalItems ? Math.round((done / totalItems) * 100) : 0;
+      document.getElementById("checklistDone").textContent = done;
+      document.getElementById("checklistPct").textContent = pct;
+      document.getElementById("checklistProgressBar").style.width = `${pct}%`;
+
+      const badge = document.getElementById("checklistBadge");
+      const emojiEl = document.getElementById("cbEmoji");
+      const textEl = document.getElementById("cbText");
+      let emoji = "🎒", text = "Başlamadın", complete = false;
+      if (pct === 100) { emoji = "🏆"; text = "Hazırım!"; complete = true; }
+      else if (pct >= 67) { emoji = "🥇"; text = "Neredeyse hazır"; }
+      else if (pct >= 34) { emoji = "🥈"; text = "Yarı yolda"; }
+      else if (pct >= 1) { emoji = "🥉"; text = "İlk adım"; }
+      emojiEl.textContent = emoji;
+      textEl.textContent = text;
+      badge.classList.toggle("cb-complete", complete);
+    }
+
+    updateProgress();
   }
 })();
