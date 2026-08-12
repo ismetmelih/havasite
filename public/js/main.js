@@ -137,11 +137,14 @@
     const user = getUser();
     if (user) {
       slot.innerHTML = `
-        <span class="user-chip">
+        <a class="user-chip" href="ayarlar.html" title="Profil ve ayarlar">
           <span class="user-avatar">${escapeHtml((user.name || "?").slice(0, 1).toUpperCase())}</span>
           <span class="label">${escapeHtml(user.name || user.email || "Kullanıcı")}</span>
-        </span>
-        <button class="btn btn-ghost btn-sm" id="logoutBtn" type="button">Çıkış</button>
+        </a>
+        <button class="logout-btn" id="logoutBtn" type="button" title="Çıkış yap">
+          <span class="label">Çıkış</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+        </button>
       `;
       document.getElementById("logoutBtn").addEventListener("click", () => window.HavaAuth.logout());
     } else {

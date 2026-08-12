@@ -26,7 +26,7 @@
   --c-quake: #eb6834;
   --c-quake-2: #f5a35c;
   --c-fire: #e34948;
-  --c-fire-2: #ff8a3d;
+  --c-fire-2: #ff6b5c;
 
   /* durum renkleri (sabit) */
   --status-good: #0ca30c;
@@ -96,7 +96,7 @@
   --c-weather-2: #6da7ec;
   --c-weather-glow: #38bdf8;
   --c-quake-2: #f5a35c;
-  --c-fire-2: #ff8a3d;
+  --c-fire-2: #ff6b5c;
   --shadow-soft: 0 10px 40px rgba(0, 0, 0, 0.45);
 }
 
@@ -218,12 +218,13 @@ input {
   font-size: 0.92rem;
   font-weight: 600;
   color: var(--text-secondary);
-  transition: color 0.2s ease, background 0.2s ease;
+  transition: color 0.25s ease, background 0.25s ease, transform 0.2s ease;
 }
 
 .nav-links a:hover {
   color: var(--text-primary);
   background: var(--surface-2);
+  transform: translateY(-1px);
 }
 
 .nav-links a.active {
@@ -231,30 +232,86 @@ input {
   background: var(--surface-2);
 }
 
-.nav-links a.active::after {
+/* alttan yukari acilan, kategori rengine gore boyanan animasyonlu cizgi */
+.nav-links a::after {
   content: "";
   position: absolute;
   left: 16px;
   right: 16px;
-  bottom: 3px;
+  bottom: 4px;
   height: 2px;
   border-radius: 2px;
   background: currentColor;
+  transform: scaleX(0);
+  opacity: 0;
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.3, 1), opacity 0.3s ease;
+}
+.nav-links a:hover::after,
+.nav-links a.active::after {
+  transform: scaleX(1);
+  opacity: 1;
+}
+
+/* her kategori linki, kendi marka rengine gore boyanir */
+.nav-links a[data-page="hava.html"]:hover,
+.nav-links a[data-page="hava.html"].active {
+  color: var(--c-weather-glow);
+  background: rgba(42, 120, 214, 0.12);
+}
+.nav-links a[data-page="deprem.html"]:hover,
+.nav-links a[data-page="deprem.html"].active {
+  color: var(--c-quake-2);
+  background: rgba(235, 104, 52, 0.12);
+}
+.nav-links a[data-page="yangin.html"]:hover,
+.nav-links a[data-page="yangin.html"].active {
+  color: var(--c-fire-2);
+  background: rgba(227, 73, 72, 0.12);
+}
+/* ana sayfa: uc kategoriyi de temsil eden gecisli metin rengi */
+.nav-links a[data-page="index.html"]:hover,
+.nav-links a[data-page="index.html"].active {
+  background: var(--surface-2);
+  background-image: linear-gradient(90deg, var(--c-weather-glow), var(--c-quake-2), var(--c-fire-2));
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: nav-home-grad 3s ease infinite;
+}
+@keyframes nav-home-grad {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+.nav-links a[data-page="index.html"]:hover::after,
+.nav-links a[data-page="index.html"].active::after {
+  background: linear-gradient(90deg, var(--c-weather-glow), var(--c-quake-2), var(--c-fire-2));
+}
+
+/* tema+ayarlar+profil, tek bir hesap kumesi olarak gruplanir */
+.nav-account {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 6px;
+  padding: 5px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--border);
 }
 
 .nav-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-left: 6px;
+  gap: 6px;
 }
 
 .icon-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   border: 1px solid var(--border);
   background: var(--surface-2);
@@ -265,7 +322,7 @@ input {
 .icon-btn:hover {
   background: var(--surface-hover);
   color: var(--text-primary);
-  transform: translateY(-1px);
+  transform: translateY(-1px) scale(1.05);
 }
 .icon-btn svg {
   width: 18px;
@@ -277,23 +334,38 @@ input {
 .icon-btn:active .theme-icon {
   transform: rotate(25deg) scale(0.9);
 }
+/* ayarlar (dislicark) ikonu, hover'da yavasca doner */
+.icon-btn.icon-settings svg {
+  transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+.icon-btn.icon-settings:hover svg {
+  transform: rotate(75deg);
+}
 
 .nav-user {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .user-chip {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 5px 12px 5px 5px;
+  padding: 5px 14px 5px 5px;
   border-radius: 999px;
   background: var(--surface-2);
   border: 1px solid var(--border);
   font-size: 0.85rem;
   font-weight: 700;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+.user-chip:hover {
+  background: var(--surface-hover);
+  border-color: var(--c-weather);
+  transform: translateY(-1px);
 }
 .user-avatar {
   width: 26px;
@@ -307,6 +379,43 @@ input {
   color: #06101c;
   background: linear-gradient(135deg, var(--c-weather-glow), var(--c-quake-2));
   flex-shrink: 0;
+  transition: transform 0.3s ease;
+  animation: avatar-pop 0.4s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+.user-chip:hover .user-avatar {
+  transform: rotate(-8deg) scale(1.08);
+}
+@keyframes avatar-pop {
+  from { transform: scale(0.5); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.logout-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(227, 73, 72, 0.3);
+  background: rgba(227, 73, 72, 0.08);
+  color: var(--c-fire-2);
+  font-weight: 700;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+}
+.logout-btn:hover {
+  background: rgba(227, 73, 72, 0.18);
+  border-color: rgba(227, 73, 72, 0.55);
+  transform: translateY(-1px);
+}
+.logout-btn svg {
+  width: 15px;
+  height: 15px;
+  transition: transform 0.25s ease;
+}
+.logout-btn:hover svg {
+  transform: translateX(2px);
 }
 
 .btn {
@@ -973,5 +1082,19 @@ select.filter-select {
   }
   .nav-user .btn span.label {
     display: none;
+  }
+  .nav-account {
+    gap: 4px;
+    padding: 4px;
+  }
+  .user-chip .label,
+  .logout-btn .label {
+    display: none;
+  }
+  .user-chip {
+    padding: 3px;
+  }
+  .logout-btn {
+    padding: 8px;
   }
 }

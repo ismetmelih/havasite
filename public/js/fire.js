@@ -27,7 +27,7 @@
   });
 
   function initMap() {
-    map = L.map("fireMap", { scrollWheelZoom: false }).setView([39.0, 35.2], 5.6);
+    map = L.map("fireMap", { scrollWheelZoom: true }).setView([39.0, 35.2], 5.6);
     L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
       attribution: "&copy; OpenStreetMap &copy; CARTO",
       subdomains: "abcd",

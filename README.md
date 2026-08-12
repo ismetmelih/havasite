@@ -24,7 +24,7 @@ otomatik yüklenir; internet bağlantısı gerekir.
 |---|---|
 | `index.html` | Ana sayfa — 3D animasyonlu hero, canlı özet şerit, 3 kategori kartı |
 | `login.html` | Animasyonlu/3D giriş-kayıt ekranı (bkz. aşağıdaki not) |
-| `hava.html` | Anlık hava durumu, saatlik/7 günlük tahmin, 30 şehirlik sıcaklık haritası |
+| `hava.html` | Anlık hava durumu, saatlik/7 günlük tahmin, 81 illik sıcaklık haritası |
 | `deprem.html` | Canlı deprem haritası, filtreler, son depremler listesi |
 | `yangin.html` | NASA FIRMS uydu verisiyle canlı yangın/aktif ateş haritası |
 
