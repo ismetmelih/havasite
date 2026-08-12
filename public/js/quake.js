@@ -73,7 +73,8 @@
         document.getElementById("lastUpdated").textContent = "Veri alınamadı, tekrar denenecek…";
         return;
       }
-      const newOnes = firstLoad ? [] : data.data.filter((q) => !knownIds.has(q.id) && q.mag >= 3.5);
+      const alertMag = (window.HavaPrefs && window.HavaPrefs.get().quakeAlertMag) || 3.5;
+      const newOnes = firstLoad ? [] : data.data.filter((q) => !knownIds.has(q.id) && q.mag >= alertMag);
       rawData = data.data;
       knownIds = new Set(rawData.map((q) => q.id));
       firstLoad = false;

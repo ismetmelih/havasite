@@ -1,4 +1,4 @@
-.quake-body { background: radial-gradient(ellipse at 85% 0%, #211508 0%, var(--bg) 55%); }
+.quake-body { background: radial-gradient(ellipse at 85% 0%, var(--ambient-quake) 0%, var(--bg) 55%); }
 
 #magRange { width: 130px; }
 #magRangeVal { font-weight: 700; min-width: 34px; display: inline-block; }

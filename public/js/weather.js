@@ -13,7 +13,13 @@
     document.getElementById("year") && (document.getElementById("year").textContent = new Date().getFullYear());
 
     const saved = safeGetJson("havasite_last_city");
-    if (saved && saved.lat && saved.lon) currentLoc = saved;
+    if (saved && saved.lat && saved.lon) {
+      currentLoc = saved;
+    } else if (window.HavaPrefs) {
+      const favName = window.HavaPrefs.get().favoriteCity;
+      const fav = favName && window.TR_CITIES.find((c) => c.name === favName);
+      if (fav) currentLoc = { name: fav.name, lat: fav.lat, lon: fav.lon };
+    }
 
     loadWeatherFor(currentLoc, false);
     initMap();

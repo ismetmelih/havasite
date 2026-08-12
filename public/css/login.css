@@ -1,8 +1,11 @@
 .login-body {
-  background: radial-gradient(ellipse at 70% 10%, #131c2b 0%, var(--bg) 55%);
+  /* giris sayfasi temadan bagimsiz her zaman koyu oldugundan sabit renk kullanilir */
+  background: radial-gradient(ellipse at 70% 10%, #131c2b 0%, #090c11 55%);
 }
 
 .auth-shell {
+  /* hero ile ayni neden: yerel --text-primary'nin miras yoluyla gecerli olmasi icin */
+  color: var(--text-primary);
   position: relative;
   min-height: 100vh;
   display: grid;
@@ -120,42 +123,6 @@
 .auth-tab-indicator.to-register { transform: translateX(100%); }
 
 .auth-form { display: flex; flex-direction: column; gap: 16px; }
-.field { display: flex; flex-direction: column; gap: 6px; font-size: 0.85rem; color: var(--text-secondary); }
-.field input {
-  padding: 12px 14px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-  background: var(--bg-alt);
-  color: var(--text-primary);
-  font-size: 0.95rem;
-  outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-.field input:focus {
-  border-color: var(--c-weather);
-  box-shadow: 0 0 0 3px rgba(42, 120, 214, 0.22);
-}
-.field input.invalid {
-  border-color: var(--status-critical);
-}
-.field-error {
-  min-height: 14px;
-  color: #ff8a8a;
-  font-size: 0.76rem;
-}
-
-.field-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 0.83rem;
-  color: var(--text-secondary);
-}
-.checkbox { display: flex; align-items: center; gap: 7px; }
-.link-muted { color: var(--text-muted); text-decoration: underline; }
-.link-muted:hover { color: var(--text-secondary); }
-
-.btn-block { width: 100%; padding: 13px; font-size: 0.96rem; }
 .btn-spin .spinner { width: 16px; height: 16px; border-width: 2px; }
 
 .auth-success {

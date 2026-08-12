@@ -1,5 +1,9 @@
 /* ================= Hero ================= */
 .hero {
+  /* [data-theme] ozel degiskenlerini bu blokta yeniden tanimlar (her zaman koyu);
+     asagidaki 'color' bildirimi, ust govdeden (acik temada siyah) miras kalan
+     rengi kirar ki alttaki basliklar/degerler kendi yerel --text-primary'sini kullansin. */
+  color: var(--text-primary);
   position: relative;
   min-height: 100vh;
   display: flex;

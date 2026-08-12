@@ -1,4 +1,4 @@
-.weather-body { background: radial-gradient(ellipse at 15% 0%, #0f1c2c 0%, var(--bg) 55%); }
+.weather-body { background: radial-gradient(ellipse at 15% 0%, var(--ambient-weather) 0%, var(--bg) 55%); }
 
 .search-wrap { display: flex; align-items: center; gap: 10px; }
 .search-box { position: relative; }

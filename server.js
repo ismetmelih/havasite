@@ -136,10 +136,11 @@ async function handleFires(req, res, query) {
   if (cached) return sendJson(res, 200, cached);
 
   try {
-    // TUR = Turkiye ulke kodu. Dogru host: firms.modaps.eosdis.nasa.gov
-    // (eski firms.modis.gov adresi artik cozulmuyor / kapatildi)
-    // Ulke koduyla sorgu icin dogru yol 'country', 'area' degil.
-    const upstream = `https://firms.modaps.eosdis.nasa.gov/api/country/csv/${key}/${source}/TUR/${days}`;
+    // Dogru host: firms.modaps.eosdis.nasa.gov (eski firms.modis.gov artik cozulmuyor / kapatildi).
+    // 'country/csv/.../TUR/...' bu sunucuda "Invalid API call" donuyor; bunun yerine
+    // Turkiye'yi kapsayan bir bounding box (west,south,east,north) ile 'area/csv' kullaniyoruz.
+    const TURKEY_BBOX = "25.5,35.5,45,42.5";
+    const upstream = `https://firms.modaps.eosdis.nasa.gov/api/area/csv/${key}/${source}/${TURKEY_BBOX}/${days}`;
     const r = await fetchWithTimeout(upstream, {}, 20000);
     const text = await r.text();
     if (!r.ok) throw new Error(`upstream ${r.status}: ${text.slice(0, 200)}`);

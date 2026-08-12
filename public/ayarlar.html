@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<script>(function(){try{if(localStorage.getItem('havasite_theme')==='light')document.documentElement.setAttribute('data-theme','light');}catch(e){}})();</script>
+<title>Ayarlar — TürkiyeCanlı</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🇹🇷</text></svg>" />
+<link rel="stylesheet" href="css/base.css" />
+<link rel="stylesheet" href="css/settings.css" />
+</head>
+<body>
+
+<nav class="site-nav">
+  <a class="brand" href="index.html"><span class="dot"></span> Türkiye<span class="text-quake">Canlı</span></a>
+  <button class="hamburger" aria-label="Menü"><span></span><span></span><span></span></button>
+  <div class="nav-links">
+    <a href="index.html" data-page="index.html">Ana Sayfa</a>
+    <a href="hava.html" data-page="hava.html">Hava Durumu</a>
+    <a href="deprem.html" data-page="deprem.html">Depremler</a>
+    <a href="yangin.html" data-page="yangin.html">Yangınlar</a>
+  </div>
+  <div class="nav-actions">
+    <button class="icon-btn" id="themeToggle" type="button" aria-label="Açık/Koyu tema" title="Açık/Koyu tema"><span data-theme-icon></span></button>
+    <a class="icon-btn" href="ayarlar.html" aria-label="Ayarlar" title="Ayarlar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 13a7.4 7.4 0 0 0 .1-2l1.9-1.5-2-3.5-2.3.9a7.6 7.6 0 0 0-1.7-1L15 3.5h-4l-.4 2.4a7.6 7.6 0 0 0-1.7 1l-2.3-.9-2 3.5L6.5 11a7.4 7.4 0 0 0 0 2l-1.9 1.5 2 3.5 2.3-.9a7.6 7.6 0 0 0 1.7 1l.4 2.4h4l.4-2.4a7.6 7.6 0 0 0 1.7-1l2.3.9 2-3.5-1.9-1.5Z"/></svg>
+    </a>
+  </div>
+  <div class="nav-user" id="navUser"></div>
+</nav>
+
+<header class="page-head">
+  <div class="container page-head-row">
+    <div class="page-head-title">
+      <div class="page-icon icon-settings-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 13a7.4 7.4 0 0 0 .1-2l1.9-1.5-2-3.5-2.3.9a7.6 7.6 0 0 0-1.7-1L15 3.5h-4l-.4 2.4a7.6 7.6 0 0 0-1.7 1l-2.3-.9-2 3.5L6.5 11a7.4 7.4 0 0 0 0 2l-1.9 1.5 2 3.5 2.3-.9a7.6 7.6 0 0 0 1.7 1l.4 2.4h4l.4-2.4a7.6 7.6 0 0 0 1.7-1l2.3.9 2-3.5-1.9-1.5Z"/></svg>
+      </div>
+      <div>
+        <span class="eyebrow">AYARLAR</span>
+        <h1>Profilini ve görünümünü özelleştir</h1>
+        <p class="page-sub">Tercihlerin yalnızca bu tarayıcıda saklanır.</p>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <div class="settings-shell reveal">
+
+    <div class="settings-tabs">
+      <button class="settings-tab active" data-tab="profil" type="button">👤 Profil</button>
+      <button class="settings-tab" data-tab="gorunum" type="button">🎨 Görünüm</button>
+    </div>
+
+    <section class="settings-panel active" id="panel-profil">
+      <div class="card profile-card">
+
+        <div id="profileLoggedIn" hidden>
+          <div class="profile-header">
+            <div class="profile-avatar-lg" id="profileAvatar">?</div>
+            <div>
+              <div id="profileNameDisplay" style="font-weight:800;font-size:1.1rem"></div>
+              <div id="profileEmailDisplay" style="color:var(--text-muted);font-size:0.86rem"></div>
+            </div>
+          </div>
+
+          <form id="profileForm" class="auth-form">
+            <label class="field">
+              <span>Görünen ad</span>
+              <input type="text" name="name" id="fName" minlength="2" required />
+              <small class="field-error"></small>
+            </label>
+            <label class="field">
+              <span>E-posta</span>
+              <input type="email" id="fEmail" disabled />
+              <span class="field-hint">E-posta demo hesabında değiştirilemez.</span>
+            </label>
+
+            <label class="field">
+              <span>Favori şehir</span>
+              <select id="fCity"><option value="">Seçilmedi</option></select>
+              <span class="field-hint">Hava Durumu sayfası ilk açılışta bu şehri gösterir.</span>
+            </label>
+
+            <label class="field">
+              <span>Deprem bildirim eşiği: <strong id="fMagVal">3.5</strong>+</span>
+              <input type="range" id="fMag" min="2.5" max="6" step="0.5" value="3.5" />
+              <span class="field-hint">Deprem sayfasında bu büyüklük ve üzerindeki yeni depremlerde bildirim gösterilir.</span>
+            </label>
+
+            <button class="btn btn-primary btn-block" type="submit">Kaydet</button>
+          </form>
+        </div>
+
+        <div id="profileGuest" class="profile-guest" hidden>
+          <span style="font-size:2rem">🔒</span>
+          <h3>Profilini özelleştirmek için giriş yap</h3>
+          <p style="color:var(--text-secondary);max-width:420px;margin:0 auto 20px">
+            Görünen adını ve avatarını ayarlamak için hesabına giriş yapmalısın.
+            Favori şehir ve deprem uyarı eşiğini giriş yapmadan da aşağıdan ayarlayabilirsin.
+          </p>
+          <a class="btn btn-primary" href="login.html">Giriş Yap →</a>
+
+          <form id="guestPrefsForm" class="auth-form" style="max-width:360px;margin:26px auto 0;text-align:left">
+            <label class="field">
+              <span>Favori şehir</span>
+              <select id="fCityGuest"><option value="">Seçilmedi</option></select>
+            </label>
+            <label class="field">
+              <span>Deprem bildirim eşiği: <strong id="fMagValGuest">3.5</strong>+</span>
+              <input type="range" id="fMagGuest" min="2.5" max="6" step="0.5" value="3.5" />
+            </label>
+            <button class="btn btn-primary btn-block" type="submit">Kaydet</button>
+          </form>
+        </div>
+
+      </div>
+    </section>
+
+    <section class="settings-panel" id="panel-gorunum">
+      <div class="card profile-card">
+        <h3 style="margin-top:0">Tema</h3>
+        <p style="color:var(--text-secondary);margin-top:-8px">Sitenin panellerini açık veya koyu görünümde kullan.</p>
+
+        <div class="theme-grid">
+          <div class="theme-option" data-theme-radio="dark" id="optDark">
+            <div class="mockup mockup-dark">
+              <div class="mockup-nav" style="background:#131c28"></div>
+              <div style="display:flex;gap:8px;padding:10px">
+                <div class="mockup-card" style="background:#182333"></div>
+                <div class="mockup-card" style="background:#182333"></div>
+                <div class="mockup-card" style="background:#182333"></div>
+              </div>
+            </div>
+            <div class="theme-option-head">
+              <strong>🌙 Koyu</strong>
+              <span class="theme-radio"></span>
+            </div>
+          </div>
+
+          <div class="theme-option" data-theme-radio="light" id="optLight">
+            <div class="mockup mockup-light">
+              <div class="mockup-nav" style="background:#ffffff;border-bottom:1px solid #e4e6ea"></div>
+              <div style="display:flex;gap:8px;padding:10px">
+                <div class="mockup-card" style="background:#ffffff;border:1px solid #e4e6ea"></div>
+                <div class="mockup-card" style="background:#ffffff;border:1px solid #e4e6ea"></div>
+                <div class="mockup-card" style="background:#ffffff;border:1px solid #e4e6ea"></div>
+              </div>
+            </div>
+            <div class="theme-option-head">
+              <strong>☀️ Açık</strong>
+              <span class="theme-radio"></span>
+            </div>
+          </div>
+        </div>
+
+        <p class="field-hint" style="margin-top:18px">
+          Not: Ana sayfa ve giriş ekranındaki koyu, atmosferik 3D görünüm marka kimliği
+          için her zaman korunur — seçtiğin tema site genelindeki panellerde geçerli olur.
+        </p>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div>© <span id="year"></span> TürkiyeCanlı</div>
+    <div class="sources"><a href="hava.html">Hava</a><a href="deprem.html">Deprem</a><a href="yangin.html">Yangın</a></div>
+  </div>
+</footer>
+
+<script src="js/cities.js"></script>
+<script src="js/main.js"></script>
+<script src="js/settings.js"></script>
+</body>
+</html>

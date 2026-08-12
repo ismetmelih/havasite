@@ -1,4 +1,4 @@
-.fire-body { background: radial-gradient(ellipse at 20% 0%, #2a1108 0%, var(--bg) 55%); }
+.fire-body { background: radial-gradient(ellipse at 20% 0%, var(--ambient-fire) 0%, var(--bg) 55%); }
 
 .demo-banner {
   margin: 22px 0 0;

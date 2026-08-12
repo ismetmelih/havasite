@@ -39,6 +39,11 @@
   --radius-lg: 22px;
   --shadow-soft: 0 10px 40px rgba(0, 0, 0, 0.45);
   --font: "Segoe UI", system-ui, -apple-system, "Inter", sans-serif;
+
+  /* sayfa gövdesi icin hafif kategori-renkli ust vinyet */
+  --ambient-weather: #0f1c2c;
+  --ambient-quake: #211508;
+  --ambient-fire: #2a1108;
 }
 
 /* ---------------- acik tema ---------------- */
@@ -66,6 +71,10 @@
   --c-fire-2: #b42a2a;
 
   --shadow-soft: 0 10px 30px rgba(20, 24, 38, 0.10);
+
+  --ambient-weather: #d7e6fb;
+  --ambient-quake: #fbe3d0;
+  --ambient-fire: #fadbdb;
 }
 
 /* Ana sayfa hero'su ve giris ekrani, temadan bagimsiz olarak
@@ -599,6 +608,7 @@ input {
 .page-icon.icon-weather { background: rgba(42, 120, 214, 0.14); color: var(--c-weather-glow); }
 .page-icon.icon-quake-wrap { background: rgba(235, 104, 52, 0.14); color: var(--c-quake-2); }
 .page-icon.icon-fire-wrap { background: rgba(227, 73, 72, 0.14); color: var(--c-fire-2); }
+.page-icon.icon-settings-wrap { background: var(--surface-2); color: var(--text-secondary); }
 
 .page-head-title {
   display: flex;
@@ -824,6 +834,57 @@ select.filter-select {
   border-radius: 6px;
   border: 1px solid var(--border);
 }
+
+/* ---------------- form elemanlari (login, ayarlar, vb. ortak) ---------------- */
+.field { display: flex; flex-direction: column; gap: 6px; font-size: 0.85rem; color: var(--text-secondary); }
+.field input,
+.field select {
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-alt);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.field input:disabled { opacity: 0.6; cursor: not-allowed; }
+.field input:focus,
+.field select:focus {
+  border-color: var(--c-weather);
+  box-shadow: 0 0 0 3px rgba(42, 120, 214, 0.22);
+}
+.field input.invalid {
+  border-color: var(--status-critical);
+}
+.field-error {
+  min-height: 14px;
+  color: #ff8a8a;
+  font-size: 0.76rem;
+}
+.field input[type="range"] {
+  padding: 0;
+  background: transparent;
+  accent-color: var(--c-quake);
+  border: none;
+}
+.field-hint {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.field-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.83rem;
+  color: var(--text-secondary);
+}
+.checkbox { display: flex; align-items: center; gap: 7px; }
+.link-muted { color: var(--text-muted); text-decoration: underline; }
+.link-muted:hover { color: var(--text-secondary); }
+
+.btn-block { width: 100%; padding: 13px; font-size: 0.96rem; }
 
 /* ---------------- leaflet marker/popup ortak gorunum ---------------- */
 .leaflet-container { background: #0d131c !important; font-family: var(--font); }
