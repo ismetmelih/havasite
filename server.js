@@ -57,7 +57,18 @@ async function fetchWithTimeout(resource, opts = {}, timeoutMs = 12000) {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    return await fetch(resource, { ...opts, signal: controller.signal });
+    return await fetch(resource, {
+      ...opts,
+      signal: controller.signal,
+      headers: {
+        // bazi ucuncu taraf servisler barindirma saglayicilarinin sunucu IP'lerinden
+        // gelen "bot benzeri" (User-Agent'siz/node) istekleri 403 ile reddediyor;
+        // tarayici benzeri basliklar bu engeli asmaya yardimci olabilir.
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+        Accept: "application/json, text/plain, */*",
+        ...(opts.headers || {}),
+      },
+    });
   } finally {
     clearTimeout(id);
   }
