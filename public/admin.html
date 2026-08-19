@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="tr" class="auth-pending">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<script>(function(){try{if(localStorage.getItem('havasite_theme')==='light')document.documentElement.setAttribute('data-theme','light');}catch(e){}})();</script>
+<title>Admin Paneli — TürkiyeCanlı</title>
+<link rel="icon" type="image/svg+xml" href="img/logo.svg" />
+<link rel="stylesheet" href="css/base.css" />
+<link rel="stylesheet" href="css/settings.css" />
+<link rel="stylesheet" href="css/admin.css" />
+</head>
+<body data-require-admin>
+
+<nav class="site-nav">
+  <a class="brand" href="index.html"><img src="img/logo.svg" class="brand-logo" alt="" /> Türkiye<span class="text-quake">Canlı</span></a>
+  <button class="hamburger" aria-label="Menü"><span></span><span></span><span></span></button>
+  <div class="nav-links">
+    <a href="index.html" data-page="index.html">Ana Sayfa</a>
+    <a href="hava.html" data-page="hava.html">Hava Durumu</a>
+    <a href="deprem.html" data-page="deprem.html">Depremler</a>
+    <a href="yangin.html" data-page="yangin.html">Yangınlar</a>
+  </div>
+  <div class="nav-account">
+    <div class="nav-actions">
+      <button class="icon-btn" id="themeToggle" type="button" aria-label="Açık/Koyu tema" title="Açık/Koyu tema"><span data-theme-icon></span></button>
+    </div>
+    <div class="nav-user" id="navUser"></div>
+  </div>
+</nav>
+
+<header class="page-head">
+  <div class="container page-head-row">
+    <div class="page-head-title">
+      <div class="page-icon icon-settings-wrap">🛠️</div>
+      <div>
+        <span class="eyebrow">ADMİN</span>
+        <h1>Yönetim paneli</h1>
+        <p class="page-sub">Kullanıcılar, roller ve site durumu — sadece adminler görür.</p>
+      </div>
+    </div>
+    <span class="badge badge-live"><span class="live-blip"></span> <span id="whoami">—</span></span>
+  </div>
+</header>
+
+<main class="container">
+
+  <div class="stat-tiles reveal">
+    <div class="stat-tile">
+      <span class="stat-label">Toplam Kullanıcı</span>
+      <span class="stat-value" id="statTotalUsers">—</span>
+      <span class="stat-sub">kayıtlı hesap</span>
+    </div>
+    <div class="stat-tile">
+      <span class="stat-label">Admin Sayısı</span>
+      <span class="stat-value" id="statAdmins">—</span>
+      <span class="stat-sub">yönetici yetkili</span>
+    </div>
+    <div class="stat-tile">
+      <span class="stat-label">Bugün Kayıt Olan</span>
+      <span class="stat-value" id="statToday">—</span>
+      <span class="stat-sub">yeni hesap</span>
+    </div>
+    <div class="stat-tile">
+      <span class="stat-label">Sunucu Çalışma Süresi</span>
+      <span class="stat-value" id="statUptime">—</span>
+      <span class="stat-sub" id="statNode">—</span>
+    </div>
+  </div>
+
+  <div class="card admin-status-card reveal">
+    <h3 style="margin-top:0">Servis durumu</h3>
+    <div class="admin-status-row">
+      <span>NASA FIRMS anahtarı</span>
+      <span class="badge" id="statFirms">—</span>
+    </div>
+    <div class="admin-status-row">
+      <span>Veritabanı bağlantısı</span>
+      <span class="badge badge-live"><span class="live-blip"></span> bağlı</span>
+    </div>
+  </div>
+
+  <section class="card admin-users-card reveal">
+    <div class="side-panel-head" style="margin-bottom:14px">
+      <h3 style="margin:0">Kullanıcılar</h3>
+      <span class="badge badge-live" id="userCount"><span class="live-blip"></span> —</span>
+    </div>
+
+    <div class="admin-table-wrap">
+      <table class="admin-table" id="userTable">
+        <thead>
+          <tr>
+            <th>Ad</th>
+            <th>E-posta</th>
+            <th>Kayıt tarihi</th>
+            <th>Rol</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="userTableBody">
+          <tr><td colspan="5"><div class="skeleton" style="height:20px;border-radius:6px"></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div>© <span id="year"></span> TürkiyeCanlı — admin paneli.</div>
+    <div class="sources"><a href="hava.html">Hava</a><a href="deprem.html">Deprem</a><a href="yangin.html">Yangın</a></div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>

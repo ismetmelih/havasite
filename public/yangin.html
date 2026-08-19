@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="tr">
+<html lang="tr" class="auth-pending">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="css/base.css" />
 <link rel="stylesheet" href="css/fire.css" />
 </head>
-<body class="fire-body">
+<body class="fire-body" data-require-auth>
 
 <nav class="site-nav">
   <a class="brand" href="index.html"><img src="img/logo.svg" class="brand-logo" alt="" /> Türkiye<span class="text-quake">Canlı</span></a>
@@ -134,6 +134,11 @@
         <option value="mid">Orta ve üzeri</option>
         <option value="high">Sadece yüksek</option>
       </select>
+    </div>
+    <div class="filter-group">
+      <label for="frpRange">Min. ısı gücü (FRP)</label>
+      <input type="range" id="frpRange" min="0" max="50" step="1" value="0" />
+      <span id="frpRangeVal">0+ MW</span>
     </div>
   </div>
 

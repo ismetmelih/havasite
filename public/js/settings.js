@@ -6,7 +6,7 @@
     setupTabs();
     setupThemeOptions();
     fillCitySelects();
-    setupProfile();
+    window.HavaAuth.ready.then((user) => setupProfile(user));
     setupChecklist();
   });
 
@@ -60,8 +60,7 @@
     });
   }
 
-  function setupProfile() {
-    const user = window.HavaAuth.getUser();
+  function setupProfile(user) {
     const prefs = window.HavaPrefs.get();
 
     if (user) {
@@ -78,18 +77,35 @@
       document.getElementById("fMag").value = prefs.quakeAlertMag;
       document.getElementById("fMagVal").textContent = Number(prefs.quakeAlertMag).toFixed(1);
 
+      window.bindRangeFill && window.bindRangeFill(document.getElementById("fMag"));
       document.getElementById("fMag").addEventListener("input", (e) => {
         document.getElementById("fMagVal").textContent = Number(e.target.value).toFixed(1);
       });
 
-      document.getElementById("profileForm").addEventListener("submit", (e) => {
+      document.getElementById("profileForm").addEventListener("submit", async (e) => {
         e.preventDefault();
         const name = document.getElementById("fName").value.trim();
         if (name.length < 2) {
           window.showToast("Görünen ad en az 2 karakter olmalı.");
           return;
         }
-        window.HavaAuth.login({ ...user, name });
+        try {
+          const r = await fetch("/api/auth/me", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            credentials: "same-origin",
+            body: JSON.stringify({ name }),
+          });
+          const data = await r.json();
+          if (!data.ok) {
+            window.showToast(data.message || "Profil güncellenemedi.", { accent: "var(--status-critical)" });
+            return;
+          }
+          await window.HavaAuth.refresh();
+        } catch (err) {
+          window.showToast("Sunucuya ulaşılamadı.", { accent: "var(--status-critical)" });
+          return;
+        }
         window.HavaPrefs.set({
           favoriteCity: document.getElementById("fCity").value,
           quakeAlertMag: parseFloat(document.getElementById("fMag").value),
@@ -106,6 +122,7 @@
       document.getElementById("fMagGuest").value = prefs.quakeAlertMag;
       document.getElementById("fMagValGuest").textContent = Number(prefs.quakeAlertMag).toFixed(1);
 
+      window.bindRangeFill && window.bindRangeFill(document.getElementById("fMagGuest"));
       document.getElementById("fMagGuest").addEventListener("input", (e) => {
         document.getElementById("fMagValGuest").textContent = Number(e.target.value).toFixed(1);
       });

@@ -5,10 +5,29 @@
   document.addEventListener("DOMContentLoaded", () => {
     setupNav();
     setupReveal();
-    setupUserState();
     setupThemeToggle();
     setupEmergencyMode();
     markActiveLink();
+
+    window.HavaAuth.ready.then((user) => {
+      setupUserState(user);
+
+      const requireAuth = document.body.hasAttribute("data-require-auth");
+      const requireAdmin = document.body.hasAttribute("data-require-admin");
+
+      if (requireAuth && !user) {
+        const next = encodeURIComponent(location.pathname.split("/").pop() || "index.html");
+        location.replace(`login.html?redirect=${next}`);
+        return;
+      }
+      if (requireAdmin && (!user || !user.isAdmin)) {
+        location.replace(user ? "index.html" : `login.html?redirect=admin.html`);
+        return;
+      }
+
+      document.documentElement.classList.remove("auth-pending");
+      document.dispatchEvent(new CustomEvent("havasite:auth-ready", { detail: { user } }));
+    });
   });
 
   // ---------------- acil durum modu ----------------
@@ -210,41 +229,49 @@
     targets.forEach((t) => io.observe(t));
   }
 
-  // ---------------- oturum (demo, sadece localStorage) ----------------
-  function getUser() {
-    try {
-      return JSON.parse(localStorage.getItem("havasite_user") || "null");
-    } catch {
-      return null;
-    }
+  // ---------------- oturum (sunucu tarafli, imzali cerez) ----------------
+  // Sayfa acilir acilmaz oturumu sunucuya sorar (window.HavaAuth.ready). Senkron
+  // erisim gerektiren kod HavaAuth.ready.then(...) ile beklemeli; DOMContentLoaded'da
+  // bu beklendikten sonra nav ve sayfa koruma (data-require-auth/-admin) uygulanir.
+  let sessionUser = null;
+
+  function fetchSession() {
+    return fetch("/api/auth/me", { credentials: "same-origin" })
+      .then((r) => r.json())
+      .then((data) => {
+        sessionUser = data.ok ? data.user : null;
+        return sessionUser;
+      })
+      .catch(() => {
+        sessionUser = null;
+        return null;
+      });
   }
+
   window.HavaAuth = {
-    getUser,
-    login(user) {
-      // localStorage bazi gizlilik modlarinda/kisitli baglamlarda hata firlatabilir;
-      // bu durumda bile giris akisinin tikanmamasi icin hatayi yutuyoruz.
-      try {
-        localStorage.setItem("havasite_user", JSON.stringify(user));
-      } catch (err) {
-        console.warn("Oturum bilgisi kaydedilemedi (localStorage engellenmiş olabilir):", err);
-      }
+    ready: fetchSession(),
+    getUser: () => sessionUser,
+    async refresh() {
+      window.HavaAuth.ready = fetchSession();
+      return window.HavaAuth.ready;
     },
-    logout() {
+    async logout() {
       try {
-        localStorage.removeItem("havasite_user");
+        await fetch("/api/auth/logout", { method: "POST", credentials: "same-origin" });
       } catch (err) {
-        console.warn("Oturum bilgisi silinemedi:", err);
+        console.warn("Cikis sirasinda hata:", err);
       }
+      sessionUser = null;
       location.href = "index.html";
     },
   };
 
-  function setupUserState() {
+  function setupUserState(user) {
     const slot = document.getElementById("navUser");
     if (!slot) return;
-    const user = getUser();
     if (user) {
       slot.innerHTML = `
+        ${user.isAdmin ? `<a class="icon-btn" href="admin.html" title="Admin paneli" aria-label="Admin paneli">🛠️</a>` : ""}
         <a class="user-chip" href="ayarlar.html" title="Profil ve ayarlar">
           <span class="user-avatar">${escapeHtml((user.name || "?").slice(0, 1).toUpperCase())}</span>
           <span class="label">${escapeHtml(user.name || user.email || "Kullanıcı")}</span>
@@ -272,6 +299,23 @@
     // reflow tetikleyerek animasyonun her seferinde yeniden oynamasini sagla
     void el.offsetWidth;
     el.classList.add("value-flash");
+  };
+
+  // ---------------- animasyonlu range slider dolgusu ----------------
+  // filter-bar / field icindeki <input type="range"> elemanlarini CSS'te
+  // tanimli --fill degiskenine baglar, boylece topuzun soluna dogru renkli
+  // bir "dolgu" izlenimi olusur ve deger degistikce yumusakca guncellenir.
+  window.bindRangeFill = function bindRangeFill(input) {
+    if (!input) return;
+    const update = () => {
+      const min = parseFloat(input.min || "0");
+      const max = parseFloat(input.max || "100");
+      const val = parseFloat(input.value);
+      const pct = max > min ? ((val - min) / (max - min)) * 100 : 0;
+      input.style.setProperty("--fill", `${Math.max(0, Math.min(100, pct))}%`);
+    };
+    input.addEventListener("input", update);
+    update();
   };
 
   // ---------------- toast ----------------

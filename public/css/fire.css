@@ -16,6 +16,58 @@
   50% { filter: brightness(1.35); }
 }
 
+/* -------- harita uzerinde "yanan" nokta animasyonu -------- */
+.fire-mark { position: relative; width: 1px; height: 1px; }
+.fmk-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: pulse-ring 2.2s ease-out infinite;
+}
+.fmk-flame {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -58%);
+  transform-origin: 50% 88%;
+  filter: drop-shadow(0 0 5px currentColor) drop-shadow(0 0 10px currentColor);
+  animation: fmk-flame-flicker 1.05s ease-in-out infinite;
+  will-change: transform;
+}
+@keyframes fmk-flame-flicker {
+  0%, 100% { transform: translate(-50%, -58%) scale(1, 1) rotate(0deg); }
+  22% { transform: translate(-50%, -58%) scale(0.92, 1.08) rotate(-4deg); }
+  48% { transform: translate(-50%, -60%) scale(1.08, 0.93) rotate(3deg); }
+  74% { transform: translate(-50%, -56%) scale(0.96, 1.05) rotate(-2deg); }
+}
+.fmk-ember {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #ffcf7a;
+  opacity: 0;
+  box-shadow: 0 0 4px #ffb266;
+  animation: ember-rise 2.3s ease-in infinite;
+}
+.fmk-ember.e2 {
+  left: calc(50% + 5px);
+  background: #ff9a5c;
+  animation-delay: 1.05s;
+}
+@keyframes ember-rise {
+  0% { opacity: 0; transform: translate(-50%, 0) scale(0.6); }
+  12% { opacity: 0.95; }
+  100% { opacity: 0; transform: translate(-80%, -28px) scale(0.15); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fmk-flame, .fmk-ember, .fmk-ring { animation: none; }
+}
+
 /* -------- yangin riski endeksi -------- */
 .risk-banner {
   display: flex;

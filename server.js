@@ -8,6 +8,8 @@ const http = require("http");
 const fs = require("fs");
 const path = require("path");
 const url = require("url");
+const { getPool, ensureSchema } = require("./lib/db");
+const AuthLib = require("./lib/auth");
 
 const PUBLIC_DIR = path.join(__dirname, "public");
 let CONFIG = { FIRMS_MAP_KEY: "", PORT: 3000 };
@@ -226,6 +228,252 @@ async function handleFires(req, res, query) {
   }
 }
 
+// ---------- govde okuma + json yardimcilari ----------
+function readJsonBody(req, maxBytes = 100 * 1024) {
+  return new Promise((resolve, reject) => {
+    let size = 0;
+    const chunks = [];
+    req.on("data", (chunk) => {
+      size += chunk.length;
+      if (size > maxBytes) {
+        reject(new Error("payload_too_large"));
+        req.destroy();
+        return;
+      }
+      chunks.push(chunk);
+    });
+    req.on("end", () => {
+      if (!chunks.length) return resolve({});
+      try {
+        resolve(JSON.parse(Buffer.concat(chunks).toString("utf8")));
+      } catch {
+        reject(new Error("invalid_json"));
+      }
+    });
+    req.on("error", reject);
+  });
+}
+
+function publicUser(u) {
+  return { id: u.id, name: u.name, email: u.email, isAdmin: !!u.is_admin, createdAt: u.created_at };
+}
+
+function isValidEmail(v) {
+  return typeof v === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+}
+
+// ---------- auth ----------
+async function requireDb(res) {
+  const ok = await ensureSchema();
+  if (!ok) {
+    sendJson(res, 200, {
+      ok: false,
+      reason: "no_database",
+      message: "DATABASE_URL tanimli degil veya veritabanina baglanilamadi. Render panelinde bir PostgreSQL ekleyip DATABASE_URL ortam degiskenini tanimla.",
+    });
+    return false;
+  }
+  return true;
+}
+
+async function currentUser(req) {
+  const session = AuthLib.readSession(req);
+  if (!session) return null;
+  const pool = getPool();
+  if (!pool) return null;
+  try {
+    const r = await pool.query("SELECT * FROM users WHERE id = $1", [session.uid]);
+    return r.rows[0] || null;
+  } catch {
+    return null;
+  }
+}
+
+async function handleRegister(req, res) {
+  if (!(await requireDb(res))) return;
+  let body;
+  try {
+    body = await readJsonBody(req);
+  } catch {
+    return sendJson(res, 400, { ok: false, reason: "bad_request", message: "Gecersiz istek govdesi." });
+  }
+  const name = String(body.name || "").trim();
+  const email = String(body.email || "").trim().toLowerCase();
+  const password = String(body.password || "");
+
+  if (name.length < 2) return sendJson(res, 400, { ok: false, reason: "invalid_name", message: "Ad en az 2 karakter olmali." });
+  if (!isValidEmail(email)) return sendJson(res, 400, { ok: false, reason: "invalid_email", message: "Gecerli bir e-posta gir." });
+  if (password.length < 6) return sendJson(res, 400, { ok: false, reason: "invalid_password", message: "Sifre en az 6 karakter olmali." });
+
+  const pool = getPool();
+  try {
+    const existing = await pool.query("SELECT id FROM users WHERE email = $1", [email]);
+    if (existing.rows.length) {
+      return sendJson(res, 409, { ok: false, reason: "email_taken", message: "Bu e-posta zaten kayitli." });
+    }
+
+    const countRes = await pool.query("SELECT COUNT(*)::int AS n FROM users");
+    const isFirstUser = countRes.rows[0].n === 0;
+    const adminEmails = (process.env.ADMIN_EMAILS || "").split(",").map((s) => s.trim().toLowerCase()).filter(Boolean);
+    const isAdmin = isFirstUser || adminEmails.includes(email);
+
+    const passwordHash = AuthLib.hashPassword(password);
+    const inserted = await pool.query(
+      "INSERT INTO users (name, email, password_hash, is_admin) VALUES ($1,$2,$3,$4) RETURNING *",
+      [name, email, passwordHash, isAdmin]
+    );
+    const user = inserted.rows[0];
+    res.setHeader("Set-Cookie", AuthLib.createSessionCookie(req, user));
+    sendJson(res, 200, { ok: true, user: publicUser(user) });
+  } catch (err) {
+    console.error("[auth] kayit hatasi:", err.message);
+    sendJson(res, 500, { ok: false, reason: "server_error", message: "Kayit sirasinda bir hata olustu." });
+  }
+}
+
+async function handleLogin(req, res) {
+  if (!(await requireDb(res))) return;
+  let body;
+  try {
+    body = await readJsonBody(req);
+  } catch {
+    return sendJson(res, 400, { ok: false, reason: "bad_request", message: "Gecersiz istek govdesi." });
+  }
+  const email = String(body.email || "").trim().toLowerCase();
+  const password = String(body.password || "");
+
+  const pool = getPool();
+  try {
+    const r = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
+    const user = r.rows[0];
+    if (!user || !AuthLib.verifyPassword(password, user.password_hash)) {
+      return sendJson(res, 401, { ok: false, reason: "invalid_credentials", message: "Hatali e-posta veya sifre." });
+    }
+    res.setHeader("Set-Cookie", AuthLib.createSessionCookie(req, user));
+    sendJson(res, 200, { ok: true, user: publicUser(user) });
+  } catch (err) {
+    console.error("[auth] giris hatasi:", err.message);
+    sendJson(res, 500, { ok: false, reason: "server_error", message: "Giris sirasinda bir hata olustu." });
+  }
+}
+
+function handleLogout(req, res) {
+  res.setHeader("Set-Cookie", AuthLib.clearSessionCookie(req));
+  sendJson(res, 200, { ok: true });
+}
+
+async function handleMe(req, res) {
+  const pool = getPool();
+  if (!pool) return sendJson(res, 200, { ok: true, user: null });
+  const user = await currentUser(req);
+  sendJson(res, 200, { ok: true, user: user ? publicUser(user) : null });
+}
+
+async function handleUpdateMe(req, res) {
+  const user = await currentUser(req);
+  if (!user) return sendJson(res, 401, { ok: false, reason: "unauthorized", message: "Giris yapmalisin." });
+  let body;
+  try {
+    body = await readJsonBody(req);
+  } catch {
+    return sendJson(res, 400, { ok: false, reason: "bad_request", message: "Gecersiz istek govdesi." });
+  }
+  const name = String(body.name || "").trim();
+  if (name.length < 2) return sendJson(res, 400, { ok: false, reason: "invalid_name", message: "Ad en az 2 karakter olmali." });
+  try {
+    const r = await getPool().query("UPDATE users SET name = $1 WHERE id = $2 RETURNING *", [name, user.id]);
+    sendJson(res, 200, { ok: true, user: publicUser(r.rows[0]) });
+  } catch (err) {
+    sendJson(res, 500, { ok: false, reason: "server_error", message: "Guncelleme basarisiz." });
+  }
+}
+
+// ---------- admin ----------
+async function requireAdmin(req, res) {
+  const user = await currentUser(req);
+  if (!user) {
+    sendJson(res, 401, { ok: false, reason: "unauthorized", message: "Giris yapmalisin." });
+    return null;
+  }
+  if (!user.is_admin) {
+    sendJson(res, 403, { ok: false, reason: "forbidden", message: "Bu alan icin admin yetkisi gerekiyor." });
+    return null;
+  }
+  return user;
+}
+
+async function handleAdminStats(req, res) {
+  if (!(await requireAdmin(req, res))) return;
+  try {
+    const pool = getPool();
+    const totalRes = await pool.query("SELECT COUNT(*)::int AS n FROM users");
+    const adminRes = await pool.query("SELECT COUNT(*)::int AS n FROM users WHERE is_admin");
+    const todayRes = await pool.query("SELECT COUNT(*)::int AS n FROM users WHERE created_at::date = now()::date");
+    sendJson(res, 200, {
+      ok: true,
+      stats: {
+        totalUsers: totalRes.rows[0].n,
+        adminUsers: adminRes.rows[0].n,
+        registeredToday: todayRes.rows[0].n,
+        firmsKeyConfigured: !!(CONFIG.FIRMS_MAP_KEY && CONFIG.FIRMS_MAP_KEY !== "BURAYA_KENDI_ANAHTARINI_YAZ"),
+        nodeVersion: process.version,
+        uptimeSeconds: Math.round(process.uptime()),
+      },
+    });
+  } catch (err) {
+    sendJson(res, 500, { ok: false, reason: "server_error", message: "Istatistikler alinamadi." });
+  }
+}
+
+async function handleAdminUsersList(req, res) {
+  if (!(await requireAdmin(req, res))) return;
+  try {
+    const pool = getPool();
+    const r = await pool.query("SELECT * FROM users ORDER BY created_at DESC");
+    sendJson(res, 200, { ok: true, users: r.rows.map(publicUser) });
+  } catch (err) {
+    sendJson(res, 500, { ok: false, reason: "server_error", message: "Kullanicilar alinamadi." });
+  }
+}
+
+async function handleAdminUserPatch(req, res, id) {
+  const admin = await requireAdmin(req, res);
+  if (!admin) return;
+  let body;
+  try {
+    body = await readJsonBody(req);
+  } catch {
+    return sendJson(res, 400, { ok: false, reason: "bad_request", message: "Gecersiz istek govdesi." });
+  }
+  if (typeof body.isAdmin !== "boolean") {
+    return sendJson(res, 400, { ok: false, reason: "bad_request", message: "isAdmin (true/false) gerekli." });
+  }
+  if (Number(id) === admin.id && body.isAdmin === false) {
+    return sendJson(res, 400, { ok: false, reason: "self_demote", message: "Kendi admin yetkini kaldiramazsin." });
+  }
+  try {
+    const r = await getPool().query("UPDATE users SET is_admin = $1 WHERE id = $2 RETURNING *", [body.isAdmin, id]);
+    if (!r.rows.length) return sendJson(res, 404, { ok: false, reason: "not_found", message: "Kullanici bulunamadi." });
+    sendJson(res, 200, { ok: true, user: publicUser(r.rows[0]) });
+  } catch (err) {
+    sendJson(res, 500, { ok: false, reason: "server_error", message: "Guncelleme basarisiz." });
+  }
+}
+
+async function handleAdminUserDelete(req, res, id) {
+  const admin = await requireAdmin(req, res);
+  if (!admin) return;
+  if (Number(id) === admin.id) {
+    return sendJson(res, 400, { ok: false, reason: "self_delete", message: "Kendi hesabini buradan silemezsin." });
+  }
+  try {
+    await getPool().query("DELETE FROM users WHERE id = $1", [id]);
+    sendJson(res, 200, { ok: true });
+  } catch (err) {
+    sendJson(res, 500, { ok: false, reason: "server_error", message: "Silme basarisiz." });
+  }
+}
+
 // ---------- statik dosya sunumu ----------
 function serveStatic(req, res, pathname) {
   let filePath = path.join(PUBLIC_DIR, decodeURIComponent(pathname));
@@ -261,6 +509,7 @@ function streamFile(res, filePath) {
 const server = http.createServer((req, res) => {
   const parsed = url.parse(req.url, true);
   const pathname = parsed.pathname;
+  const method = req.method;
 
   if (pathname === "/api/quakes") return handleQuakes(req, res, parsed.query);
   if (pathname === "/api/quakes/history") return handleQuakeHistory(req, res, parsed.query);
@@ -269,6 +518,18 @@ const server = http.createServer((req, res) => {
     loadConfig();
     return sendJson(res, 200, { ok: true });
   }
+
+  if (pathname === "/api/auth/register" && method === "POST") return handleRegister(req, res);
+  if (pathname === "/api/auth/login" && method === "POST") return handleLogin(req, res);
+  if (pathname === "/api/auth/logout" && method === "POST") return handleLogout(req, res);
+  if (pathname === "/api/auth/me" && method === "GET") return handleMe(req, res);
+  if (pathname === "/api/auth/me" && method === "PATCH") return handleUpdateMe(req, res);
+
+  if (pathname === "/api/admin/stats" && method === "GET") return handleAdminStats(req, res);
+  if (pathname === "/api/admin/users" && method === "GET") return handleAdminUsersList(req, res);
+  const userMatch = pathname.match(/^\/api\/admin\/users\/(\d+)$/);
+  if (userMatch && method === "PATCH") return handleAdminUserPatch(req, res, userMatch[1]);
+  if (userMatch && method === "DELETE") return handleAdminUserDelete(req, res, userMatch[1]);
 
   return serveStatic(req, res, pathname);
 });
@@ -279,5 +540,13 @@ server.listen(PORT, () => {
   if (!CONFIG.FIRMS_MAP_KEY || CONFIG.FIRMS_MAP_KEY === "BURAYA_KENDI_ANAHTARINI_YAZ") {
     console.log("  [bilgi] Yangin verisi icin config.json dosyasina NASA FIRMS anahtari ekleyin.");
     console.log("          Ucretsiz anahtar: https://firms.modaps.eosdis.nasa.gov/api/map_key/\n");
+  }
+  if (!process.env.DATABASE_URL) {
+    console.log("  [bilgi] DATABASE_URL tanimli degil: giris/kayit ve admin paneli calismayacak.");
+    console.log("          Bir PostgreSQL baglantisi ekleyip DATABASE_URL ortam degiskenini tanimlayin.\n");
+  } else {
+    ensureSchema().then((ok) => {
+      console.log(ok ? "  [bilgi] Veritabani semasi hazir.\n" : "  [uyari] Veritabanina baglanilamadi.\n");
+    });
   }
 });

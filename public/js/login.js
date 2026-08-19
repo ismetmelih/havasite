@@ -6,10 +6,10 @@
       window.initHeroBG("heroCanvas", { colors: ["#2a78d6", "#6da7ec", "#eb6834"], count: 500, radius: 6.4 });
     }
 
-    // zaten girisliyse ana sayfaya yonlendir
-    if (window.HavaAuth.getUser()) {
-      window.showToast && window.showToast("Zaten giriş yapılmış görünüyor.");
-    }
+    // zaten girisliyse hedef sayfaya yonlendir
+    window.HavaAuth.ready.then((user) => {
+      if (user) location.replace(redirectTarget());
+    });
 
     setupTabs();
     setupTilt();
@@ -70,6 +70,14 @@
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
   }
 
+  function redirectTarget() {
+    const params = new URLSearchParams(location.search);
+    const target = params.get("redirect");
+    // acik yonlendirme (open redirect) engeli: sadece bu sitedeki .html sayfalarina izin ver
+    if (target && /^[a-zA-Z0-9_-]+\.html$/.test(target)) return target;
+    return "index.html";
+  }
+
   function setupForms() {
     const loginForm = document.getElementById("loginForm");
     const registerForm = document.getElementById("registerForm");
@@ -92,8 +100,10 @@
 
       if (!ok) return;
 
-      const name = email.value.split("@")[0];
-      submitWithLoading(loginForm, { name, email: email.value.trim() });
+      submitAuth(loginForm, "/api/auth/login", {
+        email: email.value.trim(),
+        password: password.value,
+      });
     });
 
     registerForm.addEventListener("submit", (e) => {
@@ -126,11 +136,15 @@
 
       if (!ok) return;
 
-      submitWithLoading(registerForm, { name: name.value.trim(), email: email.value.trim() });
+      submitAuth(registerForm, "/api/auth/register", {
+        name: name.value.trim(),
+        email: email.value.trim(),
+        password: password.value,
+      });
     });
   }
 
-  function submitWithLoading(form, user) {
+  async function submitAuth(form, endpoint, payload) {
     const btn = form.querySelector("button[type=submit]");
     const label = btn.querySelector(".btn-label");
     const spin = btn.querySelector(".btn-spin");
@@ -138,23 +152,42 @@
     label.style.opacity = "0.4";
     spin.hidden = false;
 
-    setTimeout(() => {
-      try {
-        window.HavaAuth.login(user);
-      } catch (err) {
-        // HavaAuth.login kendi icinde de yakaliyor ama son bir guvenlik agi olarak
-        // burada da yutuyoruz ki kullanici hicbir sekilde "takili" kalmasin.
-        console.warn("Giriş sırasında beklenmeyen hata:", err);
+    try {
+      const r = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify(payload),
+      });
+      const data = await r.json();
+
+      if (!data.ok) {
+        window.showToast(data.message || "Bir şeyler ters gitti, tekrar dener misin?", { accent: "var(--status-critical)" });
+        if (data.reason === "email_taken") setFieldError(form.email, "Bu e-posta zaten kayıtlı.");
+        if (data.reason === "invalid_credentials") {
+          setFieldError(form.email, " ");
+          setFieldError(form.password, "Hatalı e-posta veya şifre.");
+        }
+        return;
       }
+
+      await window.HavaAuth.refresh();
       form.hidden = true;
       document.querySelectorAll(".auth-tabs")[0].style.display = "none";
       const success = document.getElementById("authSuccess");
-      document.getElementById("successName").textContent = ", " + (user.name || user.email);
+      document.getElementById("successName").textContent = ", " + (data.user.name || data.user.email);
       success.hidden = false;
 
       setTimeout(() => {
-        location.href = "index.html";
+        location.href = redirectTarget();
       }, 1300);
-    }, 900);
+    } catch (err) {
+      console.warn("Giriş/kayıt sırasında beklenmeyen hata:", err);
+      window.showToast("Sunucuya ulaşılamadı, bağlantını kontrol edip tekrar dene.", { accent: "var(--status-critical)" });
+    } finally {
+      btn.disabled = false;
+      label.style.opacity = "1";
+      spin.hidden = true;
+    }
   }
 })();

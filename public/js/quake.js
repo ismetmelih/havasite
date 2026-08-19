@@ -192,8 +192,10 @@
     const timeSelect = document.getElementById("timeSelect");
     const onlyFelt = document.getElementById("onlyFelt");
 
+    window.bindRangeFill && window.bindRangeFill(magRange);
     magRange.addEventListener("input", () => {
       magVal.textContent = `${parseFloat(magRange.value).toFixed(1)}+`;
+      window.flashUpdate && window.flashUpdate(magVal);
       render();
     });
     timeSelect.addEventListener("change", render);

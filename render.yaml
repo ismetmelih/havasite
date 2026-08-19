@@ -1,12 +1,26 @@
+databases:
+  - name: havasite-db
+    plan: free
+    databaseName: havasite
+    user: havasite
+
 services:
   - type: web
     name: havasite
     runtime: node
     plan: free
-    buildCommand: "echo 'bagimlilik yok, build gerekmiyor'"
+    buildCommand: "npm install"
     startCommand: "node server.js"
     envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: havasite-db
+          property: connectionString
+      - key: SESSION_SECRET
+        generateValue: true
       - key: FIRMS_MAP_KEY
+        sync: false
+      - key: ADMIN_EMAILS
         sync: false
       - key: NODE_VERSION
         value: 20

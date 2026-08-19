@@ -24,6 +24,7 @@
     loadWeatherFor(currentLoc, false);
     initMap();
     loadCityTemps();
+    setupMapFilters();
 
     setupSearch();
     document.getElementById("geoBtn").addEventListener("click", useGeolocation);
@@ -248,6 +249,66 @@
     function rgb(c) { return `rgb(${c[0]},${c[1]},${c[2]})`; }
   }
 
+  // ------------- harita filtreleri (min. sicaklik, sirala, sadece olumsuz hava) -------------
+  let lastCityRows = []; // [{city, temp, code}]
+
+  const BAD_WEATHER_CODES = new Set([
+    51, 53, 55, 56, 57, // ciseleme
+    61, 63, 65, 66, 67, // yagmur
+    71, 73, 75, 77, // kar
+    80, 81, 82, 85, 86, // saganak
+    95, 96, 99, // firtina
+  ]);
+
+  function setupMapFilters() {
+    const tempRange = document.getElementById("tempRange");
+    const tempVal = document.getElementById("tempRangeVal");
+    const sortSelect = document.getElementById("sortSelect");
+    const onlyBad = document.getElementById("onlyBadWeather");
+    if (!tempRange) return;
+
+    window.bindRangeFill && window.bindRangeFill(tempRange);
+    tempRange.addEventListener("input", () => {
+      tempVal.textContent = `${tempRange.value}°C+`;
+      window.flashUpdate && window.flashUpdate(tempVal);
+      renderCityMarkers();
+    });
+    sortSelect.addEventListener("change", renderCityMarkers);
+    onlyBad.addEventListener("change", renderCityMarkers);
+  }
+
+  function renderCityMarkers() {
+    if (!cityLayer) return;
+    const minTemp = parseFloat(document.getElementById("tempRange")?.value ?? "-100");
+    const sort = document.getElementById("sortSelect")?.value || "none";
+    const onlyBad = document.getElementById("onlyBadWeather")?.checked;
+
+    let rows = lastCityRows.filter((row) => row.temp >= minTemp);
+    if (onlyBad) rows = rows.filter((row) => BAD_WEATHER_CODES.has(row.code));
+    if (sort === "hot") rows = [...rows].sort((a, b) => b.temp - a.temp);
+    if (sort === "cold") rows = [...rows].sort((a, b) => a.temp - b.temp);
+
+    cityLayer.clearLayers();
+    rows.forEach(({ city, temp, code }) => {
+      const color = tempColor(temp);
+      const icon = L.divIcon({
+        className: "temp-marker",
+        html: `<div class="tm-dot" style="background:${color}"><span>${temp}°</span></div>`,
+        iconSize: [40, 26],
+        iconAnchor: [20, 13],
+      });
+      const marker = L.marker([city.lat, city.lon], { icon }).addTo(cityLayer);
+      marker.bindPopup(
+        `<div class="map-pop"><strong>${window.escapeHtml(city.name)}</strong><br/>${temp}°C · ${window.WeatherWMO.label(code)}</div>`
+      );
+      marker.on("click", () => {
+        currentLoc = { name: city.name, lat: city.lat, lon: city.lon };
+        safeSetJson("havasite_last_city", currentLoc);
+        loadWeatherFor(currentLoc, false);
+      });
+    });
+  }
+
   async function loadCityTemps() {
     if (!map) return;
     const cities = window.TR_CITIES;
@@ -263,28 +324,14 @@
       const r = await fetch(`${FORECAST_URL}?${params.toString()}`);
       const data = await r.json();
       const arr = Array.isArray(data) ? data : [data];
-      cityLayer.clearLayers();
-      arr.forEach((d, i) => {
-        const city = cities[i];
-        if (!city || !d.current) return;
-        const t = Math.round(d.current.temperature_2m);
-        const color = tempColor(t);
-        const icon = L.divIcon({
-          className: "temp-marker",
-          html: `<div class="tm-dot" style="background:${color}"><span>${t}°</span></div>`,
-          iconSize: [40, 26],
-          iconAnchor: [20, 13],
-        });
-        const marker = L.marker([city.lat, city.lon], { icon }).addTo(cityLayer);
-        marker.bindPopup(
-          `<div class="map-pop"><strong>${window.escapeHtml(city.name)}</strong><br/>${t}°C · ${window.WeatherWMO.label(d.current.weather_code)}</div>`
-        );
-        marker.on("click", () => {
-          currentLoc = { name: city.name, lat: city.lat, lon: city.lon };
-          safeSetJson("havasite_last_city", currentLoc);
-          loadWeatherFor(currentLoc, false);
-        });
-      });
+      lastCityRows = arr
+        .map((d, i) => {
+          const city = cities[i];
+          if (!city || !d.current) return null;
+          return { city, temp: Math.round(d.current.temperature_2m), code: d.current.weather_code };
+        })
+        .filter(Boolean);
+      renderCityMarkers();
     } catch {
       /* sessizce yeniden dene */
     }

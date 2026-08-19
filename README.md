@@ -1,40 +1,75 @@
 # TürkiyeCanlı — Hava Durumu, Deprem &amp; Yangın Takip Paneli
 
 Türkiye için canlı hava durumu, deprem ve (uydu tabanlı) yangın tespiti verilerini
-tek bir animasyonlu panelde gösteren, tamamen yerel çalışan bir web sitesi.
+tek bir animasyonlu panelde gösteren bir web sitesi. Hava/deprem/yangın panellerini
+görmek için hesap oluşturup giriş yapmak gerekir; admin hesapları küçük bir
+yönetim paneline (`admin.html`) erişebilir.
 
 ## Kurulum ve çalıştırma
 
-Gereksinim: [Node.js](https://nodejs.org) 18 veya üzeri (bilgisayarında zaten **Node v22** kurulu görünüyor).
+Gereksinim: [Node.js](https://nodejs.org) 18+ ve bir PostgreSQL veritabanı bağlantısı
+(giriş/kayıt ve admin paneli için — bkz. aşağıdaki "Veritabanı" bölümü).
 
 ```bash
 cd havasite
-npm start
+npm install
+DATABASE_URL="postgres://kullanici:sifre@host:5432/veritabani" npm start
 ```
 
-Sonra tarayıcında **http://localhost:3000** adresini aç.
+Sonra tarayıcında **http://localhost:3000** adresini aç. `DATABASE_URL` tanımlamazsan
+site yine açılır (hava/deprem/yangın verisi ve harita CDN'leri için internet bağlantısı
+gerekir) ama giriş/kayıt ve admin paneli "veritabanı yok" mesajı gösterir.
 
-Bağımlılık kurmana gerek yok — sunucu sadece Node'un yerleşik modüllerini kullanır.
 Harita (Leaflet) ve 3D arka plan (Three.js) kütüphaneleri sayfalarda CDN üzerinden
-otomatik yüklenir; internet bağlantısı gerekir.
+otomatik yüklenir.
 
 ## Sayfalar
 
-| Sayfa | Açıklama |
-|---|---|
-| `index.html` | Ana sayfa — 3D animasyonlu hero, canlı özet şerit, 3 kategori kartı |
-| `login.html` | Animasyonlu/3D giriş-kayıt ekranı (bkz. aşağıdaki not) |
-| `hava.html` | Anlık hava durumu, saatlik/7 günlük tahmin, 81 illik sıcaklık haritası |
-| `deprem.html` | Canlı deprem haritası, filtreler, son depremler listesi |
-| `yangin.html` | NASA FIRMS uydu verisiyle canlı yangın/aktif ateş haritası |
+| Sayfa | Açıklama | Erişim |
+|---|---|---|
+| `index.html` | Ana sayfa — 3D animasyonlu hero, canlı özet şerit; 3 kategori kartı sadece giriş yapınca görünür | herkese açık |
+| `login.html` | Giriş / kayıt ekranı (gerçek sunucu tarafı hesaplar) | herkese açık |
+| `hava.html` | Anlık hava durumu, saatlik/7 günlük tahmin, 81 illik sıcaklık haritası + filtreler | **giriş gerekli** |
+| `deprem.html` | Canlı deprem haritası, 3D glob (sürükleyerek çevrilebilir), filtreler | **giriş gerekli** |
+| `yangin.html` | NASA FIRMS uydu verisiyle canlı yangın haritası, alev animasyonu, filtreler | **giriş gerekli** |
+| `admin.html` | Kullanıcı listesi, rol yönetimi, site/servis durumu | **sadece admin** |
+
+## Giriş, kayıt ve admin sistemi
+
+Hesaplar sunucu tarafında PostgreSQL'de saklanır; şifreler geri döndürülemez şekilde
+(Node'un yerleşik `crypto.scrypt`'i ile tuzlanarak) hash'lenir, oturumlar imzalı
+(HMAC-SHA256) `httpOnly` bir çerezle yürütülür. Ekstra kimlik doğrulama kütüphanesi
+kullanılmaz.
+
+- **İlk kayıt olan kullanıcı otomatik admin olur.** Sonraki kayıtlar normal kullanıcı olur.
+- İstersen `ADMIN_EMAILS` ortam değişkenine virgülle ayrılmış e-postalar yazarak, o
+  e-postalarla kayıt olan/giriş yapan hesapları da admin yapabilirsin.
+- Admin panelinden (`admin.html`) diğer kullanıcıları admin yapabilir/admin'likten
+  çıkarabilir veya silebilirsin. Kendi hesabını admin'likten çıkaramaz/silemezsin
+  (yanlışlıkla kendini kilitlememen için).
+
+İlgili API uç noktaları: `POST /api/auth/register`, `POST /api/auth/login`,
+`POST /api/auth/logout`, `GET/PATCH /api/auth/me`, `GET /api/admin/stats`,
+`GET/PATCH/DELETE /api/admin/users/:id`.
+
+## Veritabanı
+
+Herhangi bir PostgreSQL bağlantı adresi (`DATABASE_URL` ortam değişkeni) yeterlidir —
+Render'ın kendi PostgreSQL'i, [Neon](https://neon.tech), [Supabase](https://supabase.com)
+vb. Şema (`users` tablosu) sunucu ilk açıldığında ve her kayıt/girişte otomatik
+oluşturulur, elle migration çalıştırmana gerek yok.
+
+> Not: Render'ın ücretsiz PostgreSQL planı belirli bir süre sonra (Render'ın o anki
+> koşullarına göre) süresi dolup silinebilir. Kalıcılık önemliyse Neon/Supabase gibi
+> süresiz ücretsiz katmanı olan bir sağlayıcı da `DATABASE_URL` olarak kullanılabilir.
 
 ## Yangın verisi için NASA FIRMS anahtarı
 
 Yangın sayfasının gerçek veri gösterebilmesi için ücretsiz bir API anahtarı gerekir:
 
 1. https://firms.modaps.eosdis.nasa.gov/api/map_key/ adresine git, e-posta adresinle ücretsiz anahtar iste (anında e-postana gelir).
-2. `config.json` dosyasını aç, `FIRMS_MAP_KEY` alanına anahtarını yapıştır.
-3. Sunucuyu yeniden başlat (`npm start`).
+2. Yerelde: `config.json` dosyasını aç, `FIRMS_MAP_KEY` alanına anahtarını yapıştır ve sunucuyu yeniden başlat.
+   Render'da: **Environment** sekmesinden `FIRMS_MAP_KEY` ortam değişkenini ekle.
 
 Anahtar girilmeden önce `yangin.html` sayfası kurulum talimatlarını gösterir ve
 istersen **"Örnek veriyle görüntüle"** butonuyla arayüzü örnek (gerçek olmayan,
@@ -52,39 +87,33 @@ açıkça etiketlenmiş) verilerle deneyebilirsin.
 Bu proje bağımsız/gayriresmîdir; resmî afet/acil durum kararları için ilgili
 resmî kurumların (AFAD, Kandilli, OGM vb.) duyurularını esas al.
 
-## Giriş sistemi hakkında not
-
-`login.html` sayfasındaki giriş/kayıt akışı **demo amaçlıdır**: gerçek bir kimlik
-doğrulama sunucusu veya veritabanı yoktur. Girilen ad/e-posta yalnızca tarayıcının
-`localStorage`'ında saklanır ve hiçbir yere gönderilmez. Gerçek kullanıcı hesapları
-gerekiyorsa bir kimlik doğrulama servisi (ör. kendi backend'in + veritabanı, veya
-Auth0/Firebase Auth gibi bir servis) entegre edilmesi gerekir.
-
 ## Render.com'da canlıya alma
-
-Bu proje ek bağımlılık ve build adımı gerektirmediği için Render'ın ücretsiz
-**Web Service** planında doğrudan çalışır.
 
 1. Bu repoyu GitHub'a push et (zaten yapıldıysa atla).
 2. [render.com](https://render.com) üzerinde hesabınla GitHub'ı bağla.
-3. **New +** → **Blueprint** ile bu reponun kökündeki `render.yaml` dosyasını seçtir
-   (ya da **New +** → **Web Service** ile manuel oluştur: *Build Command* boş/`echo ok`,
-   *Start Command* `node server.js`).
-4. Render panelinde **Environment** sekmesinden `FIRMS_MAP_KEY` değişkenini ekle
-   (`config.json` `.gitignore`'da olduğu için sunucuya taşınmaz; anahtar buradan okunur).
-5. Deploy tamamlanınca Render'ın verdiği `https://<servis-adi>.onrender.com` adresinden sitene ulaşırsın.
+3. **New +** → **Blueprint** ile bu reponun kökündeki `render.yaml` dosyasını seçtir.
+   Bu dosya hem web servisini hem de ücretsiz bir PostgreSQL veritabanını otomatik
+   kurar ve `DATABASE_URL` / `SESSION_SECRET` değişkenlerini otomatik bağlar.
+4. Kurulum ekranında `FIRMS_MAP_KEY` (opsiyonel) ve `ADMIN_EMAILS` (opsiyonel) için
+   değer gir.
+5. Deploy tamamlanınca Render'ın verdiği `https://<servis-adi>.onrender.com`
+   adresinden sitene ulaşırsın. İlk kayıt olduğun hesap otomatik admin olur.
 
-> Not: Ücretsiz plan bir süre trafik almazsa "uykuya" geçer; ilk istekte birkaç
-> saniye gecikme olabilir.
+> Not: Ücretsiz web servis planı bir süre trafik almazsa "uykuya" geçer; ilk istekte
+> birkaç saniye gecikme olabilir.
 
 ## Proje yapısı
 
 ```
 havasite/
-  server.js          # statik dosya sunucusu + /api/quakes ve /api/fires proxy'leri
-  config.json         # NASA FIRMS anahtarı (git'e dahil edilmez)
+  server.js          # statik dosya sunucusu + /api/quakes, /api/fires, /api/auth/*, /api/admin/* uc noktalari
+  lib/
+    db.js             # Postgres pool + otomatik sema
+    auth.js           # sifre hashleme + imzali oturum cerezi
+  config.json         # NASA FIRMS anahtari (git'e dahil edilmez)
+  render.yaml          # Render Blueprint: web servis + ucretsiz Postgres
   public/
-    index.html, login.html, hava.html, deprem.html, yangin.html
-    css/               # base.css (ortak) + sayfa bazlı stiller
-    js/                # main.js (ortak), three-bg.js (3D), weather.js, quake.js, fire.js, ...
+    index.html, login.html, hava.html, deprem.html, yangin.html, admin.html, ayarlar.html
+    css/               # base.css (ortak) + sayfa bazli stiller
+    js/                # main.js (ortak/oturum), three-bg.js (3D), weather.js, quake.js, quake-globe.js, fire.js, admin.js, ...
 ```

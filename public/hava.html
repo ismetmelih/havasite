@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="tr">
+<html lang="tr" class="auth-pending">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="css/base.css" />
 <link rel="stylesheet" href="css/weather.css" />
 </head>
-<body class="weather-body">
+<body class="weather-body" data-require-auth>
 
 <nav class="site-nav">
   <a class="brand" href="index.html"><img src="img/logo.svg" class="brand-logo" alt="" /> Türkiye<span class="text-quake">Canlı</span></a>
@@ -108,6 +108,25 @@
       <div class="skeleton" style="height:150px;width:100%;border-radius:14px;grid-column:1/-1"></div>
     </div>
   </section>
+
+  <div class="filter-bar reveal">
+    <div class="filter-group">
+      <label for="tempRange">Min. sıcaklık</label>
+      <input type="range" id="tempRange" min="-10" max="40" step="1" value="-10" />
+      <span id="tempRangeVal">-10°C+</span>
+    </div>
+    <div class="filter-group">
+      <label for="sortSelect">Sırala</label>
+      <select id="sortSelect" class="filter-select">
+        <option value="none" selected>Coğrafi (varsayılan)</option>
+        <option value="hot">Sıcaktan soğuğa</option>
+        <option value="cold">Soğuktan sıcağa</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label><input type="checkbox" id="onlyBadWeather" /> Sadece yağışlı/fırtınalı</label>
+    </div>
+  </div>
 
   <section class="map-section reveal">
     <div class="map-head">

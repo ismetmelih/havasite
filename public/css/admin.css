@@ -1,0 +1,94 @@
+/* ================= Admin paneli ================= */
+.admin-status-card {
+  margin-bottom: 22px;
+}
+.admin-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.92rem;
+  color: var(--text-secondary);
+}
+.admin-status-row:last-child { border-bottom: none; }
+
+.admin-users-card { margin-bottom: 30px; }
+
+.admin-table-wrap {
+  overflow-x: auto;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  min-width: 560px;
+}
+.admin-table th {
+  text-align: left;
+  padding: 12px 14px;
+  background: var(--bg-alt);
+  color: var(--text-muted);
+  font-weight: 700;
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--border);
+}
+.admin-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-primary);
+  vertical-align: middle;
+}
+.admin-table tr:last-child td { border-bottom: none; }
+.admin-table tr.is-self { background: rgba(42, 120, 214, 0.06); }
+
+.role-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+.role-chip.is-admin {
+  color: #ffd08a;
+  border-color: rgba(255, 208, 138, 0.4);
+  background: rgba(255, 208, 138, 0.1);
+}
+
+.admin-row-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+.admin-row-actions button {
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-alt);
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
+}
+.admin-row-actions button:hover {
+  transform: translateY(-1px);
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+.admin-row-actions button.danger:hover {
+  color: #ff8a8a;
+  border-color: rgba(255, 138, 138, 0.5);
+}
+.admin-row-actions button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}

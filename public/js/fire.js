@@ -96,6 +96,15 @@
     document.getElementById("daySelect").addEventListener("change", () => { if (!demoMode) fetchFires(); });
     document.getElementById("sourceSelect").addEventListener("change", () => { if (!demoMode) fetchFires(); });
     document.getElementById("confSelect").addEventListener("change", render);
+
+    const frpRange = document.getElementById("frpRange");
+    const frpVal = document.getElementById("frpRangeVal");
+    window.bindRangeFill && window.bindRangeFill(frpRange);
+    frpRange.addEventListener("input", () => {
+      frpVal.textContent = `${frpRange.value}+ MW`;
+      window.flashUpdate && window.flashUpdate(frpVal);
+      render();
+    });
   }
 
   async function fetchFires() {
@@ -179,12 +188,14 @@
 
   function filteredData() {
     const confFilter = document.getElementById("confSelect").value;
+    const minFrp = parseFloat(document.getElementById("frpRange").value) || 0;
     return rawData
       .filter((f) => {
         if (confFilter === "all") return true;
         const lvl = confLevel(f.confidence);
         return confFilter === "high" ? lvl === 2 : lvl >= 1;
       })
+      .filter((f) => (f.frp || 0) >= minFrp)
       .sort((a, b) => (b.frp || 0) - (a.frp || 0));
   }
 
@@ -200,10 +211,15 @@
     list.forEach((f) => {
       const size = fireSize(f.frp);
       const color = frpColor(f.frp);
+      // yanan noktada gercek bir "alev" hissi: titreyen alev sekli + yukselen kor parcaciklari
       const html = `
-        <div class="pulse-marker fire-pulse">
-          <div class="ring" style="width:${size * 1.6}px;height:${size * 1.6}px;background:${color}22;border:1.5px solid ${color}"></div>
-          <div class="dot" style="width:${size}px;height:${size}px;background:${color}"></div>
+        <div class="fire-mark">
+          <div class="fmk-ring" style="width:${size * 1.6}px;height:${size * 1.6}px;background:${color}22;border:1.5px solid ${color}"></div>
+          <svg class="fmk-flame" viewBox="0 0 64 64" style="width:${size}px;height:${size}px;color:${color}" aria-hidden="true">
+            <path d="M32 6c4 8-3 11-3 18 0 5 4 7 7 7 5 0 9-4 9-10 6 6 9 14 9 20 0 12-10 21-22 21S10 53 10 41c0-9 5-15 9-20 1 6 5 9 9 9 3 0-3-4 4-24Z" fill="currentColor"/>
+          </svg>
+          <span class="fmk-ember e1"></span>
+          <span class="fmk-ember e2"></span>
         </div>`;
       const icon = L.divIcon({ className: "", html, iconSize: [size, size], iconAnchor: [size / 2, size / 2] });
       const marker = L.marker([f.lat, f.lon], { icon }).addTo(layer);

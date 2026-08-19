@@ -227,6 +227,40 @@
 .cat-card .arrow { transition: transform 0.25s ease; display: inline-block; }
 .cat-card:hover .arrow { transform: translateX(5px); }
 
+/* ================= Kilitli kategori (giris yapmadan) ================= */
+.cat-grid-locked {
+  display: flex;
+  justify-content: center;
+}
+.locked-card {
+  max-width: 520px;
+  width: 100%;
+  text-align: center;
+  padding: 44px 32px;
+  border-radius: var(--radius-lg);
+  border: 1px dashed var(--border-strong);
+  background: linear-gradient(165deg, var(--surface) 0%, var(--surface-2) 100%);
+}
+.locked-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(42, 120, 214, 0.14);
+  font-size: 1.6rem;
+  margin-bottom: 16px;
+  animation: locked-pulse 2.6s ease-in-out infinite;
+}
+@keyframes locked-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(42, 120, 214, 0.28); }
+  50% { box-shadow: 0 0 0 12px rgba(42, 120, 214, 0); }
+}
+.locked-card h3 { margin: 0 0 10px; font-size: 1.2rem; }
+.locked-card p { color: var(--text-secondary); margin: 0 0 22px; }
+.locked-actions { display: flex; justify-content: center; }
+
 /* ================= Neden bolumu ================= */
 .why-grid {
   display: grid;

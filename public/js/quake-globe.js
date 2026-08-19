@@ -50,12 +50,52 @@ window.QuakeGlobe = (function () {
     const glowMat = new THREE.MeshBasicMaterial({ color: 0x2a78d6, transparent: true, opacity: 0.06 });
     group.add(new THREE.Mesh(glowGeo, glowMat));
 
-    let mouseX = 0, mouseY = 0;
-    canvas.addEventListener("mousemove", (e) => {
-      const rect = canvas.getBoundingClientRect();
-      mouseX = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
-      mouseY = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
-    });
+    // ---- fare/dokunma ile surukleyerek cevirme (gercek orbit kontrolu) ----
+    canvas.style.touchAction = "none";
+    canvas.style.cursor = "grab";
+
+    const rot = { x: -0.12, y: 0 }; // mevcut donus (radyan)
+    const vel = { x: 0, y: 0 }; // birakinca devam eden "momentum"
+    let dragging = false;
+    let lastPX = 0, lastPY = 0;
+    let lastInteraction = performance.now();
+    const DRAG_SPEED = 0.008;
+    const MAX_TILT = 1.1;
+
+    function onPointerDown(e) {
+      dragging = true;
+      lastPX = e.clientX;
+      lastPY = e.clientY;
+      vel.x = 0;
+      vel.y = 0;
+      canvas.style.cursor = "grabbing";
+      canvas.setPointerCapture && canvas.setPointerCapture(e.pointerId);
+    }
+    function onPointerMove(e) {
+      if (!dragging) return;
+      const dx = e.clientX - lastPX;
+      const dy = e.clientY - lastPY;
+      lastPX = e.clientX;
+      lastPY = e.clientY;
+      rot.y += dx * DRAG_SPEED;
+      rot.x = Math.max(-MAX_TILT, Math.min(MAX_TILT, rot.x + dy * DRAG_SPEED));
+      vel.x = dx * DRAG_SPEED;
+      vel.y = dy * DRAG_SPEED;
+      lastInteraction = performance.now();
+    }
+    function onPointerUp(e) {
+      if (!dragging) return;
+      dragging = false;
+      canvas.style.cursor = "grab";
+      lastInteraction = performance.now();
+      canvas.releasePointerCapture && e.pointerId != null && canvas.releasePointerCapture(e.pointerId);
+    }
+
+    canvas.addEventListener("pointerdown", onPointerDown);
+    canvas.addEventListener("pointermove", onPointerMove);
+    canvas.addEventListener("pointerup", onPointerUp);
+    canvas.addEventListener("pointerleave", onPointerUp);
+    canvas.addEventListener("pointercancel", onPointerUp);
 
     function resize() {
       const w = canvas.parentElement ? canvas.parentElement.clientWidth : canvas.clientWidth;
@@ -118,16 +158,28 @@ window.QuakeGlobe = (function () {
     let running = true;
     document.addEventListener("visibilitychange", () => { running = !document.hidden; });
 
-    let t = 0;
     function animate() {
       requestAnimationFrame(animate);
       if (!running) return;
-      t += reducedMotion ? 0.0006 : 0.0016;
-
-      group.rotation.y = t * 0.6 + mouseX * 0.3;
-      group.rotation.x = mouseY * 0.15;
 
       const now = performance.now();
+
+      if (dragging) {
+        // rot degerleri pointermove'da zaten guncellendi, burada sadece uygulanacak
+      } else if (Math.abs(vel.x) > 0.00006 || Math.abs(vel.y) > 0.00006) {
+        // birakildiktan sonra kisa bir momentum ile devam edip yavasca sonar
+        rot.y += vel.x;
+        rot.x = Math.max(-MAX_TILT, Math.min(MAX_TILT, rot.x + vel.y));
+        vel.x *= 0.94;
+        vel.y *= 0.94;
+      } else if (!reducedMotion && now - lastInteraction > 2200) {
+        // uzun sure dokunulmadiysa cok yavas, dikkat cekmeyen bir "bosta" donus
+        rot.y += 0.0009;
+      }
+
+      group.rotation.y = rot.y;
+      group.rotation.x = rot.x;
+
       points.forEach((p) => {
         const age = now - p.spawn;
         // giris: 0-500ms elastik buyume
