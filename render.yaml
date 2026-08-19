@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: havasite
+    runtime: node
+    plan: free
+    buildCommand: "echo 'bagimlilik yok, build gerekmiyor'"
+    startCommand: "node server.js"
+    envVars:
+      - key: FIRMS_MAP_KEY
+        sync: false
+      - key: NODE_VERSION
+        value: 20

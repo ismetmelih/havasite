@@ -19,6 +19,10 @@ function loadConfig() {
   } catch (err) {
     console.warn("[uyari] config.json okunamadi, varsayilanlar kullaniliyor:", err.message);
   }
+  // Ortam degiskenleri (ornegin Render.com'daki Environment Variables) config.json'u ezer.
+  // Boylece config.json git'e dahil edilmese bile (.gitignore) barindirma platformunda calisir.
+  if (process.env.FIRMS_MAP_KEY) CONFIG.FIRMS_MAP_KEY = process.env.FIRMS_MAP_KEY;
+  if (process.env.PORT) CONFIG.PORT = process.env.PORT;
 }
 loadConfig();
 

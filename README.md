@@ -60,6 +60,23 @@ doğrulama sunucusu veya veritabanı yoktur. Girilen ad/e-posta yalnızca taray�
 gerekiyorsa bir kimlik doğrulama servisi (ör. kendi backend'in + veritabanı, veya
 Auth0/Firebase Auth gibi bir servis) entegre edilmesi gerekir.
 
+## Render.com'da canlıya alma
+
+Bu proje ek bağımlılık ve build adımı gerektirmediği için Render'ın ücretsiz
+**Web Service** planında doğrudan çalışır.
+
+1. Bu repoyu GitHub'a push et (zaten yapıldıysa atla).
+2. [render.com](https://render.com) üzerinde hesabınla GitHub'ı bağla.
+3. **New +** → **Blueprint** ile bu reponun kökündeki `render.yaml` dosyasını seçtir
+   (ya da **New +** → **Web Service** ile manuel oluştur: *Build Command* boş/`echo ok`,
+   *Start Command* `node server.js`).
+4. Render panelinde **Environment** sekmesinden `FIRMS_MAP_KEY` değişkenini ekle
+   (`config.json` `.gitignore`'da olduğu için sunucuya taşınmaz; anahtar buradan okunur).
+5. Deploy tamamlanınca Render'ın verdiği `https://<servis-adi>.onrender.com` adresinden sitene ulaşırsın.
+
+> Not: Ücretsiz plan bir süre trafik almazsa "uykuya" geçer; ilk istekte birkaç
+> saniye gecikme olabilir.
+
 ## Proje yapısı
 
 ```
