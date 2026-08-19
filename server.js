@@ -312,15 +312,12 @@ async function handleRegister(req, res) {
       return sendJson(res, 409, { ok: false, reason: "email_taken", message: "Bu e-posta zaten kayitli." });
     }
 
-    const countRes = await pool.query("SELECT COUNT(*)::int AS n FROM users");
-    const isFirstUser = countRes.rows[0].n === 0;
-    const adminEmails = (process.env.ADMIN_EMAILS || "").split(",").map((s) => s.trim().toLowerCase()).filter(Boolean);
-    const isAdmin = isFirstUser || adminEmails.includes(email);
-
+    // Not: site yoneticisi (admin) burada olusmaz; admin ayri, ADMIN_EMAIL/ADMIN_PASSWORD
+    // ortam degiskenleriyle dogrulanan, tamamen bagimsiz bir girisdir (bkz. handleAdminLogin).
     const passwordHash = AuthLib.hashPassword(password);
     const inserted = await pool.query(
-      "INSERT INTO users (name, email, password_hash, is_admin) VALUES ($1,$2,$3,$4) RETURNING *",
-      [name, email, passwordHash, isAdmin]
+      "INSERT INTO users (name, email, password_hash, is_admin) VALUES ($1,$2,$3,FALSE) RETURNING *",
+      [name, email, passwordHash]
     );
     const user = inserted.rows[0];
     res.setHeader("Set-Cookie", AuthLib.createSessionCookie(req, user));
@@ -389,31 +386,70 @@ async function handleUpdateMe(req, res) {
 }
 
 // ---------- admin ----------
+// Admin, normal kullanici hesaplarindan tamamen bagimsizdir: musteri kayit/giris
+// sistemiyle hicbir iliskisi yoktur. Site sahibi Render panelinde (veya yerelde)
+// ADMIN_EMAIL ve ADMIN_PASSWORD ortam degiskenlerini tanimlar; admin.html'deki
+// giris formu bu bilgilerle dogrulanir ve ayri, kisa omurlu bir oturum cerezi alir.
+function adminCredentialsConfigured() {
+  return !!(process.env.ADMIN_EMAIL && process.env.ADMIN_PASSWORD);
+}
+
+async function handleAdminLogin(req, res) {
+  let body;
+  try {
+    body = await readJsonBody(req);
+  } catch {
+    return sendJson(res, 400, { ok: false, reason: "bad_request", message: "Gecersiz istek govdesi." });
+  }
+  if (!adminCredentialsConfigured()) {
+    return sendJson(res, 200, {
+      ok: false,
+      reason: "not_configured",
+      message: "Sunucuda ADMIN_EMAIL / ADMIN_PASSWORD ortam degiskenleri tanimli degil. Render panelinden ekleyin.",
+    });
+  }
+  const email = String(body.email || "").trim().toLowerCase();
+  const password = String(body.password || "");
+  const expectedEmail = String(process.env.ADMIN_EMAIL || "").trim().toLowerCase();
+
+  const emailOk = AuthLib.timingSafeEqualStr(email, expectedEmail);
+  const passwordOk = AuthLib.timingSafeEqualStr(password, process.env.ADMIN_PASSWORD);
+  if (!emailOk || !passwordOk) {
+    return sendJson(res, 401, { ok: false, reason: "invalid_credentials", message: "Hatali admin e-postasi veya sifresi." });
+  }
+  res.setHeader("Set-Cookie", AuthLib.createAdminSessionCookie(req));
+  sendJson(res, 200, { ok: true });
+}
+
+function handleAdminLogout(req, res) {
+  res.setHeader("Set-Cookie", AuthLib.clearAdminSessionCookie(req));
+  sendJson(res, 200, { ok: true });
+}
+
+function handleAdminSession(req, res) {
+  sendJson(res, 200, { ok: true, isAdmin: AuthLib.readAdminSession(req) });
+}
+
+// admin API uc noktalarini korumak icin kullanilir; basarisizsa kendisi yanit yazar ve false doner
 async function requireAdmin(req, res) {
-  const user = await currentUser(req);
-  if (!user) {
-    sendJson(res, 401, { ok: false, reason: "unauthorized", message: "Giris yapmalisin." });
-    return null;
+  if (!AuthLib.readAdminSession(req)) {
+    sendJson(res, 401, { ok: false, reason: "unauthorized", message: "Admin girisi yapmalisin." });
+    return false;
   }
-  if (!user.is_admin) {
-    sendJson(res, 403, { ok: false, reason: "forbidden", message: "Bu alan icin admin yetkisi gerekiyor." });
-    return null;
-  }
-  return user;
+  return true;
 }
 
 async function handleAdminStats(req, res) {
   if (!(await requireAdmin(req, res))) return;
+  if (!(await requireDb(res))) return;
   try {
     const pool = getPool();
     const totalRes = await pool.query("SELECT COUNT(*)::int AS n FROM users");
-    const adminRes = await pool.query("SELECT COUNT(*)::int AS n FROM users WHERE is_admin");
     const todayRes = await pool.query("SELECT COUNT(*)::int AS n FROM users WHERE created_at::date = now()::date");
     sendJson(res, 200, {
       ok: true,
       stats: {
         totalUsers: totalRes.rows[0].n,
-        adminUsers: adminRes.rows[0].n,
         registeredToday: todayRes.rows[0].n,
         firmsKeyConfigured: !!(CONFIG.FIRMS_MAP_KEY && CONFIG.FIRMS_MAP_KEY !== "BURAYA_KENDI_ANAHTARINI_YAZ"),
         nodeVersion: process.version,
@@ -427,6 +463,7 @@ async function handleAdminStats(req, res) {
 
 async function handleAdminUsersList(req, res) {
   if (!(await requireAdmin(req, res))) return;
+  if (!(await requireDb(res))) return;
   try {
     const pool = getPool();
     const r = await pool.query("SELECT * FROM users ORDER BY created_at DESC");
@@ -436,38 +473,12 @@ async function handleAdminUsersList(req, res) {
   }
 }
 
-async function handleAdminUserPatch(req, res, id) {
-  const admin = await requireAdmin(req, res);
-  if (!admin) return;
-  let body;
-  try {
-    body = await readJsonBody(req);
-  } catch {
-    return sendJson(res, 400, { ok: false, reason: "bad_request", message: "Gecersiz istek govdesi." });
-  }
-  if (typeof body.isAdmin !== "boolean") {
-    return sendJson(res, 400, { ok: false, reason: "bad_request", message: "isAdmin (true/false) gerekli." });
-  }
-  if (Number(id) === admin.id && body.isAdmin === false) {
-    return sendJson(res, 400, { ok: false, reason: "self_demote", message: "Kendi admin yetkini kaldiramazsin." });
-  }
-  try {
-    const r = await getPool().query("UPDATE users SET is_admin = $1 WHERE id = $2 RETURNING *", [body.isAdmin, id]);
-    if (!r.rows.length) return sendJson(res, 404, { ok: false, reason: "not_found", message: "Kullanici bulunamadi." });
-    sendJson(res, 200, { ok: true, user: publicUser(r.rows[0]) });
-  } catch (err) {
-    sendJson(res, 500, { ok: false, reason: "server_error", message: "Guncelleme basarisiz." });
-  }
-}
-
 async function handleAdminUserDelete(req, res, id) {
-  const admin = await requireAdmin(req, res);
-  if (!admin) return;
-  if (Number(id) === admin.id) {
-    return sendJson(res, 400, { ok: false, reason: "self_delete", message: "Kendi hesabini buradan silemezsin." });
-  }
+  if (!(await requireAdmin(req, res))) return;
+  if (!(await requireDb(res))) return;
   try {
-    await getPool().query("DELETE FROM users WHERE id = $1", [id]);
+    const r = await getPool().query("DELETE FROM users WHERE id = $1", [id]);
+    if (!r.rowCount) return sendJson(res, 404, { ok: false, reason: "not_found", message: "Kullanici bulunamadi." });
     sendJson(res, 200, { ok: true });
   } catch (err) {
     sendJson(res, 500, { ok: false, reason: "server_error", message: "Silme basarisiz." });
@@ -525,10 +536,12 @@ const server = http.createServer((req, res) => {
   if (pathname === "/api/auth/me" && method === "GET") return handleMe(req, res);
   if (pathname === "/api/auth/me" && method === "PATCH") return handleUpdateMe(req, res);
 
+  if (pathname === "/api/admin/login" && method === "POST") return handleAdminLogin(req, res);
+  if (pathname === "/api/admin/logout" && method === "POST") return handleAdminLogout(req, res);
+  if (pathname === "/api/admin/session" && method === "GET") return handleAdminSession(req, res);
   if (pathname === "/api/admin/stats" && method === "GET") return handleAdminStats(req, res);
   if (pathname === "/api/admin/users" && method === "GET") return handleAdminUsersList(req, res);
   const userMatch = pathname.match(/^\/api\/admin\/users\/(\d+)$/);
-  if (userMatch && method === "PATCH") return handleAdminUserPatch(req, res, userMatch[1]);
   if (userMatch && method === "DELETE") return handleAdminUserDelete(req, res, userMatch[1]);
 
   return serveStatic(req, res, pathname);
@@ -541,8 +554,11 @@ server.listen(PORT, () => {
     console.log("  [bilgi] Yangin verisi icin config.json dosyasina NASA FIRMS anahtari ekleyin.");
     console.log("          Ucretsiz anahtar: https://firms.modaps.eosdis.nasa.gov/api/map_key/\n");
   }
+  if (!adminCredentialsConfigured()) {
+    console.log("  [bilgi] ADMIN_EMAIL / ADMIN_PASSWORD tanimli degil: /admin.html girisi calismayacak.\n");
+  }
   if (!process.env.DATABASE_URL) {
-    console.log("  [bilgi] DATABASE_URL tanimli degil: giris/kayit ve admin paneli calismayacak.");
+    console.log("  [bilgi] DATABASE_URL tanimli degil: kullanici kayit/giris calismayacak.");
     console.log("          Bir PostgreSQL baglantisi ekleyip DATABASE_URL ortam degiskenini tanimlayin.\n");
   } else {
     ensureSchema().then((ok) => {

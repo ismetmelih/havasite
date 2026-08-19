@@ -1,4 +1,28 @@
 /* ================= Admin paneli ================= */
+.admin-login-shell {
+  display: flex;
+  justify-content: center;
+  padding: 20px 0 10px;
+}
+.admin-login-card {
+  max-width: 420px;
+  width: 100%;
+}
+.admin-login-card code {
+  background: var(--bg-alt);
+  padding: 2px 6px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+.admin-logout-btn {
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+
 .admin-status-card {
   margin-bottom: 22px;
 }

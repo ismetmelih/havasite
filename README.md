@@ -36,21 +36,25 @@ otomatik yüklenir.
 
 ## Giriş, kayıt ve admin sistemi
 
-Hesaplar sunucu tarafında PostgreSQL'de saklanır; şifreler geri döndürülemez şekilde
-(Node'un yerleşik `crypto.scrypt`'i ile tuzlanarak) hash'lenir, oturumlar imzalı
-(HMAC-SHA256) `httpOnly` bir çerezle yürütülür. Ekstra kimlik doğrulama kütüphanesi
-kullanılmaz.
+**Müşteri hesapları** (hava/deprem/yangın sayfalarına erişim için) sunucu tarafında
+PostgreSQL'de saklanır; şifreler geri döndürülemez şekilde (Node'un yerleşik
+`crypto.scrypt`'i ile tuzlanarak) hash'lenir, oturumlar imzalı (HMAC-SHA256) `httpOnly`
+bir çerezle yürütülür.
 
-- **İlk kayıt olan kullanıcı otomatik admin olur.** Sonraki kayıtlar normal kullanıcı olur.
-- İstersen `ADMIN_EMAILS` ortam değişkenine virgülle ayrılmış e-postalar yazarak, o
-  e-postalarla kayıt olan/giriş yapan hesapları da admin yapabilirsin.
-- Admin panelinden (`admin.html`) diğer kullanıcıları admin yapabilir/admin'likten
-  çıkarabilir veya silebilirsin. Kendi hesabını admin'likten çıkaramaz/silemezsin
-  (yanlışlıkla kendini kilitlememen için).
+**Admin girişi bundan tamamen ayrıdır** — kayıt formuyla hiçbir ilişkisi yoktur ve
+kimse kayıt olarak admin olamaz. Site sahibi Render panelinde (veya yerelde) iki ortam
+değişkeni tanımlar:
 
-İlgili API uç noktaları: `POST /api/auth/register`, `POST /api/auth/login`,
-`POST /api/auth/logout`, `GET/PATCH /api/auth/me`, `GET /api/admin/stats`,
-`GET/PATCH/DELETE /api/admin/users/:id`.
+- `ADMIN_EMAIL`
+- `ADMIN_PASSWORD`
+
+`admin.html` sayfasındaki giriş formu yalnızca bu ikiliyle eşleşen bilgilerle açılır ve
+ayrı, 12 saatlik kısa ömürlü bir oturum cerezi (`havasite_admin_session`) kullanır.
+Admin panelinden kayıtlı müşteri hesaplarını görüntüleyip silebilirsin.
+
+İlgili API uç noktaları:
+- Müşteri: `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/logout`, `GET/PATCH /api/auth/me`
+- Admin: `POST /api/admin/login`, `POST /api/admin/logout`, `GET /api/admin/session`, `GET /api/admin/stats`, `GET /api/admin/users`, `DELETE /api/admin/users/:id`
 
 ## Veritabanı
 
@@ -94,10 +98,12 @@ resmî kurumların (AFAD, Kandilli, OGM vb.) duyurularını esas al.
 3. **New +** → **Blueprint** ile bu reponun kökündeki `render.yaml` dosyasını seçtir.
    Bu dosya hem web servisini hem de ücretsiz bir PostgreSQL veritabanını otomatik
    kurar ve `DATABASE_URL` / `SESSION_SECRET` değişkenlerini otomatik bağlar.
-4. Kurulum ekranında `FIRMS_MAP_KEY` (opsiyonel) ve `ADMIN_EMAILS` (opsiyonel) için
-   değer gir.
+4. Kurulum ekranında `FIRMS_MAP_KEY` (opsiyonel, yangın verisi için) ve `ADMIN_EMAIL` /
+   `ADMIN_PASSWORD` (admin paneline giriş için — kendi belirlediğin bilgiler) değerlerini gir.
+   Blueprint kurulumunu ilk seferinde yaptıysan, bu değişkenleri sonradan Render panelinde
+   servisin **Environment** sekmesinden de ekleyebilir/değiştirebilirsin.
 5. Deploy tamamlanınca Render'ın verdiği `https://<servis-adi>.onrender.com`
-   adresinden sitene ulaşırsın. İlk kayıt olduğun hesap otomatik admin olur.
+   adresinden sitene, `/admin.html` adresinden de admin paneline ulaşırsın.
 
 > Not: Ücretsiz web servis planı bir süre trafik almazsa "uykuya" geçer; ilk istekte
 > birkaç saniye gecikme olabilir.

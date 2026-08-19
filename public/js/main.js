@@ -13,15 +13,9 @@
       setupUserState(user);
 
       const requireAuth = document.body.hasAttribute("data-require-auth");
-      const requireAdmin = document.body.hasAttribute("data-require-admin");
-
       if (requireAuth && !user) {
         const next = encodeURIComponent(location.pathname.split("/").pop() || "index.html");
         location.replace(`login.html?redirect=${next}`);
-        return;
-      }
-      if (requireAdmin && (!user || !user.isAdmin)) {
-        location.replace(user ? "index.html" : `login.html?redirect=admin.html`);
         return;
       }
 
@@ -271,7 +265,6 @@
     if (!slot) return;
     if (user) {
       slot.innerHTML = `
-        ${user.isAdmin ? `<a class="icon-btn" href="admin.html" title="Admin paneli" aria-label="Admin paneli">🛠️</a>` : ""}
         <a class="user-chip" href="ayarlar.html" title="Profil ve ayarlar">
           <span class="user-avatar">${escapeHtml((user.name || "?").slice(0, 1).toUpperCase())}</span>
           <span class="label">${escapeHtml(user.name || user.email || "Kullanıcı")}</span>

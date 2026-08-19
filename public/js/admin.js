@@ -1,20 +1,99 @@
 (function () {
   "use strict";
 
-  let meId = null;
-
   document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("year") && (document.getElementById("year").textContent = new Date().getFullYear());
-
-    document.addEventListener("havasite:auth-ready", (e) => {
-      const user = e.detail.user;
-      if (!user) return; // main.js zaten yonlendirir
-      meId = user.id;
-      document.getElementById("whoami").textContent = user.name || user.email;
-      loadStats();
-      loadUsers();
-    });
+    checkSession();
+    setupLoginForm();
+    document.getElementById("adminLogoutBtn").addEventListener("click", logout);
   });
+
+  function showDashboard() {
+    document.getElementById("adminLoginShell").hidden = true;
+    document.getElementById("adminDashboard").hidden = false;
+    document.getElementById("adminLogoutWrap").hidden = false;
+    loadStats();
+    loadUsers();
+  }
+
+  function showLogin() {
+    document.getElementById("adminLoginShell").hidden = false;
+    document.getElementById("adminDashboard").hidden = true;
+    document.getElementById("adminLogoutWrap").hidden = true;
+  }
+
+  async function checkSession() {
+    try {
+      const r = await fetch("/api/admin/session", { credentials: "same-origin" });
+      const data = await r.json();
+      if (data.ok && data.isAdmin) {
+        showDashboard();
+      } else {
+        showLogin();
+      }
+    } catch {
+      showLogin();
+    }
+  }
+
+  function setFieldError(input, message) {
+    const small = input.closest(".field").querySelector(".field-error");
+    input.classList.toggle("invalid", !!message);
+    small.textContent = message || "";
+  }
+
+  function setupLoginForm() {
+    const form = document.getElementById("adminLoginForm");
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const emailInput = document.getElementById("adminEmail");
+      const passInput = document.getElementById("adminPassword");
+      setFieldError(emailInput, "");
+      setFieldError(passInput, "");
+
+      const btn = form.querySelector("button[type=submit]");
+      const label = btn.querySelector(".btn-label");
+      const spin = btn.querySelector(".btn-spin");
+      btn.disabled = true;
+      label.style.opacity = "0.4";
+      spin.hidden = false;
+
+      try {
+        const r = await fetch("/api/admin/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "same-origin",
+          body: JSON.stringify({ email: emailInput.value.trim(), password: passInput.value }),
+        });
+        const data = await r.json();
+        if (!data.ok) {
+          if (data.reason === "not_configured") {
+            document.getElementById("adminConfigHint").textContent = data.message;
+          } else {
+            setFieldError(passInput, data.message || "Giriş başarısız.");
+          }
+          return;
+        }
+        form.reset();
+        showDashboard();
+      } catch {
+        window.showToast("Sunucuya ulaşılamadı.", { accent: "var(--status-critical)" });
+      } finally {
+        btn.disabled = false;
+        label.style.opacity = "1";
+        spin.hidden = true;
+      }
+    });
+  }
+
+  async function logout() {
+    try {
+      await fetch("/api/admin/logout", { method: "POST", credentials: "same-origin" });
+    } catch {
+      /* onemli degil, formu yine de gosteriyoruz */
+    }
+    showLogin();
+  }
 
   function fmtDate(iso) {
     try {
@@ -36,12 +115,12 @@
       const r = await fetch("/api/admin/stats", { credentials: "same-origin" });
       const data = await r.json();
       if (!data.ok) {
+        if (data.reason === "unauthorized") return showLogin();
         window.showToast(data.message || "İstatistikler alınamadı.", { accent: "var(--status-critical)" });
         return;
       }
       const s = data.stats;
       document.getElementById("statTotalUsers").textContent = s.totalUsers;
-      document.getElementById("statAdmins").textContent = s.adminUsers;
       document.getElementById("statToday").textContent = s.registeredToday;
       document.getElementById("statUptime").textContent = fmtUptime(s.uptimeSeconds);
       document.getElementById("statNode").textContent = s.nodeVersion;
@@ -63,12 +142,13 @@
       const r = await fetch("/api/admin/users", { credentials: "same-origin" });
       const data = await r.json();
       if (!data.ok) {
-        tbody.innerHTML = `<tr><td colspan="5">Kullanıcılar alınamadı.</td></tr>`;
+        if (data.reason === "unauthorized") return showLogin();
+        tbody.innerHTML = `<tr><td colspan="4">${window.escapeHtml(data.message || "Kullanıcılar alınamadı.")}</td></tr>`;
         return;
       }
       renderUsers(data.users);
     } catch {
-      tbody.innerHTML = `<tr><td colspan="5">Bağlantı hatası.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="4">Bağlantı hatası.</td></tr>`;
     }
   }
 
@@ -77,63 +157,32 @@
     const tbody = document.getElementById("userTableBody");
 
     if (!users.length) {
-      tbody.innerHTML = `<tr><td colspan="5">Henüz kayıtlı kullanıcı yok.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="4">Henüz kayıtlı kullanıcı yok.</td></tr>`;
       return;
     }
 
     tbody.innerHTML = users
-      .map((u) => {
-        const isSelf = u.id === meId;
-        return `
-        <tr data-id="${u.id}" class="${isSelf ? "is-self" : ""}">
-          <td>${window.escapeHtml(u.name || "—")}${isSelf ? " <span class=\"field-hint\">(sen)</span>" : ""}</td>
+      .map(
+        (u) => `
+        <tr data-id="${u.id}">
+          <td>${window.escapeHtml(u.name || "—")}</td>
           <td>${window.escapeHtml(u.email)}</td>
           <td>${fmtDate(u.createdAt)}</td>
-          <td><span class="role-chip ${u.isAdmin ? "is-admin" : ""}">${u.isAdmin ? "★ Admin" : "Kullanıcı"}</span></td>
           <td>
             <div class="admin-row-actions">
-              <button type="button" data-action="toggle" ${isSelf && u.isAdmin ? "disabled title='Kendi yetkini kaldıramazsın'" : ""}>
-                ${u.isAdmin ? "Adminliği al" : "Admin yap"}
-              </button>
-              <button type="button" class="danger" data-action="delete" ${isSelf ? "disabled title='Kendini silemezsin'" : ""}>Sil</button>
+              <button type="button" class="danger" data-action="delete">Sil</button>
             </div>
           </td>
-        </tr>`;
-      })
+        </tr>`
+      )
       .join("");
 
-    tbody.querySelectorAll("button[data-action]").forEach((btn) => {
+    tbody.querySelectorAll("button[data-action='delete']").forEach((btn) => {
       btn.addEventListener("click", () => {
         const row = btn.closest("tr");
-        const id = row.dataset.id;
-        if (btn.dataset.action === "toggle") toggleAdmin(id, row);
-        if (btn.dataset.action === "delete") deleteUser(id, row);
+        deleteUser(row.dataset.id, row);
       });
     });
-  }
-
-  async function toggleAdmin(id, row) {
-    const currentlyAdmin = row.querySelector(".role-chip").classList.contains("is-admin");
-    try {
-      const r = await fetch(`/api/admin/users/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "same-origin",
-        body: JSON.stringify({ isAdmin: !currentlyAdmin }),
-      });
-      const data = await r.json();
-      if (!data.ok) {
-        window.showToast(data.message || "Güncellenemedi.", { accent: "var(--status-critical)" });
-        return;
-      }
-      window.showToast(`${data.user.name || data.user.email} artık ${data.user.isAdmin ? "admin" : "normal kullanıcı"}.`, {
-        accent: "var(--status-good)",
-      });
-      loadUsers();
-      loadStats();
-    } catch {
-      window.showToast("Sunucuya ulaşılamadı.", { accent: "var(--status-critical)" });
-    }
   }
 
   async function deleteUser(id, row) {
@@ -143,6 +192,7 @@
       const r = await fetch(`/api/admin/users/${id}`, { method: "DELETE", credentials: "same-origin" });
       const data = await r.json();
       if (!data.ok) {
+        if (data.reason === "unauthorized") return showLogin();
         window.showToast(data.message || "Silinemedi.", { accent: "var(--status-critical)" });
         return;
       }
