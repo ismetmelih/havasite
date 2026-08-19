@@ -252,6 +252,10 @@
       firstLoad = false;
 
       document.getElementById("lastUpdated").textContent = `Son güncelleme: ${window.formatClock(new Date())}`;
+      const badge = document.getElementById("quakeSourceBadge");
+      if (badge) {
+        badge.innerHTML = `<span class="live-blip"></span> ${data.source === "emsc" ? "EMSC" : "AFAD"} · her 25 sn yenilenir`;
+      }
       render(newOnes);
 
       newOnes.forEach((q) => {

@@ -84,10 +84,11 @@ açıkça etiketlenmiş) verilerle deneyebilirsin.
 ## Veri kaynakları
 
 - **Hava durumu:** [Open-Meteo](https://open-meteo.com) — anahtarsız, ücretsiz.
-- **Deprem:** [EMSC](https://www.seismicportal.eu) (Avrupa-Akdeniz Sismoloji Merkezi) —
-  Türkiye verileri büyük ölçüde AFAD kaynaklı, anahtarsız. (Önceki kaynağımız olan
-  Kandilli'nin bağımsız proxy servisi, Render gibi barındırma sağlayıcılarının sunucu
-  IP'lerini engellediği için EMSC'ye geçildi.)
+- **Deprem:** [AFAD](https://deprem.afad.gov.tr) resmi servisi — il/ilçe/mahalle
+  seviyesinde detaylı, anahtarsız. AFAD'a ulaşılamazsa otomatik olarak
+  [EMSC](https://www.seismicportal.eu) (Avrupa-Akdeniz Sismoloji Merkezi) yedek
+  kaynağına geçilir. (Önceki kaynağımız olan Kandilli'nin bağımsız proxy servisi,
+  Render gibi barındırma sağlayıcılarının sunucu IP'lerini engellediği için bırakıldı.)
 - **Yangın:** [NASA FIRMS](https://firms.modaps.eosdis.nasa.gov) (VIIRS/MODIS uydu aktif ateş tespiti) — ücretsiz anahtar gerekir.
 
 Bu proje bağımsız/gayriresmîdir; resmî afet/acil durum kararları için ilgili

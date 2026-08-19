@@ -85,11 +85,54 @@ function sendJson(res, status, obj) {
 }
 
 // ---------- /api/quakes ----------
-// Kaynak: EMSC (Avrupa-Akdeniz Sismoloji Merkezi) seismicportal servisi, Turkiye
-// bounding box'i ile filtrelenmis. Onceki kaynagimiz (api.orhanaydogdu.com.tr'nin
-// Kandilli proxy'si) barindirma saglayicilarinin sunucu IP araliklarini engelliyor
-// gibi gorundugu icin EMSC'ye gecildi; EMSC verileri buyuk olcude AFAD'dan besleniyor.
+// Ana kaynak: AFAD'in resmi deprem servisi (il/ilce/mahalle seviyesinde, en
+// ayrintili ve dogrudan resmi kaynak). Yedek kaynak: EMSC (Avrupa-Akdeniz
+// Sismoloji Merkezi). Onceki kaynagimiz olan api.orhanaydogdu.com.tr'nin
+// Kandilli proxy'si, barindirma saglayicilarinin sunucu IP araliklarini
+// engelliyor gibi gorundugu icin birakildi.
 const TURKEY_BBOX_QUAKE = { minlat: 35.5, maxlat: 42.5, minlon: 25.5, maxlon: 45 };
+
+function isoNoMs(d) {
+  return d.toISOString().slice(0, 19);
+}
+
+function afadQuery(startDate, endDate, limit) {
+  const { minlat, maxlat, minlon, maxlon } = TURKEY_BBOX_QUAKE;
+  return `https://servisnet.afad.gov.tr/apigateway/deprem/apiv2/event/filter?start=${isoNoMs(startDate)}&end=${isoNoMs(endDate)}&minlat=${minlat}&maxlat=${maxlat}&minlon=${minlon}&maxlon=${maxlon}&limit=${limit}`;
+}
+
+function normalizeAfadQuake(item) {
+  const mag = parseFloat(item.magnitude);
+  const lat = parseFloat(item.latitude);
+  const lon = parseFloat(item.longitude);
+  return {
+    id: item.eventID,
+    title: item.location || [item.district, item.province].filter(Boolean).join(", ") || "Türkiye",
+    mag,
+    depth: parseFloat(item.depth),
+    date: item.date ? item.date.replace("T", " ").slice(0, 19) : null,
+    lat: Number.isFinite(lat) ? lat : null,
+    lon: Number.isFinite(lon) ? lon : null,
+    closestCity: item.province || null,
+    epiCenter: item.location || null,
+  };
+}
+
+async function fetchAfadQuakes(startDate, endDate, limit) {
+  const upstream = afadQuery(startDate, endDate, limit);
+  const r = await fetchWithTimeout(upstream, {}, 15000);
+  if (!r.ok) throw new Error(`afad upstream ${r.status}`);
+  const data = await r.json();
+  if (!Array.isArray(data)) throw new Error("afad beklenmeyen yanit");
+  return data
+    .map(normalizeAfadQuake)
+    .filter((q) => q.lat !== null && q.lon !== null && q.date && Number.isFinite(q.mag));
+}
+
+function emscBboxQuery(extra) {
+  const { minlat, maxlat, minlon, maxlon } = TURKEY_BBOX_QUAKE;
+  return `https://www.seismicportal.eu/fdsnws/event/1/query?format=json&minlatitude=${minlat}&maxlatitude=${maxlat}&minlongitude=${minlon}&maxlongitude=${maxlon}&orderby=time${extra}`;
+}
 
 function normalizeEmscQuake(f) {
   const p = f.properties || {};
@@ -113,9 +156,14 @@ function normalizeEmscQuake(f) {
   };
 }
 
-function emscBboxQuery(extra) {
-  const { minlat, maxlat, minlon, maxlon } = TURKEY_BBOX_QUAKE;
-  return `https://www.seismicportal.eu/fdsnws/event/1/query?format=json&minlatitude=${minlat}&maxlatitude=${maxlat}&minlongitude=${minlon}&maxlongitude=${maxlon}&orderby=time${extra}`;
+async function fetchEmscQuakes(extra) {
+  const upstream = emscBboxQuery(extra);
+  const r = await fetchWithTimeout(upstream, {}, 15000);
+  if (!r.ok) throw new Error(`emsc upstream ${r.status}`);
+  const data = await r.json();
+  return (data.features || [])
+    .map(normalizeEmscQuake)
+    .filter((q) => q.lat !== null && q.lon !== null && q.date && Number.isFinite(q.mag));
 }
 
 async function handleQuakes(req, res, query) {
@@ -124,49 +172,61 @@ async function handleQuakes(req, res, query) {
   const cached = getCache(cacheKey);
   if (cached) return sendJson(res, 200, cached);
 
-  try {
-    const upstream = emscBboxQuery(`&limit=${limit}`);
-    const r = await fetchWithTimeout(upstream);
-    if (!r.ok) throw new Error(`upstream ${r.status}`);
-    const data = await r.json();
-    const result = (data.features || [])
-      .map(normalizeEmscQuake)
-      .filter((q) => q.lat !== null && q.lon !== null && q.date && Number.isFinite(q.mag));
+  // canli liste icin genis bir pencere cekip en yeni "limit" tanesini aliyoruz
+  // (AFAD sonuclari kronolojik sirali dondurmuyor, kendimiz siraliyoruz)
+  const end = new Date();
+  const start = new Date(end.getTime() - 5 * 86400000);
 
-    const payload = { ok: true, updated: new Date().toISOString(), count: result.length, data: result };
-    setCache(cacheKey, payload, 25000); // 25 sn
-    sendJson(res, 200, payload);
+  let result;
+  let source;
+  try {
+    result = (await fetchAfadQuakes(start, end, 1000))
+      .sort((a, b) => new Date(b.date) - new Date(a.date))
+      .slice(0, limit);
+    source = "afad";
   } catch (err) {
-    sendJson(res, 200, { ok: false, reason: "fetch_failed", detail: String(err.message || err), data: [] });
+    try {
+      result = await fetchEmscQuakes(`&limit=${limit}`);
+      source = "emsc";
+    } catch (err2) {
+      return sendJson(res, 200, { ok: false, reason: "fetch_failed", detail: String(err2.message || err2), data: [] });
+    }
   }
+
+  const payload = { ok: true, updated: new Date().toISOString(), count: result.length, source, data: result };
+  setCache(cacheKey, payload, 25000); // 25 sn
+  sendJson(res, 200, payload);
 }
 
 // ---------- /api/quakes/history ----------
-// Son N gunu tek bir EMSC tarih-araligi sorgusuyla ceker (zaman tuneli / 3D glob icin).
+// Son N gunu tek bir tarih-araligi sorgusuyla ceker (zaman tuneli / 3D glob icin).
 async function handleQuakeHistory(req, res, query) {
   const days = Math.min(Math.max(parseInt(query.days, 10) || 30, 1), 30);
   const cacheKey = `quake-history:${days}`;
   const cached = getCache(cacheKey);
   if (cached) return sendJson(res, 200, cached);
 
-  const start = new Date(Date.now() - days * 86400000).toISOString().slice(0, 19);
+  const end = new Date();
+  const start = new Date(end.getTime() - days * 86400000);
 
+  let result;
+  let source;
   try {
-    const upstream = emscBboxQuery(`&limit=1000&starttime=${start}`);
-    const r = await fetchWithTimeout(upstream, {}, 20000);
-    if (!r.ok) throw new Error(`upstream ${r.status}`);
-    const data = await r.json();
-    const result = (data.features || [])
-      .map(normalizeEmscQuake)
-      .filter((q) => q.lat !== null && q.lon !== null && q.date && Number.isFinite(q.mag))
-      .sort((a, b) => new Date(a.date) - new Date(b.date));
-
-    const payload = { ok: true, updated: new Date().toISOString(), days, count: result.length, data: result };
-    setCache(cacheKey, payload, 20 * 60 * 1000); // 20 dk (arsiv verisi sik degismez)
-    sendJson(res, 200, payload);
+    result = await fetchAfadQuakes(start, end, 1000);
+    source = "afad";
   } catch (err) {
-    sendJson(res, 200, { ok: false, reason: "fetch_failed", detail: String(err.message || err), data: [] });
+    try {
+      result = await fetchEmscQuakes(`&limit=1000&starttime=${isoNoMs(start)}`);
+      source = "emsc";
+    } catch (err2) {
+      return sendJson(res, 200, { ok: false, reason: "fetch_failed", detail: String(err2.message || err2), data: [] });
+    }
   }
+
+  result.sort((a, b) => new Date(a.date) - new Date(b.date));
+  const payload = { ok: true, updated: new Date().toISOString(), days, count: result.length, source, data: result };
+  setCache(cacheKey, payload, 20 * 60 * 1000); // 20 dk (arsiv verisi sik degismez)
+  sendJson(res, 200, payload);
 }
 
 // ---------- /api/fires ----------
