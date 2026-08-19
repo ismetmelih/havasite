@@ -236,6 +236,15 @@
         document.getElementById("lastUpdated").textContent = "Veri alınamadı, tekrar denenecek…";
         return;
       }
+      // API'nin verdigi bolge adi (ornegin "WESTERN TURKEY") yerine, varsa daha
+      // isabetli bir il ismi gostermek icin istemci tarafinda en yakin ili hesapla.
+      data.data.forEach((q) => {
+        if (!q.closestCity && window.nearestCity) {
+          const near = window.nearestCity(q.lat, q.lon);
+          if (near) q.closestCity = `${near.city.name} yakını`;
+        }
+      });
+
       const alertMag = (window.HavaPrefs && window.HavaPrefs.get().quakeAlertMag) || 3.5;
       const newOnes = firstLoad ? [] : data.data.filter((q) => !knownIds.has(q.id) && q.mag >= alertMag);
       rawData = data.data;

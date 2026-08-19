@@ -84,8 +84,10 @@ açıkça etiketlenmiş) verilerle deneyebilirsin.
 ## Veri kaynakları
 
 - **Hava durumu:** [Open-Meteo](https://open-meteo.com) — anahtarsız, ücretsiz.
-- **Deprem:** [Kandilli Rasathanesi](http://www.koeri.boun.edu.tr) verisini yayınlayan
-  kamuya açık [api.orhanaydogdu.com.tr](https://api.orhanaydogdu.com.tr/deprem/kandilli/live) servisi — anahtarsız.
+- **Deprem:** [EMSC](https://www.seismicportal.eu) (Avrupa-Akdeniz Sismoloji Merkezi) —
+  Türkiye verileri büyük ölçüde AFAD kaynaklı, anahtarsız. (Önceki kaynağımız olan
+  Kandilli'nin bağımsız proxy servisi, Render gibi barındırma sağlayıcılarının sunucu
+  IP'lerini engellediği için EMSC'ye geçildi.)
 - **Yangın:** [NASA FIRMS](https://firms.modaps.eosdis.nasa.gov) (VIIRS/MODIS uydu aktif ateş tespiti) — ücretsiz anahtar gerekir.
 
 Bu proje bağımsız/gayriresmîdir; resmî afet/acil durum kararları için ilgili

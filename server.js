@@ -85,7 +85,39 @@ function sendJson(res, status, obj) {
 }
 
 // ---------- /api/quakes ----------
-// Kaynak: api.orhanaydogdu.com.tr (Kandilli verisini yayinlayan, herkese acik, anahtarsiz servis)
+// Kaynak: EMSC (Avrupa-Akdeniz Sismoloji Merkezi) seismicportal servisi, Turkiye
+// bounding box'i ile filtrelenmis. Onceki kaynagimiz (api.orhanaydogdu.com.tr'nin
+// Kandilli proxy'si) barindirma saglayicilarinin sunucu IP araliklarini engelliyor
+// gibi gorundugu icin EMSC'ye gecildi; EMSC verileri buyuk olcude AFAD'dan besleniyor.
+const TURKEY_BBOX_QUAKE = { minlat: 35.5, maxlat: 42.5, minlon: 25.5, maxlon: 45 };
+
+function normalizeEmscQuake(f) {
+  const p = f.properties || {};
+  const [lon, lat] = f.geometry?.coordinates || [null, null];
+  let dateStr = null;
+  if (p.time) {
+    const d = new Date(p.time);
+    if (!Number.isNaN(d.getTime())) dateStr = d.toISOString().slice(0, 19).replace("T", " ");
+  }
+  const region = p.flynn_region ? p.flynn_region.replace(/\s+/g, " ").trim() : null;
+  return {
+    id: f.id || p.unid || p.source_id,
+    title: region || "Türkiye",
+    mag: typeof p.mag === "number" ? p.mag : parseFloat(p.mag),
+    depth: typeof p.depth === "number" ? p.depth : parseFloat(p.depth),
+    date: dateStr,
+    lat: typeof lat === "number" ? lat : null,
+    lon: typeof lon === "number" ? lon : null,
+    closestCity: null,
+    epiCenter: region,
+  };
+}
+
+function emscBboxQuery(extra) {
+  const { minlat, maxlat, minlon, maxlon } = TURKEY_BBOX_QUAKE;
+  return `https://www.seismicportal.eu/fdsnws/event/1/query?format=json&minlatitude=${minlat}&maxlatitude=${maxlat}&minlongitude=${minlon}&maxlongitude=${maxlon}&orderby=time${extra}`;
+}
+
 async function handleQuakes(req, res, query) {
   const limit = Math.min(parseInt(query.limit, 10) || 150, 500);
   const cacheKey = `quakes:${limit}`;
@@ -93,11 +125,13 @@ async function handleQuakes(req, res, query) {
   if (cached) return sendJson(res, 200, cached);
 
   try {
-    const upstream = `https://api.orhanaydogdu.com.tr/deprem/kandilli/live?limit=${limit}`;
+    const upstream = emscBboxQuery(`&limit=${limit}`);
     const r = await fetchWithTimeout(upstream);
     if (!r.ok) throw new Error(`upstream ${r.status}`);
     const data = await r.json();
-    const result = (data.result || []).map(normalizeQuake).filter((q) => q.lat !== null && q.lon !== null);
+    const result = (data.features || [])
+      .map(normalizeEmscQuake)
+      .filter((q) => q.lat !== null && q.lon !== null && q.date && Number.isFinite(q.mag));
 
     const payload = { ok: true, updated: new Date().toISOString(), count: result.length, data: result };
     setCache(cacheKey, payload, 25000); // 25 sn
@@ -107,63 +141,27 @@ async function handleQuakes(req, res, query) {
   }
 }
 
-function normalizeQuake(q) {
-  return {
-    id: q.earthquake_id,
-    title: q.title,
-    mag: q.mag,
-    depth: q.depth,
-    date: q.date_time,
-    lat: q.geojson?.coordinates?.[1] ?? null,
-    lon: q.geojson?.coordinates?.[0] ?? null,
-    closestCity: q.location_properties?.closestCity?.name || null,
-    epiCenter: q.location_properties?.epiCenter?.name || null,
-  };
-}
-
-function ymd(d) {
-  return d.toISOString().slice(0, 10);
-}
-
-async function fetchDayArchive(dateStr) {
-  const upstream = `https://api.orhanaydogdu.com.tr/deprem/kandilli/archive?date=${dateStr}&date_end=${dateStr}&limit=200`;
-  const r = await fetchWithTimeout(upstream, {}, 15000);
-  if (!r.ok) return [];
-  const data = await r.json();
-  return (data.result || []).map(normalizeQuake).filter((q) => q.lat !== null && q.lon !== null);
-}
-
 // ---------- /api/quakes/history ----------
-// Son N gunun deprem arsivini gun gun cekip birlestirir (zaman tuneli / 3D glob icin).
+// Son N gunu tek bir EMSC tarih-araligi sorgusuyla ceker (zaman tuneli / 3D glob icin).
 async function handleQuakeHistory(req, res, query) {
   const days = Math.min(Math.max(parseInt(query.days, 10) || 30, 1), 30);
   const cacheKey = `quake-history:${days}`;
   const cached = getCache(cacheKey);
   if (cached) return sendJson(res, 200, cached);
 
-  const today = new Date();
-  const dateList = [];
-  for (let i = 0; i < days; i++) {
-    const d = new Date(today);
-    d.setUTCDate(d.getUTCDate() - i);
-    dateList.push(ymd(d));
-  }
+  const start = new Date(Date.now() - days * 86400000).toISOString().slice(0, 19);
 
   try {
-    // upstream'i bogmamak icin 5'erli gruplar halinde paralel cek
-    const all = [];
-    const CONCURRENCY = 5;
-    for (let i = 0; i < dateList.length; i += CONCURRENCY) {
-      const batch = dateList.slice(i, i + CONCURRENCY);
-      const results = await Promise.all(batch.map((d) => fetchDayArchive(d).catch(() => [])));
-      results.forEach((dayResult) => all.push(...dayResult));
-    }
-    // ayni depremler farkli gunlerde tekrar gelmesin diye id'ye gore tekillestir
-    const seen = new Map();
-    all.forEach((q) => seen.set(q.id, q));
-    const merged = Array.from(seen.values()).sort((a, b) => new Date(a.date) - new Date(b.date));
+    const upstream = emscBboxQuery(`&limit=1000&starttime=${start}`);
+    const r = await fetchWithTimeout(upstream, {}, 20000);
+    if (!r.ok) throw new Error(`upstream ${r.status}`);
+    const data = await r.json();
+    const result = (data.features || [])
+      .map(normalizeEmscQuake)
+      .filter((q) => q.lat !== null && q.lon !== null && q.date && Number.isFinite(q.mag))
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
 
-    const payload = { ok: true, updated: new Date().toISOString(), days, count: merged.length, data: merged };
+    const payload = { ok: true, updated: new Date().toISOString(), days, count: result.length, data: result };
     setCache(cacheKey, payload, 20 * 60 * 1000); // 20 dk (arsiv verisi sik degismez)
     sendJson(res, 200, payload);
   } catch (err) {
