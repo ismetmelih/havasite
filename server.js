@@ -96,9 +96,29 @@ function isoNoMs(d) {
   return d.toISOString().slice(0, 19);
 }
 
+// AFAD'in API'si start/end parametrelerini ve donen "date" alanini UTC degil,
+// Turkiye yerel saati (Europe/Istanbul, ofsetsiz/naive) olarak bekliyor ve
+// donduruyor. UTC gonderirsek son ~3 saatlik depremler sorgu araliginin
+// disinda kalir (yaz saati farki kadar "gecmiste" bir pencere sorgulanmis olur).
+const istanbulFmt = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Europe/Istanbul",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hour12: false,
+});
+function istanbulNaive(d) {
+  const parts = {};
+  istanbulFmt.formatToParts(d).forEach((p) => (parts[p.type] = p.value));
+  return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}:${parts.second}`;
+}
+
 function afadQuery(startDate, endDate, limit) {
   const { minlat, maxlat, minlon, maxlon } = TURKEY_BBOX_QUAKE;
-  return `https://servisnet.afad.gov.tr/apigateway/deprem/apiv2/event/filter?start=${isoNoMs(startDate)}&end=${isoNoMs(endDate)}&minlat=${minlat}&maxlat=${maxlat}&minlon=${minlon}&maxlon=${maxlon}&limit=${limit}`;
+  return `https://servisnet.afad.gov.tr/apigateway/deprem/apiv2/event/filter?start=${istanbulNaive(startDate)}&end=${istanbulNaive(endDate)}&minlat=${minlat}&maxlat=${maxlat}&minlon=${minlon}&maxlon=${maxlon}&limit=${limit}`;
 }
 
 function normalizeAfadQuake(item) {
