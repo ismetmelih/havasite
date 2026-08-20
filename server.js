@@ -85,9 +85,12 @@ function sendJson(res, status, obj) {
 }
 
 // ---------- /api/quakes ----------
-// Ana kaynak: AFAD'in resmi deprem servisi (il/ilce/mahalle seviyesinde, en
-// ayrintili ve dogrudan resmi kaynak). Yedek kaynak: EMSC (Avrupa-Akdeniz
-// Sismoloji Merkezi). Onceki kaynagimiz olan api.orhanaydogdu.com.tr'nin
+// Kaynak sirasi: (1) AFAD'in last-earthquakes.html sayfasina gomulu, gercekten
+// canli tablo (kendi resmi sitelerinde gosterdikleri veriyle birebir ayni,
+// Turkiye yerel saatiyle) (2) AFAD'in filter API'si (daha genis tarih araligi
+// sorgulanabilir ama UTC dondurur ve bizim ilk testimizde birkac saat "eski"
+// gorunmustu — asagida UTC->Turkiye saatine dogru cevriliyor) (3) EMSC (Avrupa-
+// Akdeniz Sismoloji Merkezi). Onceki kaynagimiz olan api.orhanaydogdu.com.tr'nin
 // Kandilli proxy'si, barindirma saglayicilarinin sunucu IP araliklarini
 // engelliyor gibi gorundugu icin birakildi.
 const TURKEY_BBOX_QUAKE = { minlat: 35.5, maxlat: 42.5, minlon: 25.5, maxlon: 45 };
@@ -96,10 +99,6 @@ function isoNoMs(d) {
   return d.toISOString().slice(0, 19);
 }
 
-// AFAD'in API'si start/end parametrelerini ve donen "date" alanini UTC degil,
-// Turkiye yerel saati (Europe/Istanbul, ofsetsiz/naive) olarak bekliyor ve
-// donduruyor. UTC gonderirsek son ~3 saatlik depremler sorgu araliginin
-// disinda kalir (yaz saati farki kadar "gecmiste" bir pencere sorgulanmis olur).
 const istanbulFmt = new Intl.DateTimeFormat("en-CA", {
   timeZone: "Europe/Istanbul",
   year: "numeric",
@@ -110,27 +109,77 @@ const istanbulFmt = new Intl.DateTimeFormat("en-CA", {
   second: "2-digit",
   hour12: false,
 });
-function istanbulNaive(d) {
+// UTC bir Date'i "YYYY-MM-DD HH:MM:SS" formatinda Turkiye yerel saatine cevirir
+// (sitenin geri kalani deprem tarihlerini hep bu naive/ofsetsiz bicimde kullanir).
+function toIstanbulLocalString(d) {
   const parts = {};
   istanbulFmt.formatToParts(d).forEach((p) => (parts[p.type] = p.value));
-  return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}:${parts.second}`;
+  return `${parts.year}-${parts.month}-${parts.day} ${parts.hour}:${parts.minute}:${parts.second}`;
 }
 
+function provinceFromPlace(place) {
+  const m = /\(([^()]+)\)\s*$/.exec(place || "");
+  return m ? m[1].trim() : null;
+}
+
+// ---- (1) AFAD canli tablosu: last-earthquakes.html icine gomulu HTML tablo ----
+// Bu sayfa AFAD'in kendi vatandaslara gosterdigi sayfayla birebir aynidir;
+// ekstra bir "API" cagrisi yok, veri dogrudan HTML icinde geliyor.
+async function fetchAfadLiveTable() {
+  const r = await fetchWithTimeout("https://deprem.afad.gov.tr/last-earthquakes.html", {}, 15000);
+  if (!r.ok) throw new Error(`afad-live upstream ${r.status}`);
+  const html = await r.text();
+  const rows = html.match(/<tr>[\s\S]*?<\/tr>/g) || [];
+  const out = [];
+  for (const row of rows) {
+    const cells = [...row.matchAll(/<td[^>]*>([\s\S]*?)<\/td>/g)].map((m) => m[1].trim());
+    if (cells.length < 8) continue; // baslik satiri <th> kullanir, atlanir
+    const [dateStr, latStr, lonStr, depthStr, , magStr, place, detailCell] = cells;
+    const idMatch = detailCell.match(/event-detail\/(\d+)/);
+    const lat = parseFloat(latStr);
+    const lon = parseFloat(lonStr);
+    const mag = parseFloat(magStr);
+    if (!idMatch || !Number.isFinite(lat) || !Number.isFinite(lon) || !Number.isFinite(mag)) continue;
+    out.push({
+      id: idMatch[1],
+      title: place,
+      mag,
+      depth: parseFloat(depthStr),
+      date: dateStr, // zaten "YYYY-MM-DD HH:MM:SS" Turkiye yerel saati
+      lat,
+      lon,
+      closestCity: provinceFromPlace(place),
+      epiCenter: place,
+    });
+  }
+  if (!out.length) throw new Error("afad-live tablo bos/ayristirilamadi");
+  return out;
+}
+
+// ---- (2) AFAD filter API: gecmis tarih araligi sorgulanabilir ----
 function afadQuery(startDate, endDate, limit) {
   const { minlat, maxlat, minlon, maxlon } = TURKEY_BBOX_QUAKE;
-  return `https://servisnet.afad.gov.tr/apigateway/deprem/apiv2/event/filter?start=${istanbulNaive(startDate)}&end=${istanbulNaive(endDate)}&minlat=${minlat}&maxlat=${maxlat}&minlon=${minlon}&maxlon=${maxlon}&limit=${limit}`;
+  return `https://servisnet.afad.gov.tr/apigateway/deprem/apiv2/event/filter?start=${isoNoMs(startDate)}&end=${isoNoMs(endDate)}&minlat=${minlat}&maxlat=${maxlat}&minlon=${minlon}&maxlon=${maxlon}&limit=${limit}`;
 }
 
 function normalizeAfadQuake(item) {
   const mag = parseFloat(item.magnitude);
   const lat = parseFloat(item.latitude);
   const lon = parseFloat(item.longitude);
+  // filter API "date" alanini UTC olarak donduruyor (last-earthquakes.html
+  // tablosundaki ayni olayla karsilastirarak dogrulandi); gosterim icin
+  // Turkiye yerel saatine ceviriyoruz.
+  let dateStr = null;
+  if (item.date) {
+    const d = new Date(item.date.endsWith("Z") ? item.date : item.date + "Z");
+    if (!Number.isNaN(d.getTime())) dateStr = toIstanbulLocalString(d);
+  }
   return {
     id: item.eventID,
     title: item.location || [item.district, item.province].filter(Boolean).join(", ") || "Türkiye",
     mag,
     depth: parseFloat(item.depth),
-    date: item.date ? item.date.replace("T", " ").slice(0, 19) : null,
+    date: dateStr,
     lat: Number.isFinite(lat) ? lat : null,
     lon: Number.isFinite(lon) ? lon : null,
     closestCity: item.province || null,
@@ -192,24 +241,31 @@ async function handleQuakes(req, res, query) {
   const cached = getCache(cacheKey);
   if (cached) return sendJson(res, 200, cached);
 
-  // canli liste icin genis bir pencere cekip en yeni "limit" tanesini aliyoruz
-  // (AFAD sonuclari kronolojik sirali dondurmuyor, kendimiz siraliyoruz)
-  const end = new Date();
-  const start = new Date(end.getTime() - 5 * 86400000);
-
   let result;
   let source;
   try {
-    result = (await fetchAfadQuakes(start, end, 1000))
+    // (1) en guncel ~100 olay: AFAD'in kendi canli sayfasiyla birebir ayni
+    result = (await fetchAfadLiveTable())
       .sort((a, b) => new Date(b.date) - new Date(a.date))
       .slice(0, limit);
-    source = "afad";
+    source = "afad-live";
   } catch (err) {
     try {
-      result = await fetchEmscQuakes(`&limit=${limit}`);
-      source = "emsc";
+      // (2) yedek: AFAD filter API (daha genis pencere, dakika hassasiyeti biraz dusuk olabilir)
+      const end = new Date();
+      const start = new Date(end.getTime() - 5 * 86400000);
+      result = (await fetchAfadQuakes(start, end, 1000))
+        .sort((a, b) => new Date(b.date) - new Date(a.date))
+        .slice(0, limit);
+      source = "afad-api";
     } catch (err2) {
-      return sendJson(res, 200, { ok: false, reason: "fetch_failed", detail: String(err2.message || err2), data: [] });
+      try {
+        // (3) son care: EMSC
+        result = await fetchEmscQuakes(`&limit=${limit}`);
+        source = "emsc";
+      } catch (err3) {
+        return sendJson(res, 200, { ok: false, reason: "fetch_failed", detail: String(err3.message || err3), data: [] });
+      }
     }
   }
 
