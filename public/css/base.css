@@ -1422,7 +1422,30 @@ select.filter-select:active {
   border-color: var(--border) !important;
 }
 
+/* -------- il sicaklik isaretcisi: pin + arkasinda sicakliga gore renklenen "hale" -------- */
+.tm-wrap { position: relative; width: 1px; height: 1px; }
+.tm-aura {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0.9);
+  filter: blur(7px);
+  opacity: 0.32;
+  animation: tm-aura-breathe 3.6s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes tm-aura-breathe {
+  0%, 100% { transform: translate(-50%, -50%) scale(0.82); opacity: 0.26; }
+  50% { transform: translate(-50%, -50%) scale(1.18); opacity: 0.46; }
+}
 .tm-dot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1435,6 +1458,16 @@ select.filter-select:active {
   font-weight: 800;
   font-size: 0.72rem;
   box-shadow: 0 3px 10px rgba(0,0,0,0.45);
+  transition: transform 0.2s ease;
+}
+.tm-dot.tm-active {
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 3px rgba(255,255,255,0.35), 0 3px 10px rgba(0,0,0,0.5);
+  transform: translate(-50%, -50%) scale(1.15);
+  z-index: 10;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tm-aura { animation: none; }
 }
 
 .pulse-marker { position: relative; width: 1px; height: 1px; }

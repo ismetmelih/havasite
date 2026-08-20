@@ -314,6 +314,20 @@
   transition: transform 0.6s ease;
 }
 
+/* -------- ikon renkleri: hava koşuluna uygun gerçek renkler --------
+   Not: .wc-icon / .hour-card .wi / .day-card .wi hep marka mavisini (currentColor)
+   miras birakiyordu, bu yuzden gunes bile mavi gorunuyordu. Burada ikonun kendi
+   category+day/night class'ina gore renk dogrudan tanimlanip miraslanan rengin
+   onune geciliyor. */
+.wi-clear.wi-day, .wi-partly.wi-day { color: #ffb84d; }
+.wi-clear.wi-night, .wi-partly.wi-night { color: #cbd5e0; }
+.wi-cloudy { color: #a9b4bd; }
+.wi-fog { color: #b7c0c7; }
+.wi-drizzle { color: #7fb0e8; }
+.wi-rain { color: #3987d1; }
+.wi-snow { color: #dcebf7; }
+.wi-storm { color: #a89bd8; }
+
 /* -------- animasyonlu ikonlar -------- */
 .wi-sun { transform-origin: 32px 30px; }
 .wi-rays { transform-origin: 32px 30px; animation: sun-spin 10s linear infinite; }

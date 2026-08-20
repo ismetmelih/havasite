@@ -110,7 +110,7 @@ window.WeatherWMO = (function () {
         inner = cloudPath() + bolt() + rainDrops(2);
         break;
     }
-    return `<svg viewBox="0 0 64 64" class="wi wi-${cat}">${inner}</svg>`;
+    return `<svg viewBox="0 0 64 64" class="wi wi-${cat} ${isDay ? "wi-day" : "wi-night"}">${inner}</svg>`;
   }
 
   function label(code) {

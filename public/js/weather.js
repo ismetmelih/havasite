@@ -89,6 +89,7 @@
           results.hidden = true;
           input.value = "";
           loadWeatherFor(currentLoc, false);
+          renderCityMarkers();
         });
       });
     }
@@ -106,6 +107,7 @@
         const nearest = window.nearestCity ? window.nearestCity(latitude, longitude) : null;
         currentLoc = { name: (nearest && nearest.city && nearest.city.name) || "Konumum", lat: latitude, lon: longitude };
         loadWeatherFor(currentLoc, false);
+        renderCityMarkers();
       },
       () => window.showToast("Konum izni alınamadı."),
       { timeout: 8000 }
@@ -326,12 +328,15 @@
       const color = tempColor(temp);
       // asiri sicak/soguk illerde nabiz gibi atan bir vurgu (renk hava durumuna uygun)
       const heatClass = temp >= 32 ? "tm-hot" : temp <= 0 ? "tm-cold" : "";
-      const icon = L.divIcon({
-        className: "temp-marker",
-        html: `<div class="tm-dot ${heatClass}" style="background:${color}"><span>${temp}°</span></div>`,
-        iconSize: [40, 26],
-        iconAnchor: [20, 13],
-      });
+      const isActive = city.name === currentLoc.name;
+      // her il icin sicakliga gore renklenen, nefes alir gibi yavasca nabzi atan bir
+      // "isi halesi" — harita tek tek pinler yerine canli, renkli bir alan gibi hissettirsin
+      const html = `
+        <div class="tm-wrap">
+          <div class="tm-aura" style="background:${color}"></div>
+          <div class="tm-dot ${heatClass} ${isActive ? "tm-active" : ""}" style="background:${color}"><span>${temp}°</span></div>
+        </div>`;
+      const icon = L.divIcon({ className: "", html, iconSize: [60, 60], iconAnchor: [30, 30] });
       const marker = L.marker([city.lat, city.lon], { icon }).addTo(cityLayer);
       marker.bindPopup(
         `<div class="map-pop"><strong>${window.escapeHtml(city.name)}</strong><br/>${temp}°C · ${window.WeatherWMO.label(code)}</div>`
@@ -340,6 +345,7 @@
         currentLoc = { name: city.name, lat: city.lat, lon: city.lon };
         safeSetJson("havasite_last_city", currentLoc);
         loadWeatherFor(currentLoc, false);
+        renderCityMarkers(); // aktif il vurgusu hemen guncellensin
       });
     });
   }
