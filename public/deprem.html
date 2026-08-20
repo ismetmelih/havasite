@@ -32,7 +32,16 @@
   </div>
 </nav>
 
-<header class="page-head">
+<header class="page-head has-scene">
+  <div class="page-scene" aria-hidden="true">
+    <span class="ps-orb o1"></span>
+    <span class="ps-orb o2"></span>
+    <span class="ps-orb o3"></span>
+    <span class="ps-grid"></span>
+    <svg class="qs-wave" viewBox="0 0 800 120" preserveAspectRatio="none">
+      <polyline class="qs-wave-line" points="0,60 60,60 80,60 95,20 110,100 125,30 140,90 155,60 175,60 800,60" />
+    </svg>
+  </div>
   <div class="container page-head-row">
     <div class="page-head-title">
       <div class="page-icon icon-quake-wrap">
@@ -69,21 +78,25 @@
 
   <div class="stat-tiles reveal">
     <div class="stat-tile">
+      <span class="stat-tile-icon">🕐</span>
       <span class="stat-label">Son Deprem</span>
       <span class="stat-value" id="statLast">—</span>
       <span class="stat-sub" id="statLastSub">—</span>
     </div>
     <div class="stat-tile">
+      <span class="stat-tile-icon">📍</span>
       <span class="stat-label">Görüntülenen Toplam</span>
       <span class="stat-value" id="statCount">—</span>
       <span class="stat-sub">son ~24 saat</span>
     </div>
     <div class="stat-tile">
+      <span class="stat-tile-icon">📈</span>
       <span class="stat-label">En Büyük (24s)</span>
       <span class="stat-value" id="statMax">—</span>
       <span class="stat-sub" id="statMaxSub">—</span>
     </div>
     <div class="stat-tile">
+      <span class="stat-tile-icon">🧭</span>
       <span class="stat-label">Ortalama Derinlik</span>
       <span class="stat-value" id="statDepth">—</span>
       <span class="stat-sub">km</span>

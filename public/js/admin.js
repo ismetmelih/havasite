@@ -5,8 +5,28 @@
     document.getElementById("year") && (document.getElementById("year").textContent = new Date().getFullYear());
     checkSession();
     setupLoginForm();
+    setupCardTilt();
     document.getElementById("adminLogoutBtn").addEventListener("click", logout);
   });
+
+  // giris kartina hafif fare-ile-egilme (3D tilt) efekti
+  function setupCardTilt() {
+    const wrap = document.querySelector(".admin-login-card-wrap");
+    const card = document.getElementById("adminLoginCard");
+    if (!wrap || !card) return;
+    const isCoarse = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
+    if (isCoarse) return;
+
+    wrap.addEventListener("mousemove", (e) => {
+      const rect = card.getBoundingClientRect();
+      const px = (e.clientX - rect.left) / rect.width - 0.5;
+      const py = (e.clientY - rect.top) / rect.height - 0.5;
+      card.style.transform = `rotateY(${px * 7}deg) rotateX(${-py * 7}deg) translateZ(4px)`;
+    });
+    wrap.addEventListener("mouseleave", () => {
+      card.style.transform = "rotateY(0deg) rotateX(0deg) translateZ(0)";
+    });
+  }
 
   function showDashboard() {
     document.getElementById("adminLoginShell").hidden = true;
@@ -163,8 +183,8 @@
 
     tbody.innerHTML = users
       .map(
-        (u) => `
-        <tr data-id="${u.id}">
+        (u, i) => `
+        <tr data-id="${u.id}" style="--i:${Math.min(i, 14)}">
           <td>${window.escapeHtml(u.name || "—")}</td>
           <td>${window.escapeHtml(u.email)}</td>
           <td>${fmtDate(u.createdAt)}</td>

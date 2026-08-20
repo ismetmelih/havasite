@@ -298,7 +298,7 @@
       const ageMs = now - new Date(q.date.replace(" ", "T")).getTime();
       const recent = ageMs < 3600 * 1000;
       const html = `
-        <div class="pulse-marker">
+        <div class="pulse-marker ${newIds.has(q.id) ? "pop" : ""}">
           ${recent ? `<div class="ring" style="width:${size * 1.8}px;height:${size * 1.8}px;background:${color}22;border:1.5px solid ${color}"></div>` : ""}
           <div class="dot" style="width:${size}px;height:${size}px;background:${color}"></div>
         </div>`;
@@ -325,10 +325,10 @@
 
     wrap.innerHTML = list
       .slice(0, 120)
-      .map((q) => {
+      .map((q, i) => {
         const color = magColor(q.mag);
         return `
-        <div class="side-row ${newIds.has(q.id) ? "flash" : ""}" data-id="${q.id}" data-lat="${q.lat}" data-lon="${q.lon}">
+        <div class="side-row ${newIds.has(q.id) ? "flash" : ""}" style="--i:${Math.min(i, 14)}" data-id="${q.id}" data-lat="${q.lat}" data-lon="${q.lon}">
           <span class="mag-chip" style="background:${color}">${q.mag.toFixed(1)}</span>
           <div class="row-main">
             <div class="row-title">${window.escapeHtml(q.title)}</div>

@@ -140,10 +140,43 @@
     }
   }
 
+  // ------------- kosula gore renk/animasyon degisen "hava sahnesi" -------------
+  // Sayfa basligi arka planini gercek hava koduna gore gunes/bulut/yagmur/kar/
+  // firtina katmanlariyla ve o koşula uygun bir renk gecisiyle canlandirir.
+  const SCENE_GRADIENTS = {
+    "clear-day": "linear-gradient(135deg, rgba(255,184,77,0.22), rgba(42,120,214,0.12))",
+    "clear-night": "linear-gradient(135deg, rgba(27,42,74,0.55), rgba(58,45,107,0.35))",
+    "partly-day": "linear-gradient(135deg, rgba(109,167,236,0.24), rgba(154,163,168,0.12))",
+    "partly-night": "linear-gradient(135deg, rgba(27,42,74,0.5), rgba(91,107,122,0.3))",
+    "cloudy-day": "linear-gradient(135deg, rgba(91,107,122,0.32), rgba(139,152,163,0.16))",
+    "cloudy-night": "linear-gradient(135deg, rgba(20,26,36,0.6), rgba(60,70,84,0.3))",
+    "fog-day": "linear-gradient(135deg, rgba(139,152,163,0.3), rgba(199,206,211,0.18))",
+    "fog-night": "linear-gradient(135deg, rgba(30,36,46,0.55), rgba(90,98,108,0.3))",
+    "drizzle-day": "linear-gradient(135deg, rgba(39,75,115,0.36), rgba(57,135,229,0.16))",
+    "drizzle-night": "linear-gradient(135deg, rgba(15,26,44,0.6), rgba(39,75,115,0.35))",
+    "rain-day": "linear-gradient(135deg, rgba(39,75,115,0.42), rgba(57,135,229,0.2))",
+    "rain-night": "linear-gradient(135deg, rgba(12,20,36,0.65), rgba(39,75,115,0.4))",
+    "snow-day": "linear-gradient(135deg, rgba(169,198,221,0.4), rgba(231,240,247,0.2))",
+    "snow-night": "linear-gradient(135deg, rgba(40,54,74,0.55), rgba(169,198,221,0.25))",
+    "storm-day": "linear-gradient(135deg, rgba(36,31,58,0.5), rgba(74,63,107,0.28))",
+    "storm-night": "linear-gradient(135deg, rgba(12,10,22,0.7), rgba(36,31,58,0.45))",
+  };
+
+  function applyWeatherScene(code, isDay) {
+    const scene = document.getElementById("weatherScene");
+    if (!scene) return;
+    const cat = window.WeatherWMO.category(code);
+    const dayKey = isDay ? "day" : "night";
+    scene.dataset.cat = cat;
+    scene.dataset.day = dayKey;
+    scene.style.setProperty("--scene-bg", SCENE_GRADIENTS[`${cat}-${dayKey}`] || SCENE_GRADIENTS["cloudy-day"]);
+  }
+
   function renderCurrent(data) {
     const c = data.current;
     const code = c.weather_code;
     const isDay = c.is_day === 1;
+    applyWeatherScene(code, isDay);
     document.getElementById("wcIcon").innerHTML = window.WeatherWMO.svg(code, isDay);
     document.getElementById("wcDesc").textContent = window.WeatherWMO.label(code);
     const tempEl = document.getElementById("wcTemp");
@@ -291,9 +324,11 @@
     cityLayer.clearLayers();
     rows.forEach(({ city, temp, code }) => {
       const color = tempColor(temp);
+      // asiri sicak/soguk illerde nabiz gibi atan bir vurgu (renk hava durumuna uygun)
+      const heatClass = temp >= 32 ? "tm-hot" : temp <= 0 ? "tm-cold" : "";
       const icon = L.divIcon({
         className: "temp-marker",
-        html: `<div class="tm-dot" style="background:${color}"><span>${temp}°</span></div>`,
+        html: `<div class="tm-dot ${heatClass}" style="background:${color}"><span>${temp}°</span></div>`,
         iconSize: [40, 26],
         iconAnchor: [20, 13],
       });

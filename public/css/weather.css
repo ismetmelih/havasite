@@ -1,5 +1,235 @@
 .weather-body { background: radial-gradient(ellipse at 15% 0%, var(--ambient-weather) 0%, var(--bg) 55%); }
 
+/* ================= dinamik hava sahnesi (page-head arka plani) =================
+   weather.js, guncel hava koduna gore #weatherScene uzerindeki data-cat / data-day
+   niteliklerini gunceller; asagidaki katmanlar buna gore gorunur/gizli olur. */
+.page-head.weather-theme {
+  position: relative;
+  overflow: hidden;
+}
+.page-head.weather-theme .container {
+  position: relative;
+  z-index: 1;
+}
+.weather-scene {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: var(--scene-bg, linear-gradient(135deg, rgba(42,120,214,0.16), rgba(109,167,236,0.05)));
+  transition: background 1.4s ease;
+}
+.weather-scene::after {
+  /* sahneyi sayfa arka planiyla yumusakca birlestir */
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 45%, var(--bg) 100%);
+}
+
+.ws-sun {
+  position: absolute;
+  top: 10%;
+  right: 9%;
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 214, 140, 0.55), rgba(255, 214, 140, 0) 70%);
+  opacity: 0;
+  transition: opacity 1s ease;
+  /* animation kasten burada degil: @keyframes opacity'yi de degistiriyor ve
+     asagidaki goster/gizle kuralini surekli ezerdi (bkz. ws-flash icin ayni not) */
+}
+.ws-sun::before {
+  content: "";
+  position: absolute;
+  inset: 22%;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffe6b0, #ffb84d 72%);
+  box-shadow: 0 0 46px 12px rgba(255, 184, 77, 0.4);
+}
+@keyframes ws-sun-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.06); opacity: 0.88; }
+}
+
+.ws-moon {
+  position: absolute;
+  top: 12%;
+  right: 11%;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #e7ecf3;
+  box-shadow: inset -15px -6px 0 0 #0b0f14, 0 0 24px 5px rgba(231, 236, 243, 0.3);
+  opacity: 0;
+  transition: opacity 1s ease;
+}
+@keyframes ws-moon-glow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.75; }
+}
+.ws-stars {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 1s ease;
+}
+.ws-stars::before {
+  content: "";
+  position: absolute;
+  top: 18%;
+  left: 6%;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow:
+    38px 14px #fff, 96px 34px #fff, 150px 8px #fff, 190px 44px #fff,
+    240px 18px #fff, 290px 38px #fff, 60px 52px #fff, 130px 58px #fff,
+    210px 60px #fff, 270px 6px #fff;
+  animation: ws-twinkle 3.2s ease-in-out infinite;
+}
+@keyframes ws-twinkle {
+  0%, 100% { opacity: 0.95; }
+  50% { opacity: 0.35; }
+}
+
+.ws-cloud {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 40% 60% 60% 40% / 50% 50% 50% 50%;
+  filter: blur(0.4px);
+  opacity: 0;
+  transition: opacity 1s ease;
+}
+/* Not: derinlik hissi icin c2/c3'te "opacity" degil "filter: opacity()" kullaniyoruz;
+   goster/gizle mantigi zaten .ws-cloud'un kendi "opacity" property'sini kullaniyor —
+   ikisini karistirirsak (ayni property, farkli ozguluk) gizli kalmasi gereken bulutlar
+   "acik" hava kosulunda bile gorunur kalirdi. */
+.ws-cloud.c1 { width: 120px; height: 40px; top: 18%; animation: ws-cloud-drift 30s linear infinite; }
+.ws-cloud.c2 { width: 78px; height: 28px; top: 42%; filter: opacity(70%); animation: ws-cloud-drift 40s linear infinite; animation-delay: -12s; }
+.ws-cloud.c3 { width: 90px; height: 30px; top: 6%; filter: opacity(55%); animation: ws-cloud-drift 48s linear infinite; animation-delay: -26s; }
+@keyframes ws-cloud-drift {
+  from { left: -20%; }
+  to { left: 115%; }
+}
+
+.ws-fog-layer {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 1s ease;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.18), transparent);
+  background-size: 60% 100%;
+  animation: ws-fog-drift 9s ease-in-out infinite;
+}
+@keyframes ws-fog-drift {
+  0% { background-position: -20% 0; }
+  50% { background-position: 60% 0; }
+  100% { background-position: -20% 0; }
+}
+
+.ws-rain {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 1s ease;
+  background-image: repeating-linear-gradient(112deg, rgba(255, 255, 255, 0.4) 0px, rgba(255, 255, 255, 0.4) 1px, transparent 1px, transparent 15px);
+  background-size: 140% 140%;
+  animation: ws-rain-fall 0.55s linear infinite;
+}
+@keyframes ws-rain-fall {
+  from { background-position: 0 0; }
+  to { background-position: -34px 60px; }
+}
+
+.ws-snow {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 1s ease;
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.95) 1.4px, transparent 1.6px);
+  background-size: 42px 42px;
+  animation: ws-snow-fall 7s linear infinite;
+}
+@keyframes ws-snow-fall {
+  from { background-position: 0 0; }
+  to { background-position: 42px 210px; }
+}
+
+.ws-flash {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  opacity: 0;
+}
+@keyframes ws-storm-flash {
+  0%, 91%, 100% { opacity: 0; }
+  92% { opacity: 0.45; }
+  93% { opacity: 0.05; }
+  94% { opacity: 0.3; }
+  95% { opacity: 0; }
+}
+
+/* kategoriye gore hangi katmanlar gorunsun.
+   Not: gorunurlugu SADECE "opacity" ile degil, animasyonlu katmanlarda (gunes,
+   ay, simsek) "animation" ile birlikte ayarliyoruz — @keyframes bir property'yi
+   (opacity gibi) her zaman normal cascade'in ustune yazar; animasyon disaridaki
+   bir gizleme kuralindan daha guclu oldugu icin, animasyonun kendisini de
+   kosula bagli hale getirmezsek eleman her zaman gorunur kalir. */
+.weather-scene[data-cat="clear"][data-day="day"] .ws-sun,
+.weather-scene[data-cat="partly"][data-day="day"] .ws-sun {
+  opacity: 1;
+  animation: ws-sun-pulse 4.5s ease-in-out infinite;
+}
+.weather-scene[data-day="night"] .ws-moon {
+  opacity: 1;
+  animation: ws-moon-glow 5s ease-in-out infinite;
+}
+.weather-scene[data-day="night"] .ws-stars { opacity: 1; }
+.weather-scene[data-cat="partly"] .ws-cloud,
+.weather-scene[data-cat="cloudy"] .ws-cloud,
+.weather-scene[data-cat="fog"] .ws-cloud,
+.weather-scene[data-cat="drizzle"] .ws-cloud,
+.weather-scene[data-cat="rain"] .ws-cloud,
+.weather-scene[data-cat="snow"] .ws-cloud,
+.weather-scene[data-cat="storm"] .ws-cloud { opacity: 0.9; }
+.weather-scene[data-cat="fog"] .ws-fog-layer { opacity: 0.85; }
+.weather-scene[data-cat="drizzle"] .ws-rain,
+.weather-scene[data-cat="rain"] .ws-rain,
+.weather-scene[data-cat="storm"] .ws-rain { opacity: 0.65; }
+.weather-scene[data-cat="snow"] .ws-snow { opacity: 0.9; }
+.weather-scene[data-cat="storm"] .ws-flash {
+  opacity: 1;
+  animation: ws-storm-flash 6.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ws-sun, .ws-moon, .ws-stars, .ws-cloud, .ws-fog-layer, .ws-rain, .ws-snow, .ws-flash {
+    animation: none;
+  }
+}
+@media (max-width: 700px) {
+  .ws-sun, .ws-moon { transform: scale(0.7); top: 4%; right: 4%; }
+}
+
+/* -------- asiri sicak/soguk il isaretleri icin nabiz vurgusu -------- */
+.tm-hot { animation: marker-pop-in 0.42s cubic-bezier(0.34, 1.56, 0.64, 1), tm-heat-pulse 1.7s ease-in-out 0.42s infinite; }
+@keyframes tm-heat-pulse {
+  0%, 100% { box-shadow: 0 3px 10px rgba(0,0,0,0.45), 0 0 0 0 rgba(227, 73, 72, 0.55); }
+  50% { box-shadow: 0 3px 10px rgba(0,0,0,0.45), 0 0 0 8px rgba(227, 73, 72, 0); }
+}
+.tm-cold { animation: marker-pop-in 0.42s cubic-bezier(0.34, 1.56, 0.64, 1), tm-cold-pulse 2.1s ease-in-out 0.42s infinite; }
+@keyframes tm-cold-pulse {
+  0%, 100% { box-shadow: 0 3px 10px rgba(0,0,0,0.45), 0 0 0 0 rgba(57, 135, 229, 0.55); }
+  50% { box-shadow: 0 3px 10px rgba(0,0,0,0.45), 0 0 0 8px rgba(57, 135, 229, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tm-hot, .tm-cold { animation: none; }
+}
+
 .search-wrap { display: flex; align-items: center; gap: 10px; }
 .search-box { position: relative; }
 .search-box input {

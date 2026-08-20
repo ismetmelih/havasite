@@ -32,7 +32,19 @@
   </div>
 </nav>
 
-<header class="page-head">
+<header class="page-head has-scene">
+  <div class="page-scene" aria-hidden="true">
+    <span class="ps-orb o1"></span>
+    <span class="ps-orb o2"></span>
+    <span class="ps-orb o3"></span>
+    <span class="ps-grid"></span>
+    <span class="fs-ember e1"></span>
+    <span class="fs-ember e2"></span>
+    <span class="fs-ember e3"></span>
+    <span class="fs-ember e4"></span>
+    <span class="fs-ember e5"></span>
+    <div class="fs-smoke"></div>
+  </div>
   <div class="container page-head-row">
     <div class="page-head-title">
       <div class="page-icon icon-fire-wrap">
@@ -74,21 +86,25 @@
 
   <div class="stat-tiles reveal">
     <div class="stat-tile">
+      <span class="stat-tile-icon">🔥</span>
       <span class="stat-label">Aktif Tespit</span>
       <span class="stat-value" id="statCount">—</span>
       <span class="stat-sub" id="statCountSub">seçili aralıkta</span>
     </div>
     <div class="stat-tile">
+      <span class="stat-tile-icon">🌡️</span>
       <span class="stat-label">En Yüksek FRP</span>
       <span class="stat-value" id="statMaxFrp">—</span>
       <span class="stat-sub">MW (ısı gücü)</span>
     </div>
     <div class="stat-tile">
+      <span class="stat-tile-icon">📍</span>
       <span class="stat-label">En Çok Etkilenen Bölge</span>
       <span class="stat-value" id="statRegion">—</span>
       <span class="stat-sub" id="statRegionSub">yakın il eşleştirmesi</span>
     </div>
     <div class="stat-tile">
+      <span class="stat-tile-icon">🌓</span>
       <span class="stat-label">Gündüz / Gece</span>
       <span class="stat-value" id="statDayNight">—</span>
       <span class="stat-sub">tespit oranı</span>

@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="css/settings.css" />
 <link rel="stylesheet" href="css/admin.css" />
 </head>
-<body>
+<body class="admin-body">
 
 <nav class="site-nav">
   <a class="brand" href="index.html"><img src="img/logo.svg" class="brand-logo" alt="" /> Türkiye<span class="text-quake">Canlı</span></a>
@@ -29,10 +29,16 @@
   </div>
 </nav>
 
-<header class="page-head">
+<header class="page-head has-scene">
+  <div class="page-scene" aria-hidden="true">
+    <span class="ps-orb o1"></span>
+    <span class="ps-orb o2"></span>
+    <span class="ps-orb o3"></span>
+    <span class="ps-grid"></span>
+  </div>
   <div class="container page-head-row">
     <div class="page-head-title">
-      <div class="page-icon icon-settings-wrap" style="font-size:1.5rem">🛠️</div>
+      <div class="page-icon icon-admin-wrap"><span class="admin-icon-emoji">🛠️</span></div>
       <div>
         <span class="eyebrow">ADMİN</span>
         <h1>Yönetim paneli</h1>
@@ -49,48 +55,54 @@
 
   <!-- ---- Giris ekrani ---- -->
   <section class="admin-login-shell" id="adminLoginShell">
-    <div class="card admin-login-card reveal">
-      <h3 style="margin-top:0">Admin girişi</h3>
-      <p class="field-hint" style="margin-bottom:18px">
-        Buradaki e-posta ve şifre, sitedeki normal kullanıcı hesaplarıyla ilgisizdir;
-        yalnızca sunucuda tanımlı <code>ADMIN_EMAIL</code> / <code>ADMIN_PASSWORD</code>
-        ile eşleşen bilgilerle giriş yapılabilir.
-      </p>
-      <form id="adminLoginForm" class="auth-form" novalidate>
-        <label class="field">
-          <span>Admin e-postası</span>
-          <input type="email" id="adminEmail" placeholder="admin@site.com" autocomplete="username" required />
-          <small class="field-error"></small>
-        </label>
-        <label class="field">
-          <span>Admin şifresi</span>
-          <input type="password" id="adminPassword" placeholder="••••••••" autocomplete="current-password" required />
-          <small class="field-error"></small>
-        </label>
-        <button class="btn btn-primary btn-block" type="submit">
-          <span class="btn-label">Giriş Yap</span>
-          <span class="btn-spin" hidden><span class="spinner"></span></span>
-        </button>
-      </form>
-      <p class="field-hint" id="adminConfigHint" style="margin-top:16px"></p>
+    <div class="admin-login-card-wrap">
+      <div class="card admin-login-card reveal" id="adminLoginCard">
+        <div class="admin-lock-badge">🔐</div>
+        <h3 style="margin-top:0;text-align:center">Admin girişi</h3>
+        <p class="field-hint" style="margin-bottom:18px;text-align:center">
+          Buradaki e-posta ve şifre, sitedeki normal kullanıcı hesaplarıyla ilgisizdir;
+          yalnızca sunucuda tanımlı <code>ADMIN_EMAIL</code> / <code>ADMIN_PASSWORD</code>
+          ile eşleşen bilgilerle giriş yapılabilir.
+        </p>
+        <form id="adminLoginForm" class="auth-form" novalidate>
+          <label class="field">
+            <span>Admin e-postası</span>
+            <input type="email" id="adminEmail" placeholder="admin@site.com" autocomplete="username" required />
+            <small class="field-error"></small>
+          </label>
+          <label class="field">
+            <span>Admin şifresi</span>
+            <input type="password" id="adminPassword" placeholder="••••••••" autocomplete="current-password" required />
+            <small class="field-error"></small>
+          </label>
+          <button class="btn btn-primary btn-block" type="submit">
+            <span class="btn-label">Giriş Yap</span>
+            <span class="btn-spin" hidden><span class="spinner"></span></span>
+          </button>
+        </form>
+        <p class="field-hint" id="adminConfigHint" style="margin-top:16px"></p>
+      </div>
     </div>
   </section>
 
   <!-- ---- Panel (giris yapinca gorunur) ---- -->
   <div id="adminDashboard" hidden>
 
-    <div class="stat-tiles reveal">
+    <div class="stat-tiles admin-stat-tiles reveal">
       <div class="stat-tile">
+        <span class="stat-tile-icon">👥</span>
         <span class="stat-label">Toplam Kullanıcı</span>
         <span class="stat-value" id="statTotalUsers">—</span>
         <span class="stat-sub">kayıtlı hesap</span>
       </div>
       <div class="stat-tile">
+        <span class="stat-tile-icon">🆕</span>
         <span class="stat-label">Bugün Kayıt Olan</span>
         <span class="stat-value" id="statToday">—</span>
         <span class="stat-sub">yeni hesap</span>
       </div>
       <div class="stat-tile">
+        <span class="stat-tile-icon">⏱️</span>
         <span class="stat-label">Sunucu Çalışma Süresi</span>
         <span class="stat-value" id="statUptime">—</span>
         <span class="stat-sub" id="statNode">—</span>
@@ -100,11 +112,11 @@
     <div class="card admin-status-card reveal">
       <h3 style="margin-top:0">Servis durumu</h3>
       <div class="admin-status-row">
-        <span>NASA FIRMS anahtarı</span>
+        <span>🔥 NASA FIRMS anahtarı</span>
         <span class="badge" id="statFirms">—</span>
       </div>
       <div class="admin-status-row">
-        <span>Veritabanı bağlantısı</span>
+        <span>🗄️ Veritabanı bağlantısı</span>
         <span class="badge badge-live"><span class="live-blip"></span> bağlı</span>
       </div>
     </div>

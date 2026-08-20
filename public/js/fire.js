@@ -74,6 +74,7 @@
       const levelEl = document.getElementById("riskLevel");
       levelEl.textContent = `${label} ${level}`;
       levelEl.className = `risk-level ${cls}`;
+      window.flashUpdate && window.flashUpdate(levelEl);
       document.getElementById("riskDesc").textContent =
         `Ege ve Akdeniz'deki 4 temsili il (Muğla, Antalya, İzmir, Çanakkale) için sıcaklık, nem ve rüzgâr ortalamasına göre tahmini risk seviyesi: ${level.toLowerCase()}.`;
       document.getElementById("riskCities").innerHTML = chipsHtml;
@@ -245,11 +246,11 @@
 
     wrap.innerHTML = list
       .slice(0, 150)
-      .map((f) => {
+      .map((f, i) => {
         const color = frpColor(f.frp);
         const near = window.nearestCity ? window.nearestCity(f.lat, f.lon) : null;
         return `
-        <div class="side-row" data-lat="${f.lat}" data-lon="${f.lon}">
+        <div class="side-row" style="--i:${Math.min(i, 14)}" data-lat="${f.lat}" data-lon="${f.lon}">
           <span class="mag-chip" style="background:${color}">${f.frp?.toFixed ? Math.round(f.frp) : "-"}</span>
           <div class="row-main">
             <div class="row-title">${near ? window.escapeHtml(near.city.name) + " yakını" : `${f.lat.toFixed(2)}, ${f.lon.toFixed(2)}`}</div>

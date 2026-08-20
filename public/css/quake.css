@@ -1,5 +1,45 @@
 .quake-body { background: radial-gradient(ellipse at 85% 0%, var(--ambient-quake) 0%, var(--bg) 55%); }
 
+/* -------- page-head'de kayan sismograf cizgisi -------- */
+.qs-wave {
+  position: absolute;
+  bottom: 18%;
+  left: 0;
+  width: 200%;
+  height: 70px;
+  overflow: visible;
+  animation: qs-wave-scroll 5.5s linear infinite;
+}
+.qs-wave-line {
+  fill: none;
+  stroke: var(--c-quake-2);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  opacity: 0.45;
+  filter: drop-shadow(0 0 4px rgba(235, 104, 52, 0.4));
+}
+@keyframes qs-wave-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .qs-wave { animation: none; }
+}
+
+/* -------- liste satirlarinin sirayla belirmesi -------- */
+.side-list .side-row {
+  animation: side-row-in 0.4s ease both;
+  animation-delay: calc(var(--i, 0) * 35ms);
+}
+@keyframes side-row-in {
+  from { opacity: 0; transform: translateX(-8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .side-list .side-row { animation: none; }
+}
+
 #magRange { width: 130px; }
 #magRangeVal { font-weight: 700; min-width: 34px; display: inline-block; }
 
