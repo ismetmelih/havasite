@@ -692,7 +692,14 @@ const server = http.createServer((req, res) => {
   return serveStatic(req, res, pathname);
 });
 
-server.listen(PORT, () => {
+// Render'in onerdigi gibi acikca 0.0.0.0'a bagla (host belirtilmeden birakmak
+// bazi konteyner ortamlarinda yalnizca IPv6'ya baglanip Render'in health check'inin
+// servise ulasamamasina yol acabiliyor). Keep-alive/headers timeout'lari da
+// Render'in onerdigi degerlere yukselttik (ara sira "Connection reset" hatalarina karsi).
+server.keepAliveTimeout = 120000;
+server.headersTimeout = 125000;
+
+server.listen(PORT, "0.0.0.0", () => {
   console.log(`\n  Turkiye Canli Takip sunucusu calisiyor:`);
   console.log(`  -> http://localhost:${PORT}\n`);
   if (!CONFIG.FIRMS_MAP_KEY || CONFIG.FIRMS_MAP_KEY === "BURAYA_KENDI_ANAHTARINI_YAZ") {
