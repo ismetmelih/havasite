@@ -2,6 +2,25 @@
 (function () {
   "use strict";
 
+  // ---------------- ortak harita zemini ----------------
+  // CARTO'nun ucretsiz dark_all zemini artik anahtar istiyor ("API KEY REQUIRED"
+  // filigrani). Esri'nin "Dark Gray Canvas" servisi anahtarsiz, ucretsiz ve koyu;
+  // navy temaya yaklastirmak icin hafif bir CSS filtresiyle karartiliyor
+  // (bkz. base.css .hava-basemap).
+  window.HavaMap = {
+    addBaseLayer: function (map) {
+      if (typeof L === "undefined" || !map) return;
+      L.tileLayer(
+        "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+        { attribution: "Tiles &copy; Esri, HERE, Garmin, &copy; OpenStreetMap", maxZoom: 16, className: "hava-basemap" }
+      ).addTo(map);
+      L.tileLayer(
+        "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}",
+        { maxZoom: 16, className: "hava-basemap-ref" }
+      ).addTo(map);
+    },
+  };
+
   document.addEventListener("DOMContentLoaded", () => {
     setupNav();
     setupReveal();

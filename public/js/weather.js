@@ -377,11 +377,7 @@
   // ------------- harita -------------
   function initMap() {
     map = L.map("weatherMap", { scrollWheelZoom: true }).setView([39.0, 35.2], 5.6);
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-      attribution: '&copy; OpenStreetMap &copy; CARTO',
-      subdomains: "abcd",
-      maxZoom: 19,
-    }).addTo(map);
+    window.HavaMap.addBaseLayer(map);
     cityLayer = L.layerGroup().addTo(map);
   }
 

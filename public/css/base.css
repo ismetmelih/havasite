@@ -1449,7 +1449,13 @@ select.filter-select:active {
 .btn-block { width: 100%; padding: 13px; font-size: 0.96rem; }
 
 /* ---------------- leaflet marker/popup ortak gorunum ---------------- */
-.leaflet-container { background: #0d131c !important; font-family: var(--font); }
+.leaflet-container { background: #0b1120 !important; font-family: var(--font); }
+
+/* Esri "Dark Gray" zeminini navy temaya yaklastirmak icin karart; harita
+   (hero gibi) her iki temada da koyu kalir. Etiket katmani ayri filtreyle
+   okunur tutulur. */
+.hava-basemap { filter: brightness(0.6) saturate(0.8) contrast(1.06); }
+.hava-basemap-ref { filter: brightness(1.05) contrast(1.15); opacity: 0.9; }
 .leaflet-popup-content-wrapper {
   background: var(--surface-2);
   color: var(--text-primary);
