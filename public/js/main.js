@@ -10,19 +10,75 @@
     markActiveLink();
 
     window.HavaAuth.ready.then((user) => {
-      setupUserState(user);
+      const page = location.pathname.split("/").pop() || "index.html";
 
-      const requireAuth = document.body.hasAttribute("data-require-auth");
-      if (requireAuth && !user) {
-        const next = encodeURIComponent(location.pathname.split("/").pop() || "index.html");
-        location.replace(`login.html?redirect=${next}`);
-        return;
+      if (!user) {
+        // Misafir kotasi: giris yapmadan gunde birkac sayfa serbest, sonra giris duvari.
+        if (document.body.hasAttribute("data-guest-quota")) {
+          if (!window.HavaQuota.pageAlreadyCounted(page) && !window.HavaQuota.canView()) {
+            location.replace(`login.html?redirect=${encodeURIComponent(page)}&reason=quota`);
+            return;
+          }
+          window.HavaQuota.countPage(page);
+        } else if (document.body.hasAttribute("data-require-auth")) {
+          location.replace(`login.html?redirect=${encodeURIComponent(page)}`);
+          return;
+        }
       }
 
+      setupUserState(user);
       document.documentElement.classList.remove("auth-pending");
       document.dispatchEvent(new CustomEvent("havasite:auth-ready", { detail: { user } }));
+
+      if (!user && window.HavaQuota.remaining() <= 1 && document.body.hasAttribute("data-guest-quota")) {
+        const left = window.HavaQuota.remaining();
+        window.showToast(
+          left === 0
+            ? "Bu, bugünkü son ücretsiz görüntülemendi. Sonraki ziyarette giriş yapman gerekecek."
+            : "Bugün 1 ücretsiz görüntüleme hakkın kaldı — ücretsiz hesapla sınırsız devam edebilirsin.",
+          { accent: "var(--accent)", duration: 6000 }
+        );
+      }
     });
   });
+
+  // ---------------- misafir goruntuleme kotasi ----------------
+  // Tamamen istemci tarafinda (localStorage). Amac: giris olmadan tadına bakılabilsin,
+  // sonra kayit/giris'e yonlendirilsin. Gunluk sifirlanir; ayni sekmede sayfa
+  // yenilemek kotadan dusmesin diye sessionStorage ile isaretlenir.
+  const QUOTA_KEY = "havasite_guest_quota";
+  const QUOTA_LIMIT = 5;
+  const todayStr = () => new Date().toISOString().slice(0, 10);
+
+  function readQuota() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(QUOTA_KEY) || "{}");
+      if (raw.date !== todayStr()) return { date: todayStr(), count: 0 };
+      return { date: raw.date, count: Math.max(0, raw.count | 0) };
+    } catch {
+      return { date: todayStr(), count: 0 };
+    }
+  }
+  function writeQuota(q) {
+    try { localStorage.setItem(QUOTA_KEY, JSON.stringify(q)); } catch {}
+  }
+
+  window.HavaQuota = {
+    limit: QUOTA_LIMIT,
+    used: () => Math.min(QUOTA_LIMIT, readQuota().count),
+    remaining: () => Math.max(0, QUOTA_LIMIT - readQuota().count),
+    canView: () => readQuota().count < QUOTA_LIMIT,
+    pageAlreadyCounted(page) {
+      try { return sessionStorage.getItem("havasite_view_" + page) === "1"; } catch { return false; }
+    },
+    countPage(page) {
+      if (this.pageAlreadyCounted(page)) return this.remaining();
+      const q = readQuota();
+      if (q.count < QUOTA_LIMIT) { q.count += 1; writeQuota(q); }
+      try { sessionStorage.setItem("havasite_view_" + page, "1"); } catch {}
+      return this.remaining();
+    },
+  };
 
   // ---------------- acil durum modu ----------------
   function setupEmergencyMode() {
@@ -149,7 +205,9 @@
   };
 
   function setupThemeToggle() {
-    applyTheme(getTheme(), false);
+    const urlTheme = new URLSearchParams(location.search).get("theme");
+    if (urlTheme === "light" || urlTheme === "dark") applyTheme(urlTheme, true);
+    else applyTheme(getTheme(), false);
     const btn = document.getElementById("themeToggle");
     if (btn) {
       btn.addEventListener("click", () => {
@@ -276,7 +334,24 @@
       `;
       document.getElementById("logoutBtn").addEventListener("click", () => window.HavaAuth.logout());
     } else {
-      slot.innerHTML = `<a class="btn btn-primary btn-sm" href="login.html"><span class="label">Giriş Yap</span> →</a>`;
+      const onLoginPage = /login\.html$/.test(location.pathname);
+      const onQuotaPage = document.body.hasAttribute("data-guest-quota");
+      if (onLoginPage || !onQuotaPage) {
+        slot.innerHTML = `<a class="btn btn-primary btn-sm" href="login.html"><span class="label">Giriş Yap</span> →</a>`;
+        return;
+      }
+      const used = window.HavaQuota.used();
+      const limit = window.HavaQuota.limit;
+      const remaining = window.HavaQuota.remaining();
+      const dots = Array.from({ length: limit }, (_, i) =>
+        `<span class="gq-dot${i < used ? " spent" : ""}"></span>`
+      ).join("");
+      slot.innerHTML = `
+        <span class="guest-quota${remaining <= 1 ? " low" : ""}" title="Misafir olarak bugün ${remaining}/${limit} ücretsiz görüntüleme hakkın kaldı">
+          <span class="gq-text">Misafir</span>
+          <span class="gq-dots" aria-hidden="true">${dots}</span>
+          <a class="gq-login" href="login.html?redirect=${encodeURIComponent(location.pathname.split("/").pop() || "index.html")}">Giriş</a>
+        </span>`;
     }
   }
 

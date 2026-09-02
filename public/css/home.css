@@ -1,8 +1,6 @@
 /* ================= Hero ================= */
 .hero {
-  /* [data-theme] ozel degiskenlerini bu blokta yeniden tanimlar (her zaman koyu);
-     asagidaki 'color' bildirimi, ust govdeden (acik temada siyah) miras kalan
-     rengi kirar ki alttaki basliklar/degerler kendi yerel --text-primary'sini kullansin. */
+  /* her zaman koyu kurumsal görünüm; 'color' üst gövdeden miras kalan rengi kırar */
   color: var(--text-primary);
   position: relative;
   min-height: 100vh;
@@ -10,21 +8,29 @@
   flex-direction: column;
   justify-content: center;
   overflow: hidden;
-  background: radial-gradient(ellipse at 30% 20%, #101a28 0%, var(--bg) 55%);
+  background:
+    radial-gradient(ellipse 90% 60% at 78% -10%, color-mix(in srgb, var(--accent) 16%, transparent) 0%, transparent 60%),
+    linear-gradient(180deg, #0c1524 0%, var(--bg) 60%);
 }
 
-.hero-canvas {
+/* ince, kurumsal ölçüm ızgarası — dekoratif 3B sahne yerine */
+.hero-grid,
+.auth-grid {
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0.85;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(150, 170, 200, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(150, 170, 200, 0.05) 1px, transparent 1px);
+  background-size: 52px 52px;
+  -webkit-mask-image: radial-gradient(ellipse 80% 70% at 70% 20%, #000 0%, transparent 75%);
+  mask-image: radial-gradient(ellipse 80% 70% at 70% 20%, #000 0%, transparent 75%);
 }
 
 .hero-fade {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(9, 12, 17, 0.1) 0%, var(--bg) 96%);
+  background: linear-gradient(180deg, transparent 55%, var(--bg) 98%);
   pointer-events: none;
 }
 
@@ -48,17 +54,8 @@
   max-width: 900px;
 }
 
-.grad-text {
-  background: linear-gradient(90deg, var(--c-weather-glow), var(--c-quake-2), var(--c-fire-2));
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  animation: grad-shift 6s ease infinite;
-}
-@keyframes grad-shift {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+.accent-text {
+  color: var(--accent);
 }
 
 .hero-sub {
@@ -178,9 +175,10 @@
 .cat-card:hover::before {
   opacity: 0.35;
 }
-.cat-weather { --glow-color: var(--c-weather); }
-.cat-quake { --glow-color: var(--c-quake); }
-.cat-fire { --glow-color: var(--c-fire); }
+.cat-weather { --glow-color: var(--accent); }
+.cat-quake { --glow-color: var(--accent); }
+.cat-fire { --glow-color: var(--accent); }
+.cat-card:hover { border-color: color-mix(in srgb, var(--accent) 40%, var(--border)); }
 
 .cat-icon {
   width: 62px;
@@ -193,9 +191,9 @@
   position: relative;
   z-index: 1;
 }
-.cat-weather .cat-icon { background: rgba(42, 120, 214, 0.14); color: var(--c-weather-glow); }
-.cat-quake .cat-icon { background: rgba(235, 104, 52, 0.14); color: var(--c-quake-2); }
-.cat-fire .cat-icon { background: rgba(227, 73, 72, 0.14); color: var(--c-fire-2); }
+.cat-weather .cat-icon { background: color-mix(in srgb, var(--c-weather) 15%, transparent); color: var(--c-weather-glow); }
+.cat-quake .cat-icon { background: color-mix(in srgb, var(--c-quake) 15%, transparent); color: var(--c-quake-2); }
+.cat-fire .cat-icon { background: color-mix(in srgb, var(--c-fire) 15%, transparent); color: var(--c-fire-2); }
 .cat-icon svg { width: 34px; height: 34px; }
 
 .cat-card h3 {

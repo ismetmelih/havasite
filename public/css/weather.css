@@ -17,7 +17,7 @@
   z-index: 0;
   overflow: hidden;
   pointer-events: none;
-  background: var(--scene-bg, linear-gradient(135deg, rgba(42,120,214,0.16), rgba(109,167,236,0.05)));
+  background: var(--scene-bg, linear-gradient(160deg, color-mix(in srgb, var(--accent) 10%, transparent), transparent 70%));
   transition: background 1.4s ease;
 }
 .weather-scene::after {
@@ -218,13 +218,13 @@
 /* -------- asiri sicak/soguk il isaretleri icin nabiz vurgusu -------- */
 .tm-hot { animation: marker-pop-in 0.42s cubic-bezier(0.34, 1.56, 0.64, 1), tm-heat-pulse 1.7s ease-in-out 0.42s infinite; }
 @keyframes tm-heat-pulse {
-  0%, 100% { box-shadow: 0 3px 10px rgba(0,0,0,0.45), 0 0 0 0 rgba(227, 73, 72, 0.55); }
-  50% { box-shadow: 0 3px 10px rgba(0,0,0,0.45), 0 0 0 8px rgba(227, 73, 72, 0); }
+  0%, 100% { box-shadow: 0 3px 10px rgba(0,0,0,0.45), 0 0 0 0 color-mix(in srgb, var(--c-fire) 55%, transparent); }
+  50% { box-shadow: 0 3px 10px rgba(0,0,0,0.45), 0 0 0 8px transparent; }
 }
 .tm-cold { animation: marker-pop-in 0.42s cubic-bezier(0.34, 1.56, 0.64, 1), tm-cold-pulse 2.1s ease-in-out 0.42s infinite; }
 @keyframes tm-cold-pulse {
-  0%, 100% { box-shadow: 0 3px 10px rgba(0,0,0,0.45), 0 0 0 0 rgba(57, 135, 229, 0.55); }
-  50% { box-shadow: 0 3px 10px rgba(0,0,0,0.45), 0 0 0 8px rgba(57, 135, 229, 0); }
+  0%, 100% { box-shadow: 0 3px 10px rgba(0,0,0,0.45), 0 0 0 0 color-mix(in srgb, var(--c-weather) 55%, transparent); }
+  50% { box-shadow: 0 3px 10px rgba(0,0,0,0.45), 0 0 0 8px transparent; }
 }
 @media (prefers-reduced-motion: reduce) {
   .tm-hot, .tm-cold { animation: none; }
@@ -384,7 +384,7 @@
 .hour-card .hc-time { font-size: 0.76rem; color: var(--text-muted); font-weight: 700; }
 .hour-card .wi { width: 34px; height: 34px; color: var(--c-weather-glow); }
 .hour-card .hc-temp { font-weight: 800; font-size: 0.98rem; }
-.hour-card .hc-pop { font-size: 0.72rem; color: #6da7ec; }
+.hour-card .hc-pop { font-size: 0.72rem; color: var(--c-weather-2); }
 
 /* -------- 7 gunluk -------- */
 .daily-grid {
@@ -408,7 +408,7 @@
 .day-card .dc-range { font-size: 0.82rem; }
 .day-card .dc-range .hi { font-weight: 800; }
 .day-card .dc-range .lo { color: var(--text-muted); margin-left: 4px; }
-.day-card .dc-pop { font-size: 0.72rem; color: #6da7ec; }
+.day-card .dc-pop { font-size: 0.72rem; color: var(--c-weather-2); }
 
 @media (max-width: 980px) {
   .weather-current { grid-template-columns: 1fr; text-align: center; }

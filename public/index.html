@@ -3,10 +3,13 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<script>(function(){try{if(localStorage.getItem('havasite_theme')==='light')document.documentElement.setAttribute('data-theme','light');}catch(e){}})();</script>
+<script>(function(){try{var u=new URLSearchParams(location.search).get('theme');var t=(u==='light'||u==='dark')?u:localStorage.getItem('havasite_theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 <title>Türkiye Canlı Takip — Hava Durumu, Deprem &amp; Yangın</title>
 <meta name="description" content="Türkiye için anlık hava durumu, canlı deprem haritası ve uydu tabanlı yangın tespiti tek bir yerde." />
 <link rel="icon" type="image/svg+xml" href="img/logo.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" />
 <link rel="stylesheet" href="css/base.css" />
 <link rel="stylesheet" href="css/home.css" />
 </head>
@@ -33,19 +36,19 @@
 </nav>
 
 <header class="hero">
-  <canvas id="heroCanvas" class="hero-canvas"></canvas>
+  <div class="hero-grid" aria-hidden="true"></div>
   <div class="hero-fade"></div>
   <div class="container hero-content">
     <span class="badge badge-live reveal in-view"><span class="live-blip"></span> CANLI VERİ AKIŞI</span>
-    <h1 class="reveal in-view">Türkiye'yi <span class="grad-text">anlık</span><br />tek ekrandan takip et</h1>
+    <h1 class="reveal in-view">Türkiye'yi <span class="accent-text">anlık</span><br />tek ekrandan takip et</h1>
     <p class="hero-sub reveal in-view">
       Hava durumu, deprem ve yangın verilerini gerçek kaynaklardan çekip
       canlı haritalar üzerinde, saniyeler içinde güncellenen bir panelde sunuyoruz.
     </p>
     <div class="hero-cta reveal in-view">
-      <a href="hava.html" class="btn btn-primary" data-gated-link>Hava Durumunu Gör →</a>
-      <a href="deprem.html" class="btn btn-ghost" data-gated-link>Deprem Haritası</a>
-      <a href="yangin.html" class="btn btn-ghost" data-gated-link>Yangın Takibi</a>
+      <a href="hava.html" class="btn btn-primary">Hava Durumunu Gör →</a>
+      <a href="deprem.html" class="btn btn-ghost">Deprem Haritası</a>
+      <a href="yangin.html" class="btn btn-ghost">Yangın Takibi</a>
     </div>
 
     <div class="ticker glass reveal in-view" id="ticker">
@@ -82,7 +85,7 @@
         <p>Her kategori kendi canlı kaynağından beslenir ve haritada anında görselleşir.</p>
       </div>
 
-      <div class="cat-grid" id="catGrid" hidden>
+      <div class="cat-grid" id="catGrid">
         <a class="cat-card cat-weather reveal-scale" href="hava.html">
           <div class="cat-icon">
             <svg viewBox="0 0 64 64" class="icon-sun">
@@ -129,16 +132,6 @@
         </a>
       </div>
 
-      <div class="cat-grid-locked" id="catGridLocked" hidden>
-        <div class="locked-card reveal-scale">
-          <span class="locked-icon">🔒</span>
-          <h3>Kategoriler giriş yapınca açılıyor</h3>
-          <p>Hava durumu, deprem ve yangın panellerini görebilmek için ücretsiz bir hesap oluşturup giriş yapmalısın.</p>
-          <div class="locked-actions">
-            <a class="btn btn-primary" href="login.html?redirect=index.html">Kayıt Ol / Giriş Yap →</a>
-          </div>
-        </div>
-      </div>
     </div>
   </section>
 
@@ -186,9 +179,7 @@
   </div>
 </footer>
 
-<script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
 <script src="js/cities.js"></script>
-<script src="js/three-bg.js"></script>
 <script src="js/main.js"></script>
 <script src="js/home.js"></script>
 </body>

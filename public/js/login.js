@@ -2,8 +2,13 @@
   "use strict";
 
   document.addEventListener("DOMContentLoaded", () => {
-    if (window.initHeroBG) {
-      window.initHeroBG("heroCanvas", { colors: ["#2a78d6", "#6da7ec", "#eb6834"], count: 500, radius: 6.4 });
+    // kota duvarindan gelindiyse aciklayici not goster
+    const params = new URLSearchParams(location.search);
+    if (params.get("reason") === "quota") {
+      const notice = document.getElementById("quotaNotice");
+      if (notice) notice.hidden = false;
+      const reg = document.querySelector('.auth-tab[data-tab="register"]');
+      if (reg) reg.click();
     }
 
     // zaten girisliyse hedef sayfaya yonlendir
@@ -12,7 +17,6 @@
     });
 
     setupTabs();
-    setupTilt();
     setupForms();
 
     const forgot = document.getElementById("forgotLink");
@@ -39,24 +43,6 @@
         loginForm.hidden = isRegister;
         registerForm.hidden = !isRegister;
       });
-    });
-  }
-
-  function setupTilt() {
-    const card = document.getElementById("authCard");
-    const wrap = card.closest(".auth-card-wrap");
-    if (!card || !wrap) return;
-    const isCoarse = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
-    if (isCoarse) return;
-
-    wrap.addEventListener("mousemove", (e) => {
-      const rect = card.getBoundingClientRect();
-      const px = (e.clientX - rect.left) / rect.width - 0.5;
-      const py = (e.clientY - rect.top) / rect.height - 0.5;
-      card.style.transform = `rotateY(${px * 8}deg) rotateX(${-py * 8}deg) translateZ(6px)`;
-    });
-    wrap.addEventListener("mouseleave", () => {
-      card.style.transform = "rotateY(0deg) rotateX(0deg) translateZ(0)";
     });
   }
 

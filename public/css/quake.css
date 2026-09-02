@@ -16,8 +16,8 @@
   stroke-width: 2;
   stroke-linejoin: round;
   stroke-linecap: round;
-  opacity: 0.45;
-  filter: drop-shadow(0 0 4px rgba(235, 104, 52, 0.4));
+  opacity: 0.4;
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--c-quake) 40%, transparent));
 }
 @keyframes qs-wave-scroll {
   from { transform: translateX(0); }

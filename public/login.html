@@ -3,9 +3,12 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<script>(function(){try{if(localStorage.getItem('havasite_theme')==='light')document.documentElement.setAttribute('data-theme','light');}catch(e){}})();</script>
+<script>(function(){try{var u=new URLSearchParams(location.search).get('theme');var t=(u==='light'||u==='dark')?u:localStorage.getItem('havasite_theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 <title>Giriş Yap — TürkiyeCanlı</title>
 <link rel="icon" type="image/svg+xml" href="img/logo.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" />
 <link rel="stylesheet" href="css/base.css" />
 <link rel="stylesheet" href="css/login.css" />
 </head>
@@ -32,9 +35,13 @@
 </nav>
 
 <main class="auth-shell">
-  <canvas id="heroCanvas" class="auth-canvas"></canvas>
+  <div class="auth-grid" aria-hidden="true"></div>
 
   <section class="auth-info reveal in-view">
+    <div class="quota-notice" id="quotaNotice" hidden>
+      <strong>Ücretsiz görüntüleme hakkın doldu.</strong>
+      Misafir olarak günde 5 sayfa görüntüleyebilirsin. Ücretsiz bir hesapla sınırsız devam et — kayıt 20 saniye sürer.
+    </div>
     <span class="badge badge-live"><span class="live-blip"></span> CANLI PANEL</span>
     <h1>Hesabınla kişisel<br />takip panelini kur</h1>
     <p>Giriş yaptığında favori şehirlerini, izlediğin bölgeleri ve tercih ettiğin uyarı eşiklerini bu tarayıcıda saklarız.</p>
@@ -118,8 +125,6 @@
   </section>
 </main>
 
-<script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
-<script src="js/three-bg.js"></script>
 <script src="js/main.js"></script>
 <script src="js/login.js"></script>
 </body>
