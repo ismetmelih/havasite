@@ -67,6 +67,23 @@
 
 <main class="container">
 
+  <div class="fire-alert-bar reveal">
+    <div class="fab-fresh">
+      <span class="fab-dot"></span>
+      <span>En yeni uydu tespiti: <strong id="fireFreshness">—</strong></span>
+    </div>
+    <div class="fab-lines">
+      <a class="fab-hotline" href="tel:177"><strong>177</strong> Orman Yangını İhbar</a>
+      <a class="fab-hotline fab-112" href="tel:112"><strong>112</strong> Acil Çağrı</a>
+    </div>
+  </div>
+
+  <p class="fire-disclaimer reveal">
+    Bu harita NASA FIRMS uydularının kaydettiği <strong>ısı tespitlerini</strong> gösterir.
+    Her tespit bir orman yangını değildir (sanayi ısısı, tarımsal anız, güneş yansıması olabilir)
+    ve bu sayfa <strong>resmî uyarı yerine geçmez</strong>. Resmî bilgi için OGM ve AFAD duyurularını esas alın.
+  </p>
+
   <div id="demoBanner" class="demo-banner" hidden>
     ⚠️ Şu an <strong>örnek veri</strong> gösteriliyor — bu gerçek zamanlı bir yangın verisi değildir. Gerçek veri için aşağıdaki kurulum adımlarını uygula.
   </div>
@@ -182,6 +199,16 @@
       </div>
     </aside>
   </div>
+
+  <section class="province-section reveal">
+    <div class="map-head">
+      <h3>📊 En çok ısı tespiti alan iller</h3>
+      <span class="badge badge-live" id="psCount"><span class="live-blip"></span> —</span>
+    </div>
+    <div class="province-bars" id="provinceBars">
+      <div class="sr-empty" style="padding:16px;color:var(--text-muted)">Veri bekleniyor…</div>
+    </div>
+  </section>
 
 </main>
 

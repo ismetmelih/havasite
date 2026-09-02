@@ -35,30 +35,9 @@
 .qf-dist-val { display: block; font-family: var(--font-mono); font-size: 1.25rem; font-weight: 600; color: var(--c-quake-2); }
 .qf-dist-lbl { font-size: 0.72rem; color: var(--text-muted); }
 
-/* -------- en hareketli iller -------- */
-.province-section { margin: 36px 0; }
-.province-bars {
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--surface);
-  padding: 8px 0;
-}
-.pb-row {
-  display: grid;
-  grid-template-columns: 120px 1fr 42px;
-  align-items: center;
-  gap: 14px;
-  padding: 9px 18px;
-}
-.pb-name { font-size: 0.88rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.pb-track { height: 8px; border-radius: 999px; background: var(--bg-alt); overflow: hidden; }
-.pb-fill { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--c-quake-2), var(--c-quake)); }
-.pb-count { font-family: var(--font-mono); font-size: 0.9rem; font-weight: 600; text-align: right; color: var(--text-secondary); }
-
 @media (max-width: 620px) {
   .quake-featured { flex-wrap: wrap; }
   .qf-side { align-items: flex-start; width: 100%; }
-  .pb-row { grid-template-columns: 90px 1fr 32px; gap: 10px; padding: 8px 12px; }
 }
 
 /* -------- page-head'de kayan sismograf cizgisi -------- */

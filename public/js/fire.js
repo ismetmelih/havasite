@@ -205,6 +205,53 @@
     renderMap(list);
     renderList(list);
     renderStats(list);
+    renderProvinceStats(list);
+    renderFreshness();
+  }
+
+  // en yeni uydu tespitinin ne kadar once oldugu (FIRMS date+time UTC)
+  function renderFreshness() {
+    const el = document.getElementById("fireFreshness");
+    if (!el || !rawData.length) return;
+    let newest = 0;
+    rawData.forEach((f) => {
+      if (!f.date) return;
+      const hhmm = String(f.time || "0000").padStart(4, "0");
+      const iso = `${f.date}T${hhmm.slice(0, 2)}:${hhmm.slice(2)}:00Z`;
+      const t = new Date(iso).getTime();
+      if (t > newest) newest = t;
+    });
+    if (!newest) { el.textContent = "—"; return; }
+    el.textContent = demoMode ? "örnek veri" : window.timeAgoTR(new Date(newest));
+  }
+
+  function renderProvinceStats(list) {
+    const wrap = document.getElementById("provinceBars");
+    const badge = document.getElementById("psCount");
+    if (!wrap) return;
+    const counts = new Map();
+    list.forEach((f) => {
+      const near = window.nearestCity ? window.nearestCity(f.lat, f.lon) : null;
+      if (!near) return;
+      counts.set(near.city.name, (counts.get(near.city.name) || 0) + 1);
+    });
+    const rows = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8);
+    if (badge) badge.innerHTML = `<span class="live-blip"></span> ${counts.size} il`;
+    if (!rows.length) {
+      wrap.innerHTML = `<div class="sr-empty" style="padding:16px;color:var(--text-muted)">Seçili filtrede il eşleşmesi yok.</div>`;
+      return;
+    }
+    const max = rows[0][1];
+    wrap.innerHTML = rows
+      .map(
+        ([name, n]) => `
+        <div class="pb-row">
+          <span class="pb-name">${window.escapeHtml(name)}</span>
+          <span class="pb-track"><span class="pb-fill pb-fill-fire" style="width:${Math.max((n / max) * 100, 4)}%"></span></span>
+          <span class="pb-count">${n}</span>
+        </div>`
+      )
+      .join("");
   }
 
   function renderMap(list) {

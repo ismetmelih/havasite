@@ -1,5 +1,57 @@
 .fire-body { background: radial-gradient(ellipse at 20% 0%, var(--ambient-fire) 0%, var(--bg) 55%); }
 
+/* -------- tazelik + acil hatlar cubugu -------- */
+.fire-alert-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 22px;
+  padding: 14px 18px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+.fab-fresh { display: flex; align-items: center; gap: 9px; font-size: 0.9rem; color: var(--text-secondary); }
+.fab-fresh strong { color: var(--text-primary); font-family: var(--font-mono); }
+.fab-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--c-fire);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--c-fire) 55%, transparent);
+  animation: blip 1.8s ease-in-out infinite;
+}
+.fab-lines { display: flex; flex-wrap: wrap; gap: 8px; }
+.fab-hotline {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 7px;
+  padding: 7px 13px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--c-fire) 40%, transparent);
+  background: color-mix(in srgb, var(--c-fire) 12%, transparent);
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+.fab-hotline strong { font-family: var(--font-mono); font-size: 1rem; color: var(--c-fire-2); }
+.fab-hotline.fab-112 {
+  border-color: color-mix(in srgb, var(--status-critical) 40%, transparent);
+  background: color-mix(in srgb, var(--status-critical) 12%, transparent);
+}
+.fab-hotline.fab-112 strong { color: var(--status-critical); }
+
+.fire-disclaimer {
+  margin: 14px 0 0;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+  padding: 12px 14px;
+  border-left: 3px solid var(--border-strong);
+  background: var(--bg-alt);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+.fire-disclaimer strong { color: var(--text-secondary); }
+
 /* dekoratif kor/duman ambiyansi kaldirildi — sakin, kurumsal page-head */
 .fs-ember, .fs-smoke { display: none; }
 
