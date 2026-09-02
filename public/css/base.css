@@ -173,6 +173,25 @@ svg {
   display: block;
 }
 
+/* ---------------- kurumsal ikonlar ---------------- */
+.ic {
+  display: inline-block;
+  vertical-align: -0.16em;
+  flex-shrink: 0;
+}
+.btn .ic { vertical-align: -0.2em; }
+/* bolum basliklarindaki kucuk on-ikon */
+h3 .h-icon,
+h2 .h-icon {
+  display: inline-flex;
+  color: var(--text-muted);
+  margin-right: 9px;
+  vertical-align: -0.18em;
+}
+.weather-body h3 .h-icon { color: var(--c-weather); }
+.quake-body h3 .h-icon { color: var(--c-quake); }
+.fire-body h3 .h-icon { color: var(--c-fire); }
+
 a {
   color: inherit;
   text-decoration: none;
@@ -983,11 +1002,15 @@ main.container {
 }
 .stat-tile-icon {
   position: absolute;
-  top: 14px;
+  top: 15px;
   right: 16px;
-  font-size: 1.3rem;
-  opacity: 0.85;
+  color: var(--text-muted);
+  opacity: 0.9;
 }
+.stat-tile-icon .ic { width: 18px; height: 18px; }
+.weather-body .stat-tile-icon { color: var(--c-weather); }
+.quake-body .stat-tile-icon { color: var(--c-quake); }
+.fire-body .stat-tile-icon { color: var(--c-fire); }
 .stat-tiles.in-view .stat-tile {
   opacity: 1;
   transform: translateY(0);
@@ -1427,7 +1450,7 @@ select.filter-select:active {
 .field input[type="range"] {
   padding: 0;
   background: transparent;
-  accent-color: var(--c-quake);
+  accent-color: var(--accent);
   border: none;
 }
 .field-hint {

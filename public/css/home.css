@@ -3,7 +3,7 @@
   /* her zaman koyu kurumsal görünüm; 'color' üst gövdeden miras kalan rengi kırar */
   color: var(--text-primary);
   position: relative;
-  min-height: 100vh;
+  min-height: 84vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -37,8 +37,8 @@
 .hero-content {
   position: relative;
   z-index: 2;
-  padding-top: 130px;
-  padding-bottom: 60px;
+  padding-top: 108px;
+  padding-bottom: 44px;
   text-align: center;
   display: flex;
   flex-direction: column;

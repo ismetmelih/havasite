@@ -21,11 +21,11 @@
   /* hero ile ayni neden: yerel --text-primary'nin miras yoluyla gecerli olmasi icin */
   color: var(--text-primary);
   position: relative;
-  min-height: 100vh;
+  min-height: 82vh;
   display: grid;
   grid-template-columns: 1.05fr 0.95fr;
   align-items: center;
-  padding: 110px 6vw 60px;
+  padding: 104px 6vw 56px;
   gap: 40px;
   overflow: hidden;
 }

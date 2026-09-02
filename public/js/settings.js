@@ -41,7 +41,7 @@
     document.querySelectorAll(".theme-option").forEach((el) => {
       el.addEventListener("click", () => {
         window.HavaTheme.set(el.dataset.themeRadio);
-        window.showToast(`Tema: ${el.dataset.themeRadio === "light" ? "Açık ☀️" : "Koyu 🌙"}`);
+        window.showToast(`Tema: ${el.dataset.themeRadio === "light" ? "Açık" : "Koyu"}`);
       });
     });
   }
@@ -112,7 +112,7 @@
         });
         document.getElementById("profileAvatar").textContent = name.slice(0, 1).toUpperCase();
         document.getElementById("profileNameDisplay").textContent = name;
-        window.showToast("Profil kaydedildi ✓", { accent: "var(--status-good)" });
+        window.showToast("Profil kaydedildi", { accent: "var(--status-good)" });
       });
     } else {
       document.getElementById("profileLoggedIn").hidden = true;
@@ -133,7 +133,7 @@
           favoriteCity: document.getElementById("fCityGuest").value,
           quakeAlertMag: parseFloat(document.getElementById("fMagGuest").value),
         });
-        window.showToast("Tercihler kaydedildi ✓", { accent: "var(--status-good)" });
+        window.showToast("Tercihler kaydedildi", { accent: "var(--status-good)" });
       });
     }
   }
@@ -265,14 +265,14 @@
       document.getElementById("checklistProgressBar").style.width = `${pct}%`;
 
       const badge = document.getElementById("checklistBadge");
-      const emojiEl = document.getElementById("cbEmoji");
+      const iconEl = document.getElementById("cbEmoji");
       const textEl = document.getElementById("cbText");
-      let emoji = "🎒", text = "Başlamadın", complete = false;
-      if (pct === 100) { emoji = "🏆"; text = "Hazırım!"; complete = true; }
-      else if (pct >= 67) { emoji = "🥇"; text = "Neredeyse hazır"; }
-      else if (pct >= 34) { emoji = "🥈"; text = "Yarı yolda"; }
-      else if (pct >= 1) { emoji = "🥉"; text = "İlk adım"; }
-      emojiEl.textContent = emoji;
+      let icon = "backpack", text = "Başlamadın", complete = false;
+      if (pct === 100) { icon = "shield-check"; text = "Hazırım"; complete = true; }
+      else if (pct >= 67) { icon = "shield-check"; text = "Neredeyse hazır"; }
+      else if (pct >= 34) { icon = "backpack"; text = "Yarı yolda"; }
+      else if (pct >= 1) { icon = "backpack"; text = "İlk adım"; }
+      iconEl.innerHTML = window.HavaIcon(icon, { size: 15 });
       textEl.textContent = text;
       badge.classList.toggle("cb-complete", complete);
     }

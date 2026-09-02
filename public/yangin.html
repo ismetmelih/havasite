@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <script>(function(){try{var u=new URLSearchParams(location.search).get('theme');var t=(u==='light'||u==='dark')?u:localStorage.getItem('havasite_theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 <title>Yangınlar — TürkiyeCanlı</title>
+<meta name="description" content="NASA FIRMS uydu verisiyle Türkiye aktif yangın / ısı tespiti haritası: canlı noktalar, ısı gücü (FRP), il sıralaması ve tahmini yangın riski endeksi." />
 <link rel="icon" type="image/svg+xml" href="img/logo.svg" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -85,11 +86,12 @@
   </p>
 
   <div id="demoBanner" class="demo-banner" hidden>
-    ⚠️ Şu an <strong>örnek veri</strong> gösteriliyor — bu gerçek zamanlı bir yangın verisi değildir. Gerçek veri için aşağıdaki kurulum adımlarını uygula.
+    <span class="ic" data-icon="alert-triangle" data-icon-size="16"></span>
+    <span>Şu an <strong>örnek veri</strong> gösteriliyor — bu gerçek zamanlı bir yangın verisi değildir. Gerçek veri için aşağıdaki kurulum adımlarını uygula.</span>
   </div>
 
   <div id="setupPanel" class="setup-panel" hidden>
-    <span style="font-size:2.2rem">🔥🛰️</span>
+    <span class="setup-icon" data-icon="satellite" data-icon-size="30"></span>
     <h3>Canlı yangın verisi için ücretsiz bir NASA FIRMS anahtarı gerekiyor</h3>
     <p>Bu panel, NASA'nın uydu tabanlı FIRMS servisinden gerçek zamanlı aktif ateş/yangın tespiti çeker. Ücretsiz anahtarı birkaç dakikada alabilirsin:</p>
     <ol>
@@ -99,32 +101,32 @@
       <li>Sunucuyu yeniden başlat (<code>npm start</code>) ve bu sayfayı yenile.</li>
     </ol>
     <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
-      <a class="btn btn-primary" href="https://firms.modaps.eosdis.nasa.gov/api/map_key/" target="_blank" rel="noopener">Ücretsiz Anahtar Al →</a>
+      <a class="btn btn-primary" href="https://firms.modaps.eosdis.nasa.gov/api/map_key/" target="_blank" rel="noopener">Ücretsiz Anahtar Al <span class="ic" data-icon="arrow-right" data-icon-size="15"></span></a>
       <button class="btn btn-ghost" id="demoBtn" type="button">Örnek veriyle görüntüle</button>
     </div>
   </div>
 
   <div class="stat-tiles reveal">
     <div class="stat-tile">
-      <span class="stat-tile-icon">🔥</span>
+      <span class="stat-tile-icon" data-icon="flame"></span>
       <span class="stat-label">Aktif Tespit</span>
       <span class="stat-value" id="statCount">—</span>
       <span class="stat-sub" id="statCountSub">seçili aralıkta</span>
     </div>
     <div class="stat-tile">
-      <span class="stat-tile-icon">🌡️</span>
+      <span class="stat-tile-icon" data-icon="thermometer"></span>
       <span class="stat-label">En Yüksek FRP</span>
       <span class="stat-value" id="statMaxFrp">—</span>
       <span class="stat-sub">MW (ısı gücü)</span>
     </div>
     <div class="stat-tile">
-      <span class="stat-tile-icon">📍</span>
+      <span class="stat-tile-icon" data-icon="map-pin"></span>
       <span class="stat-label">En Çok Etkilenen Bölge</span>
       <span class="stat-value" id="statRegion">—</span>
       <span class="stat-sub" id="statRegionSub">yakın il eşleştirmesi</span>
     </div>
     <div class="stat-tile">
-      <span class="stat-tile-icon">🌓</span>
+      <span class="stat-tile-icon" data-icon="moon-star"></span>
       <span class="stat-label">Gündüz / Gece</span>
       <span class="stat-value" id="statDayNight">—</span>
       <span class="stat-sub">tespit oranı</span>
@@ -132,7 +134,7 @@
   </div>
 
   <div class="risk-banner reveal" id="riskBanner">
-    <div class="risk-icon" id="riskIcon">🔥</div>
+    <div class="risk-icon" id="riskIcon" data-icon="flame" data-icon-size="24"></div>
     <div class="risk-body">
       <div class="risk-top">
         <span class="risk-label">Bugünkü Yangın Riski Endeksi</span>
@@ -202,7 +204,7 @@
 
   <section class="province-section reveal">
     <div class="map-head">
-      <h3>📊 En çok ısı tespiti alan iller</h3>
+      <h3><span class="h-icon" data-icon="bar-chart" data-icon-size="18"></span>En çok ısı tespiti alan iller</h3>
       <span class="badge badge-live" id="psCount"><span class="live-blip"></span> —</span>
     </div>
     <div class="province-bars" id="provinceBars">

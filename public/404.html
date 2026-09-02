@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<script>(function(){try{var u=new URLSearchParams(location.search).get('theme');var t=(u==='light'||u==='dark')?u:localStorage.getItem('havasite_theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<title>Sayfa bulunamadı — TürkiyeCanlı</title>
+<meta name="description" content="Aradığın sayfa TürkiyeCanlı üzerinde bulunamadı." />
+<link rel="icon" type="image/svg+xml" href="img/logo.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" />
+<link rel="stylesheet" href="css/base.css" />
+<style>
+  .nf-wrap {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 40px 24px;
+    gap: 14px;
+  }
+  .nf-code {
+    font-family: var(--font-mono);
+    font-size: clamp(3.5rem, 12vw, 6rem);
+    font-weight: 600;
+    letter-spacing: -0.04em;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .nf-wrap h1 { margin: 0; font-size: 1.4rem; }
+  .nf-wrap p { color: var(--text-secondary); max-width: 420px; margin: 0 0 12px; }
+  .nf-links { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+</style>
+</head>
+<body>
+<nav class="site-nav">
+  <a class="brand" href="index.html"><img src="img/logo.svg" class="brand-logo" alt="" /> Türkiye<span class="text-quake">Canlı</span></a>
+  <div class="nav-links">
+    <a href="index.html" data-page="index.html">Ana Sayfa</a>
+    <a href="hava.html" data-page="hava.html">Hava Durumu</a>
+    <a href="deprem.html" data-page="deprem.html">Depremler</a>
+    <a href="yangin.html" data-page="yangin.html">Yangınlar</a>
+  </div>
+</nav>
+
+<main class="nf-wrap">
+  <div class="nf-code">404</div>
+  <h1>Sayfa bulunamadı</h1>
+  <p>Bu adres taşınmış veya hiç var olmamış olabilir. Aşağıdaki bağlantılardan devam edebilirsin.</p>
+  <div class="nf-links">
+    <a class="btn btn-primary" href="index.html">Ana sayfaya dön</a>
+    <a class="btn btn-ghost" href="hava.html">Hava Durumu</a>
+    <a class="btn btn-ghost" href="deprem.html">Depremler</a>
+    <a class="btn btn-ghost" href="yangin.html">Yangınlar</a>
+  </div>
+</main>
+</body>
+</html>

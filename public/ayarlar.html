@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <script>(function(){try{var u=new URLSearchParams(location.search).get('theme');var t=(u==='light'||u==='dark')?u:localStorage.getItem('havasite_theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 <title>Ayarlar — TürkiyeCanlı</title>
+<meta name="description" content="TürkiyeCanlı hesap ve görünüm ayarları: profil, açık/koyu tema ve deprem çantası hazırlık kontrol listesi." />
 <link rel="icon" type="image/svg+xml" href="img/logo.svg" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -53,9 +54,9 @@
   <div class="settings-shell reveal">
 
     <div class="settings-tabs">
-      <button class="settings-tab active" data-tab="profil" type="button">👤 Profil</button>
-      <button class="settings-tab" data-tab="gorunum" type="button">🎨 Görünüm</button>
-      <button class="settings-tab" data-tab="hazirlik" type="button">🎒 Hazırlık</button>
+      <button class="settings-tab active" data-tab="profil" type="button"><span class="ic" data-icon="user" data-icon-size="15"></span> Profil</button>
+      <button class="settings-tab" data-tab="gorunum" type="button"><span class="ic" data-icon="palette" data-icon-size="15"></span> Görünüm</button>
+      <button class="settings-tab" data-tab="hazirlik" type="button"><span class="ic" data-icon="shield-check" data-icon-size="15"></span> Hazırlık</button>
     </div>
 
     <section class="settings-panel active" id="panel-profil">
@@ -99,13 +100,13 @@
         </div>
 
         <div id="profileGuest" class="profile-guest" hidden>
-          <span style="font-size:2rem">🔒</span>
+          <span class="guest-lock" data-icon="lock" data-icon-size="26"></span>
           <h3>Profilini özelleştirmek için giriş yap</h3>
           <p style="color:var(--text-secondary);max-width:420px;margin:0 auto 20px">
             Görünen adını ve avatarını ayarlamak için hesabına giriş yapmalısın.
             Favori şehir ve deprem uyarı eşiğini giriş yapmadan da aşağıdan ayarlayabilirsin.
           </p>
-          <a class="btn btn-primary" href="login.html">Giriş Yap →</a>
+          <a class="btn btn-primary" href="login.html">Giriş Yap <span class="ic" data-icon="arrow-right" data-icon-size="15"></span></a>
 
           <form id="guestPrefsForm" class="auth-form" style="max-width:360px;margin:26px auto 0;text-align:left">
             <label class="field">
@@ -139,7 +140,7 @@
               </div>
             </div>
             <div class="theme-option-head">
-              <strong>🌙 Koyu</strong>
+              <strong><span class="ic" data-icon="moon-star" data-icon-size="15"></span> Koyu</strong>
               <span class="theme-radio"></span>
             </div>
           </div>
@@ -154,7 +155,7 @@
               </div>
             </div>
             <div class="theme-option-head">
-              <strong>☀️ Açık</strong>
+              <strong><span class="ic" data-icon="sun" data-icon-size="15"></span> Açık</strong>
               <span class="theme-radio"></span>
             </div>
           </div>
@@ -175,7 +176,7 @@
             <p style="color:var(--text-secondary);margin:0">İşaretledikçe ilerlemen kaydedilir. Standart bir afet hazırlık listesidir.</p>
           </div>
           <div class="checklist-badge" id="checklistBadge">
-            <span class="cb-emoji" id="cbEmoji">🎒</span>
+            <span class="cb-icon" id="cbEmoji" data-icon="backpack" data-icon-size="15"></span>
             <span class="cb-text" id="cbText">Başlamadın</span>
           </div>
         </div>

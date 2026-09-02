@@ -27,23 +27,25 @@
   function setupGeo() {
     const btn = document.getElementById("qfLocate");
     if (!btn) return;
+    const pin = window.HavaIcon("map-pin", { size: 15 });
+    const setLabel = (txt) => { btn.innerHTML = `${pin} ${txt}`; };
     try {
       const saved = JSON.parse(localStorage.getItem("havasite_user_pos") || "null");
-      if (saved && saved.lat) { userPos = saved; btn.textContent = "📍 Konum güncel"; }
+      if (saved && saved.lat) { userPos = saved; setLabel("Konum güncel"); }
     } catch {}
     btn.addEventListener("click", () => {
       if (!navigator.geolocation) { window.showToast("Tarayıcın konum servisini desteklemiyor."); return; }
       btn.disabled = true;
-      btn.textContent = "Konum alınıyor…";
+      setLabel("Konum alınıyor…");
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           userPos = { lat: pos.coords.latitude, lon: pos.coords.longitude };
           try { localStorage.setItem("havasite_user_pos", JSON.stringify(userPos)); } catch {}
-          btn.textContent = "📍 Konum güncel";
+          setLabel("Konum güncel");
           btn.disabled = false;
           render();
         },
-        () => { window.showToast("Konum izni alınamadı."); btn.textContent = "📍 Konumumu kullan"; btn.disabled = false; },
+        () => { window.showToast("Konum izni alınamadı."); setLabel("Konumumu kullan"); btn.disabled = false; },
         { timeout: 8000 }
       );
     });
@@ -189,9 +191,13 @@
 
     sliderEl.addEventListener("input", () => renderTimelineDay(parseInt(sliderEl.value, 10)));
 
+    const setPlayBtn = () => {
+      playBtn.innerHTML =
+        `${window.HavaIcon(playing ? "pause" : "play", { size: 14 })} <span id="timelinePlayLabel">${playing ? "Duraklat" : "Oynat"}</span>`;
+    };
     playBtn.addEventListener("click", () => {
       playing = !playing;
-      playBtn.textContent = playing ? "⏸ Duraklat" : "▶ Oynat";
+      setPlayBtn();
       if (playing) {
         if (parseInt(sliderEl.value, 10) >= days.length - 1) sliderEl.value = "0";
         stepPlay();
@@ -206,7 +212,7 @@
       renderTimelineDay(idx);
       if (idx >= days.length - 1) {
         playing = false;
-        playBtn.textContent = "▶ Oynat";
+        setPlayBtn();
         return;
       }
       sliderEl.value = String(idx + 1);
@@ -294,7 +300,7 @@
       render(newOnes);
 
       newOnes.forEach((q) => {
-        window.showToast(`🟠 Yeni deprem: M${q.mag.toFixed(1)} — ${q.closestCity || q.title}`, { accent: "var(--c-quake)" });
+        window.showToast(`Yeni deprem: M${q.mag.toFixed(1)} — ${q.closestCity || q.title}`, { accent: "var(--c-quake)" });
       });
     } catch {
       document.getElementById("lastUpdated").textContent = "Bağlantı hatası, tekrar denenecek…";

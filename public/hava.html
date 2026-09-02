@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <script>(function(){try{var u=new URLSearchParams(location.search).get('theme');var t=(u==='light'||u==='dark')?u:localStorage.getItem('havasite_theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 <title>Hava Durumu — TürkiyeCanlı</title>
+<meta name="description" content="Türkiye geneli anlık hava durumu: 81 il canlı sıcaklık haritası, saatlik ve 10 günlük tahmin, rüzgâr, nem, basınç ve UV ayrıntıları. Kaynak: Open-Meteo." />
 <link rel="icon" type="image/svg+xml" href="img/logo.svg" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -76,7 +77,7 @@
         <input type="text" id="citySearch" placeholder="Şehir ara (ör. Antalya)" autocomplete="off" />
         <div class="search-results" id="searchResults" hidden></div>
       </div>
-      <button class="btn btn-ghost btn-sm" id="geoBtn" type="button">📍 Konumum</button>
+      <button class="btn btn-ghost btn-sm" id="geoBtn" type="button"><span class="ic" data-icon="map-pin" data-icon-size="15"></span> Konumum</button>
     </div>
   </div>
 </header>
@@ -107,7 +108,7 @@
     <h3>Bugünün ayrıntıları</h3>
     <div class="detail-tiles" id="detailTiles">
       <div class="detail-tile">
-        <span class="dt-label">Rüzgâr</span>
+        <span class="dt-label"><span class="ic" data-icon="wind" data-icon-size="15"></span> Rüzgâr</span>
         <span class="dt-value wind-val">
           <span class="compass" id="wcCompass" style="--deg:0deg"><span class="needle"></span></span>
           <span id="wcWind">-- km/s</span>
@@ -115,37 +116,37 @@
         <span class="dt-sub" id="wcWindSub">—</span>
       </div>
       <div class="detail-tile">
-        <span class="dt-label">Nem</span>
+        <span class="dt-label"><span class="ic" data-icon="droplet" data-icon-size="15"></span> Nem</span>
         <span class="dt-value" id="wcHumidity">--%</span>
         <span class="dt-sub" id="wcHumiditySub">çiy noktası —</span>
       </div>
       <div class="detail-tile">
-        <span class="dt-label">Görüş mesafesi</span>
+        <span class="dt-label"><span class="ic" data-icon="navigation" data-icon-size="15"></span> Görüş mesafesi</span>
         <span class="dt-value" id="wcVisibility">-- km</span>
         <span class="dt-sub" id="wcVisibilitySub">—</span>
       </div>
       <div class="detail-tile">
-        <span class="dt-label">Basınç</span>
+        <span class="dt-label"><span class="ic" data-icon="gauge" data-icon-size="15"></span> Basınç</span>
         <span class="dt-value" id="wcPressure">-- hPa</span>
         <span class="dt-sub" id="wcPressureSub">—</span>
       </div>
       <div class="detail-tile">
-        <span class="dt-label">UV indeksi</span>
+        <span class="dt-label"><span class="ic" data-icon="sun" data-icon-size="15"></span> UV indeksi</span>
         <span class="dt-value" id="wcUv">--</span>
         <span class="dt-sub" id="wcUvSub">—</span>
       </div>
       <div class="detail-tile">
-        <span class="dt-label">Yağış (bugün)</span>
+        <span class="dt-label"><span class="ic" data-icon="droplet" data-icon-size="15"></span> Yağış (bugün)</span>
         <span class="dt-value" id="wcPrecip">-- mm</span>
         <span class="dt-sub" id="wcPrecipSub">olasılık —</span>
       </div>
       <div class="detail-tile">
-        <span class="dt-label">Gün doğumu</span>
+        <span class="dt-label"><span class="ic" data-icon="sunrise" data-icon-size="15"></span> Gün doğumu</span>
         <span class="dt-value" id="wcSunrise">--:--</span>
         <span class="dt-sub">bugün</span>
       </div>
       <div class="detail-tile">
-        <span class="dt-label">Gün batımı</span>
+        <span class="dt-label"><span class="ic" data-icon="sunset" data-icon-size="15"></span> Gün batımı</span>
         <span class="dt-value" id="wcSunset">--:--</span>
         <span class="dt-sub" id="wcDaylenSub">gün uzunluğu —</span>
       </div>

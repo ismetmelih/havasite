@@ -334,7 +334,7 @@
           <span class="hc-time">${hourLabel}</span>
           ${window.WeatherWMO.svg(h.weather_code[idx], d.getHours() >= 7 && d.getHours() <= 19)}
           <span class="hc-temp">${temp}°</span>
-          <span class="hc-pop">${pop >= 10 ? "💧 " + pop + "%" : "—"}</span>
+          <span class="hc-pop">${pop >= 10 ? window.HavaIcon("droplet", { size: 11 }) + " " + pop + "%" : "—"}</span>
         </div>`;
       })
       .join("");

@@ -126,7 +126,7 @@
       document.getElementById("statNode").textContent = s.nodeVersion;
       const firmsBadge = document.getElementById("statFirms");
       if (s.firmsKeyConfigured) {
-        firmsBadge.textContent = "tanımlı ✓";
+        firmsBadge.textContent = "tanımlı";
         firmsBadge.classList.add("badge-live");
       } else {
         firmsBadge.textContent = "tanımlı değil";

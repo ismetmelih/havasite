@@ -65,14 +65,14 @@
         .join("");
 
       const avg = totalScore / RISK_CITIES.length;
-      let level, cls, label;
-      if (avg < 0.35) { level = "Düşük"; cls = "risk-good"; label = "🟢"; }
-      else if (avg < 0.55) { level = "Orta"; cls = "risk-warning"; label = "🟡"; }
-      else if (avg < 0.75) { level = "Yüksek"; cls = "risk-serious"; label = "🟠"; }
-      else { level = "Çok Yüksek"; cls = "risk-critical"; label = "🔴"; }
+      let level, cls;
+      if (avg < 0.35) { level = "Düşük"; cls = "risk-good"; }
+      else if (avg < 0.55) { level = "Orta"; cls = "risk-warning"; }
+      else if (avg < 0.75) { level = "Yüksek"; cls = "risk-serious"; }
+      else { level = "Çok Yüksek"; cls = "risk-critical"; }
 
       const levelEl = document.getElementById("riskLevel");
-      levelEl.textContent = `${label} ${level}`;
+      levelEl.innerHTML = `<span class="risk-dot"></span>${level}`;
       levelEl.className = `risk-level ${cls}`;
       window.flashUpdate && window.flashUpdate(levelEl);
       document.getElementById("riskDesc").textContent =

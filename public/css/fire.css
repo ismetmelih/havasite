@@ -69,6 +69,9 @@
 }
 
 .demo-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   margin: 22px 0 0;
   padding: 12px 18px;
   border-radius: var(--radius-md);
@@ -77,6 +80,8 @@
   color: color-mix(in srgb, var(--status-warning) 80%, white);
   font-size: 0.86rem;
 }
+.demo-banner .ic { flex-shrink: 0; }
+.setup-icon { display: inline-flex; color: var(--c-fire-2); margin-bottom: 4px; }
 
 .fire-pulse .dot { animation: fire-glow 1.6s ease-in-out infinite; }
 @keyframes fire-glow {
@@ -153,16 +158,18 @@
 }
 .risk-icon {
   position: relative;
-  width: 54px;
-  height: 54px;
-  border-radius: 14px;
+  width: 52px;
+  height: 52px;
+  border-radius: 13px;
   background: color-mix(in srgb, var(--c-fire) 15%, transparent);
+  color: var(--c-fire-2);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.6rem;
   flex-shrink: 0;
 }
+.risk-icon .ic { width: 24px; height: 24px; }
+.risk-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; display: inline-block; }
 .risk-body { flex: 1; min-width: 0; }
 .risk-top {
   display: flex;

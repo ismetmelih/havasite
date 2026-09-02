@@ -83,6 +83,17 @@
 }
 
 .profile-guest { text-align: center; padding: 14px 10px; }
+.guest-lock {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 13px;
+  background: var(--accent-weak);
+  color: var(--accent);
+  margin-bottom: 4px;
+}
 
 .theme-grid {
   display: grid;
@@ -166,7 +177,10 @@
   font-size: 0.86rem;
   transition: background 0.3s ease, border-color 0.3s ease;
 }
-.cb-emoji { font-size: 1.15rem; transition: transform 0.3s ease; }
+.cb-icon { display: inline-flex; color: var(--text-secondary); }
+.checklist-badge.cb-complete .cb-icon { color: var(--status-good); }
+.settings-tab .ic { vertical-align: -0.15em; }
+.theme-option-head strong { display: inline-flex; align-items: center; gap: 6px; }
 .checklist-badge.cb-complete {
   background: color-mix(in srgb, var(--status-good) 18%, transparent);
   border-color: color-mix(in srgb, var(--status-good) 45%, transparent);

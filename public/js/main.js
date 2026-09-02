@@ -21,7 +21,77 @@
     },
   };
 
+  // ---------------- kurumsal ikon seti (inline SVG, Lucide tarzi) ----------------
+  // Kullanim: HTML'de <span class="ic" data-icon="map-pin"></span> ya da
+  // JS'te window.HavaIcon("map-pin", { size: 16, cls: "..." })
+  const ICON_PATHS = {
+    "map-pin": '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+    navigation: '<polygon points="3 11 22 2 13 21 11 13 3 11"/>',
+    globe: '<circle cx="12" cy="12" r="9.5"/><path d="M2.5 12h19"/><path d="M12 2.5c3 3.2 3 15.8 0 19-3-3.2-3-15.8 0-19Z"/>',
+    clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/>',
+    activity: '<path d="M3 12h4l3 8 4-16 3 8h4"/>',
+    "trending-up": '<polyline points="3 17 9 11 13 15 21 7"/><polyline points="15 7 21 7 21 13"/>',
+    compass: '<circle cx="12" cy="12" r="9"/><polygon points="15.6 8.4 10.6 10.6 8.4 15.6 13.4 13.4"/>',
+    "bar-chart": '<line x1="6" y1="20" x2="6" y2="12"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="18" y1="20" x2="18" y2="9"/>',
+    layers: '<polygon points="12 3 21 8 12 13 3 8 12 3"/><polyline points="3 13 12 18 21 13"/>',
+    play: '<polygon points="7 4 20 12 7 20 7 4"/>',
+    pause: '<rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>',
+    flame: '<path d="M12 3c1.6 3.6-1 5.2-1 8 0 2 1.7 3.2 3.2 3.2 2.2 0 3.4-1.9 3.4-4C21 13.5 21 16.5 21 18.5A9 9 0 0 1 3 18.5C3 15 5 12.5 6.4 10.7c.3 2 1.6 3 2.9 3 1.1 0-1.3-1.7 2.7-10.7Z"/>',
+    thermometer: '<path d="M14 14.5V5a2.5 2.5 0 0 0-5 0v9.5a5 5 0 1 0 5 0Z"/>',
+    "moon-star": '<path d="M20 14a8 8 0 1 1-9.9-9.9A6.5 6.5 0 0 0 20 14Z"/>',
+    sun: '<circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v2.5M12 19v2.5M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2.5 12H5M19 12h2.5M4.2 19.8 6 18M18 6l1.8-1.8"/>',
+    "alert-triangle": '<path d="M12 3.2 2.3 20a1 1 0 0 0 .9 1.5h17.6a1 1 0 0 0 .9-1.5L12 3.2Z"/><line x1="12" y1="9.5" x2="12" y2="14"/><circle cx="12" cy="17.3" r="0.4" fill="currentColor" stroke="none"/>',
+    x: '<line x1="5.5" y1="5.5" x2="18.5" y2="18.5"/><line x1="18.5" y1="5.5" x2="5.5" y2="18.5"/>',
+    users: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20.5c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5"/><path d="M16 5a3.5 3.5 0 0 1 0 7M21.5 20.5c0-2.7-1.6-5-4-6.1"/>',
+    "user-plus": '<circle cx="10" cy="8" r="3.5"/><path d="M3.5 20.5c0-3.6 2.9-6.5 6.5-6.5c1.5 0 2.9.5 4 1.4"/><line x1="18" y1="12.5" x2="18" y2="18.5"/><line x1="15" y1="15.5" x2="21" y2="15.5"/>',
+    key: '<circle cx="8" cy="15" r="4.2"/><path d="m11 12 9-9M17.5 5.5l2.5 2.5M14.5 8.5l2 2"/>',
+    database: '<ellipse cx="12" cy="5.5" rx="7.5" ry="3"/><path d="M4.5 5.5v13c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3v-13M4.5 12c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3"/>',
+    lock: '<rect x="4.5" y="10.5" width="15" height="10.5" rx="2"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/>',
+    user: '<circle cx="12" cy="8" r="4"/><path d="M4.5 21c0-4 3.4-7 7.5-7s7.5 3 7.5 7"/>',
+    palette: '<path d="M12 3.5a8.5 8.5 0 1 0 0 17c1.6 0 2-1.3 1-2.3-.9-1-.4-2.7 1-2.7h1.8a4.7 4.7 0 0 0 4.7-4.7c0-4-3.8-7.3-9.5-7.3Z"/><circle cx="8" cy="10" r="1.1" fill="currentColor" stroke="none"/><circle cx="12" cy="7" r="1.1" fill="currentColor" stroke="none"/><circle cx="16" cy="10" r="1.1" fill="currentColor" stroke="none"/>',
+    "shield-check": '<path d="M12 3.2 5 6v6c0 4.4 3 8 7 9 4-1 7-4.6 7-9V6l-7-2.8Z"/><path d="m9.2 12 2 2 3.6-4.2"/>',
+    check: '<polyline points="4.5 12.5 9.5 17.5 19.5 6.5"/>',
+    droplet: '<path d="M12 3.3s5.8 6.3 5.8 10.7a5.8 5.8 0 0 1-11.6 0C6.2 9.6 12 3.3 12 3.3Z"/>',
+    wind: '<path d="M3 9h10a3 3 0 1 0-3-4"/><path d="M3 14.5h15a3 3 0 1 1-3 4"/>',
+    "arrow-right": '<line x1="4" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/>',
+    sunrise: '<path d="M4 18.5h16M12 4v6M8.5 8 12 4.2 15.5 8M3 14.5h1.8M19.2 14.5H21M5.8 10.8 4.5 9.5M18.2 10.8l1.3-1.3"/><path d="M8.2 18.5a3.8 3.8 0 0 1 7.6 0"/>',
+    sunset: '<path d="M4 18.5h16M12 10V4M8.5 6.5 12 10.3 15.5 6.5M3 14.5h1.8M19.2 14.5H21M5.8 10.8 4.5 9.5M18.2 10.8l1.3-1.3"/><path d="M8.2 18.5a3.8 3.8 0 0 1 7.6 0"/>',
+    satellite: '<path d="m4 10 6-6 4 4-6 6-4-4Z"/><path d="m9.5 14.5 5-5"/><path d="M13.5 19a6 6 0 0 0 6-6M16 21.5a9 9 0 0 0 5.5-5.5"/>',
+    map: '<polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21 3 6"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/>',
+    radio: '<circle cx="12" cy="12" r="2"/><path d="M8 8a5.5 5.5 0 0 0 0 8M16 16a5.5 5.5 0 0 0 0-8M5.2 5.2a9.5 9.5 0 0 0 0 13.6M18.8 18.8a9.5 9.5 0 0 0 0-13.6"/>',
+    backpack: '<path d="M6 9a6 6 0 0 1 12 0v9.5a2.5 2.5 0 0 1-2.5 2.5h-7A2.5 2.5 0 0 1 6 18.5Z"/><path d="M9 9V6.5a3 3 0 0 1 6 0V9M8.5 14h7"/>',
+    phone: '<path d="M6.5 3.5 9 4l1 4-2 1.5a10 10 0 0 0 5 5L15.5 17l4 1 .5 2.5a2 2 0 0 1-2 2.3A17 17 0 0 1 2 6.5a2 2 0 0 1 2.3-2Z"/>',
+    "refresh-cw": '<path d="M20 8a8 8 0 0 0-14-3L4 7M4 4v3h3"/><path d="M4 16a8 8 0 0 0 14 3l2-2M20 20v-3h-3"/>',
+    info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><circle cx="12" cy="8" r="0.5" fill="currentColor" stroke="none"/>',
+    gauge: '<path d="M4 19a8 8 0 1 1 16 0"/><path d="M12 15 15 10"/>',
+    "log-out": '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>',
+  };
+
+  window.HavaIcon = function HavaIcon(name, opts = {}) {
+    const p = ICON_PATHS[name];
+    if (!p) return "";
+    const size = opts.size || 20;
+    const cls = opts.cls ? ` ${opts.cls}` : "";
+    const sw = opts.strokeWidth || 1.75;
+    return `<svg class="ic${cls}" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
+  };
+
+  function hydrateIcons(root) {
+    (root || document).querySelectorAll("[data-icon]:not([data-icon-done])").forEach((el) => {
+      const svg = window.HavaIcon(el.dataset.icon, {
+        size: parseInt(el.dataset.iconSize, 10) || 18,
+        strokeWidth: el.dataset.iconStroke ? parseFloat(el.dataset.iconStroke) : undefined,
+      });
+      if (svg) {
+        el.innerHTML = svg;
+        el.setAttribute("data-icon-done", "");
+      }
+    });
+  }
+  window.hydrateIcons = hydrateIcons;
+
   document.addEventListener("DOMContentLoaded", () => {
+    hydrateIcons();
     setupNav();
     setupReveal();
     setupThemeToggle();
@@ -117,8 +187,8 @@
     overlay.innerHTML = `
       <div class="emergency-panel" role="dialog" aria-modal="true">
         <div class="emergency-head">
-          <h2>🚨 Acil Durum Modu</h2>
-          <button class="emergency-close" id="emergencyClose" type="button" aria-label="Kapat">✕</button>
+          <h2>${window.HavaIcon("alert-triangle", { size: 22 })} Acil Durum Modu</h2>
+          <button class="emergency-close" id="emergencyClose" type="button" aria-label="Kapat">${window.HavaIcon("x", { size: 18 })}</button>
         </div>
         <div class="em-grid">
           <div class="em-card">
@@ -356,7 +426,7 @@
       const onLoginPage = /login\.html$/.test(location.pathname);
       const onQuotaPage = document.body.hasAttribute("data-guest-quota");
       if (onLoginPage || !onQuotaPage) {
-        slot.innerHTML = `<a class="btn btn-primary btn-sm" href="login.html"><span class="label">Giriş Yap</span> →</a>`;
+        slot.innerHTML = `<a class="btn btn-primary btn-sm" href="login.html"><span class="label">Giriş Yap</span>${window.HavaIcon("arrow-right", { size: 15 })}</a>`;
         return;
       }
       const used = window.HavaQuota.used();

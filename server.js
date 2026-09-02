@@ -647,8 +647,12 @@ function serveStatic(req, res, pathname) {
       const withHtml = filePath + ".html";
       fs.stat(withHtml, (err2, stat2) => {
         if (!err2 && stat2.isFile()) return streamFile(res, withHtml);
-        res.writeHead(404, { "Content-Type": "text/html; charset=utf-8" });
-        res.end("<h1>404</h1><p>Sayfa bulunamadi.</p>");
+        // stilli 404 sayfasi (yoksa duz metne dus)
+        const notFound = path.join(PUBLIC_DIR, "404.html");
+        fs.readFile(notFound, (err3, buf) => {
+          res.writeHead(404, { "Content-Type": "text/html; charset=utf-8" });
+          res.end(err3 ? "<h1>404</h1><p>Sayfa bulunamadi.</p>" : buf);
+        });
       });
       return;
     }

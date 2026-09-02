@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <script>(function(){try{var u=new URLSearchParams(location.search).get('theme');var t=(u==='light'||u==='dark')?u:localStorage.getItem('havasite_theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 <title>Depremler — TürkiyeCanlı</title>
+<meta name="description" content="Türkiye canlı deprem haritası: AFAD kaynaklı son depremler, büyüklüğe göre renklendirilmiş harita, 3B görünüm, 30 günlük zaman tüneli ve il bazlı istatistik." />
 <link rel="icon" type="image/svg+xml" href="img/logo.svg" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -75,14 +76,14 @@
     </div>
     <div class="qf-side">
       <div class="qf-dist" id="qfDist" hidden><span class="qf-dist-val" id="qfDistVal">—</span><span class="qf-dist-lbl">sana uzaklık</span></div>
-      <button class="btn btn-ghost btn-sm" id="qfLocate" type="button">📍 Konumumu kullan</button>
+      <button class="btn btn-ghost btn-sm" id="qfLocate" type="button"><span class="ic" data-icon="map-pin" data-icon-size="15"></span> Konumumu kullan</button>
     </div>
   </section>
 
   <section class="quake-globe-section reveal">
     <div class="quake-globe-head">
       <div>
-        <h3>🌐 Son 7 günün depremleri — 3D görünüm</h3>
+        <h3><span class="h-icon" data-icon="globe" data-icon-size="18"></span>Son 7 günün depremleri — 3B görünüm</h3>
         <p class="field-hint">Büyüklüğe göre renklenip titreşerek beliren noktalar. Fareyle sürükleyip çevirebilirsin.</p>
       </div>
       <span class="badge badge-live" id="globeCount"><span class="live-blip"></span> yükleniyor…</span>
@@ -94,25 +95,25 @@
 
   <div class="stat-tiles reveal">
     <div class="stat-tile">
-      <span class="stat-tile-icon">🕐</span>
+      <span class="stat-tile-icon" data-icon="clock"></span>
       <span class="stat-label">Son Deprem</span>
       <span class="stat-value" id="statLast">—</span>
       <span class="stat-sub" id="statLastSub">—</span>
     </div>
     <div class="stat-tile">
-      <span class="stat-tile-icon">📍</span>
+      <span class="stat-tile-icon" data-icon="layers"></span>
       <span class="stat-label">Görüntülenen Toplam</span>
       <span class="stat-value" id="statCount">—</span>
       <span class="stat-sub">son ~24 saat</span>
     </div>
     <div class="stat-tile">
-      <span class="stat-tile-icon">📈</span>
+      <span class="stat-tile-icon" data-icon="trending-up"></span>
       <span class="stat-label">En Büyük (24s)</span>
       <span class="stat-value" id="statMax">—</span>
       <span class="stat-sub" id="statMaxSub">—</span>
     </div>
     <div class="stat-tile">
-      <span class="stat-tile-icon">🧭</span>
+      <span class="stat-tile-icon" data-icon="compass"></span>
       <span class="stat-label">Ortalama Derinlik</span>
       <span class="stat-value" id="statDepth">—</span>
       <span class="stat-sub">km</span>
@@ -163,7 +164,7 @@
 
   <section class="province-section reveal">
     <div class="map-head">
-      <h3>📊 En hareketli iller — <span id="psWindow">son 24 saat</span></h3>
+      <h3><span class="h-icon" data-icon="bar-chart" data-icon-size="18"></span>En hareketli iller — <span id="psWindow">son 24 saat</span></h3>
       <span class="badge badge-live" id="psCount"><span class="live-blip"></span> —</span>
     </div>
     <div class="province-bars" id="provinceBars">
@@ -174,7 +175,7 @@
   <section class="timeline-section reveal">
     <div class="map-head">
       <div>
-        <h3>⏱ Zaman tüneli — son 30 gün</h3>
+        <h3><span class="h-icon" data-icon="clock" data-icon-size="18"></span>Zaman tüneli — son 30 gün</h3>
         <p class="field-hint">Oynat'a bas, depremlerin zamanla nasıl yayıldığını izle. Noktalar o güne kadar birikerek kalır.</p>
       </div>
       <span class="badge badge-live" id="timelineCount"><span class="live-blip"></span> yükleniyor…</span>
@@ -183,7 +184,7 @@
     <div class="map-box" id="timelineMap" style="height:420px;"></div>
 
     <div class="timeline-controls">
-      <button class="btn btn-primary btn-sm" id="timelinePlay" type="button">▶ Oynat</button>
+      <button class="btn btn-primary btn-sm" id="timelinePlay" type="button"><span class="ic" data-icon="play" data-icon-size="14"></span> <span id="timelinePlayLabel">Oynat</span></button>
       <input type="range" id="timelineSlider" min="0" max="29" value="29" step="1" />
       <div class="timeline-date" id="timelineDate">—</div>
       <select id="timelineSpeed" class="filter-select">
