@@ -5,13 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <script>(function(){try{var u=new URLSearchParams(location.search).get('theme');var t=(u==='light'||u==='dark')?u:localStorage.getItem('havasite_theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 <title>Yangınlar — TürkiyeCanlı</title>
-<meta name="description" content="NASA FIRMS uydu verisiyle Türkiye aktif yangın / ısı tespiti haritası: canlı noktalar, ısı gücü (FRP), il sıralaması ve tahmini yangın riski endeksi." />
+<meta name="description" content="NASA FIRMS uydu verisiyle Türkiye aktif yangın / ısı tespiti paneli: canlı harita, ısı gücü (FRP) istatistikleri, il sıralaması ve hava koşullarına dayalı tahmini yangın riski." />
 <link rel="icon" type="image/svg+xml" href="img/logo.svg" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" />
 <link rel="stylesheet" href="css/base.css" />
+<link rel="stylesheet" href="css/dash.css" />
 <link rel="stylesheet" href="css/fire.css" />
 </head>
 <body class="fire-body" data-guest-quota>
@@ -37,18 +38,7 @@
 </nav>
 
 <header class="page-head has-scene">
-  <div class="page-scene" aria-hidden="true">
-    <span class="ps-orb o1"></span>
-    <span class="ps-orb o2"></span>
-    <span class="ps-orb o3"></span>
-    <span class="ps-grid"></span>
-    <span class="fs-ember e1"></span>
-    <span class="fs-ember e2"></span>
-    <span class="fs-ember e3"></span>
-    <span class="fs-ember e4"></span>
-    <span class="fs-ember e5"></span>
-    <div class="fs-smoke"></div>
-  </div>
+  <div class="page-scene" aria-hidden="true"><span class="ps-grid"></span></div>
   <div class="container page-head-row">
     <div class="page-head-title">
       <div class="page-icon icon-fire-wrap">
@@ -58,7 +48,7 @@
       </div>
       <div>
         <span class="eyebrow text-fire">YANGINLAR</span>
-        <h1>Uydu tabanlı aktif yangın tespiti</h1>
+        <h1>Uydu tabanlı yangın izleme paneli</h1>
         <p class="page-sub" id="lastUpdated">Yükleniyor…</p>
       </div>
     </div>
@@ -66,9 +56,9 @@
   </div>
 </header>
 
-<main class="container">
+<main class="container dash">
 
-  <div class="fire-alert-bar reveal">
+  <div class="fire-alert-bar">
     <div class="fab-fresh">
       <span class="fab-dot"></span>
       <span>En yeni uydu tespiti: <strong id="fireFreshness">—</strong></span>
@@ -79,74 +69,15 @@
     </div>
   </div>
 
-  <p class="fire-disclaimer reveal">
-    Bu harita NASA FIRMS uydularının kaydettiği <strong>ısı tespitlerini</strong> gösterir.
-    Her tespit bir orman yangını değildir (sanayi ısısı, tarımsal anız, güneş yansıması olabilir)
-    ve bu sayfa <strong>resmî uyarı yerine geçmez</strong>. Resmî bilgi için OGM ve AFAD duyurularını esas alın.
-  </p>
+  <nav class="dash-tabs" id="fTabs" aria-label="Yangın bölümleri">
+    <button class="dash-tab active" type="button" data-view="genel"><span class="ic" data-icon="flame" data-icon-size="16"></span> Genel</button>
+    <button class="dash-tab" type="button" data-view="harita"><span class="ic" data-icon="map" data-icon-size="16"></span> Harita</button>
+    <button class="dash-tab" type="button" data-view="liste"><span class="ic" data-icon="layers" data-icon-size="16"></span> Liste</button>
+    <button class="dash-tab" type="button" data-view="risk"><span class="ic" data-icon="alert-triangle" data-icon-size="16"></span> Risk</button>
+    <button class="dash-tab" type="button" data-view="istat"><span class="ic" data-icon="bar-chart" data-icon-size="16"></span> İstatistik</button>
+  </nav>
 
-  <div id="demoBanner" class="demo-banner" hidden>
-    <span class="ic" data-icon="alert-triangle" data-icon-size="16"></span>
-    <span>Şu an <strong>örnek veri</strong> gösteriliyor — bu gerçek zamanlı bir yangın verisi değildir. Gerçek veri için aşağıdaki kurulum adımlarını uygula.</span>
-  </div>
-
-  <div id="setupPanel" class="setup-panel" hidden>
-    <span class="setup-icon" data-icon="satellite" data-icon-size="30"></span>
-    <h3>Canlı yangın verisi için ücretsiz bir NASA FIRMS anahtarı gerekiyor</h3>
-    <p>Bu panel, NASA'nın uydu tabanlı FIRMS servisinden gerçek zamanlı aktif ateş/yangın tespiti çeker. Ücretsiz anahtarı birkaç dakikada alabilirsin:</p>
-    <ol>
-      <li><a href="https://firms.modaps.eosdis.nasa.gov/api/map_key/" target="_blank" rel="noopener">firms.modaps.eosdis.nasa.gov/api/map_key</a> adresine git ve e-posta adresinle ücretsiz bir anahtar iste.</li>
-      <li>E-postana gelen anahtarı kopyala.</li>
-      <li>Proje klasöründeki <code>config.json</code> dosyasını aç, <code>FIRMS_MAP_KEY</code> değerini yapıştır ve kaydet.</li>
-      <li>Sunucuyu yeniden başlat (<code>npm start</code>) ve bu sayfayı yenile.</li>
-    </ol>
-    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
-      <a class="btn btn-primary" href="https://firms.modaps.eosdis.nasa.gov/api/map_key/" target="_blank" rel="noopener">Ücretsiz Anahtar Al <span class="ic" data-icon="arrow-right" data-icon-size="15"></span></a>
-      <button class="btn btn-ghost" id="demoBtn" type="button">Örnek veriyle görüntüle</button>
-    </div>
-  </div>
-
-  <div class="stat-tiles reveal">
-    <div class="stat-tile">
-      <span class="stat-tile-icon" data-icon="flame"></span>
-      <span class="stat-label">Aktif Tespit</span>
-      <span class="stat-value" id="statCount">—</span>
-      <span class="stat-sub" id="statCountSub">seçili aralıkta</span>
-    </div>
-    <div class="stat-tile">
-      <span class="stat-tile-icon" data-icon="thermometer"></span>
-      <span class="stat-label">En Yüksek FRP</span>
-      <span class="stat-value" id="statMaxFrp">—</span>
-      <span class="stat-sub">MW (ısı gücü)</span>
-    </div>
-    <div class="stat-tile">
-      <span class="stat-tile-icon" data-icon="map-pin"></span>
-      <span class="stat-label">En Çok Etkilenen Bölge</span>
-      <span class="stat-value" id="statRegion">—</span>
-      <span class="stat-sub" id="statRegionSub">yakın il eşleştirmesi</span>
-    </div>
-    <div class="stat-tile">
-      <span class="stat-tile-icon" data-icon="moon-star"></span>
-      <span class="stat-label">Gündüz / Gece</span>
-      <span class="stat-value" id="statDayNight">—</span>
-      <span class="stat-sub">tespit oranı</span>
-    </div>
-  </div>
-
-  <div class="risk-banner reveal" id="riskBanner">
-    <div class="risk-icon" id="riskIcon" data-icon="flame" data-icon-size="24"></div>
-    <div class="risk-body">
-      <div class="risk-top">
-        <span class="risk-label">Bugünkü Yangın Riski Endeksi</span>
-        <span class="risk-level" id="riskLevel">Hesaplanıyor…</span>
-      </div>
-      <p class="risk-desc" id="riskDesc">Ege ve Akdeniz'deki temsili iller için sıcaklık, nem ve rüzgâr verisinden basit bir tahmini gösterge hesaplanıyor…</p>
-      <div class="risk-cities" id="riskCities"></div>
-      <p class="field-hint">Bu, resmî bir yangın risk tahmini değildir — kendi basit sezgisel formülümüzle (sıcaklık + düşük nem + rüzgâr) hesaplanan yaklaşık bir göstergedir.</p>
-    </div>
-  </div>
-
-  <div class="filter-bar reveal">
+  <div class="f-filterbar" id="fFilterBar">
     <div class="filter-group">
       <label for="daySelect">Gün aralığı</label>
       <select id="daySelect" class="filter-select">
@@ -180,43 +111,173 @@
     </div>
   </div>
 
-  <div class="two-col">
-    <section class="map-section reveal" style="margin:0;">
-      <div class="map-box" id="fireMap"></div>
-      <div class="legend fire-legend">
-        <span>Düşük FRP</span>
-        <div class="legend-bar fire-bar"></div>
-        <span>Yüksek FRP</span>
-      </div>
-    </section>
-
-    <aside class="side-panel reveal">
-      <div class="side-panel-head">
-        <h3>Tespit edilen noktalar</h3>
-        <span class="badge badge-live" id="sideCount"><span class="live-blip"></span> —</span>
-      </div>
-      <div class="side-list" id="fireList">
-        <div class="skeleton" style="height:56px;margin:6px;border-radius:10px"></div>
-        <div class="skeleton" style="height:56px;margin:6px;border-radius:10px"></div>
-      </div>
-    </aside>
+  <div id="setupPanel" class="setup-panel" hidden>
+    <span class="setup-icon" data-icon="satellite" data-icon-size="30"></span>
+    <h3>Canlı yangın verisi için ücretsiz bir NASA FIRMS anahtarı gerekiyor</h3>
+    <p>Bu panel, NASA'nın uydu tabanlı FIRMS servisinden gerçek zamanlı aktif ateş/yangın tespiti çeker. Ücretsiz anahtarı birkaç dakikada alabilirsin:</p>
+    <ol>
+      <li><a href="https://firms.modaps.eosdis.nasa.gov/api/map_key/" target="_blank" rel="noopener">firms.modaps.eosdis.nasa.gov/api/map_key</a> adresine git ve e-posta adresinle ücretsiz bir anahtar iste.</li>
+      <li>E-postana gelen anahtarı kopyala.</li>
+      <li>Proje klasöründeki <code>config.json</code> dosyasını aç, <code>FIRMS_MAP_KEY</code> değerini yapıştır ve kaydet.</li>
+      <li>Sunucuyu yeniden başlat (<code>npm start</code>) ve bu sayfayı yenile.</li>
+    </ol>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <a class="btn btn-primary" href="https://firms.modaps.eosdis.nasa.gov/api/map_key/" target="_blank" rel="noopener">Ücretsiz Anahtar Al <span class="ic" data-icon="arrow-right" data-icon-size="15"></span></a>
+      <button class="btn btn-ghost" id="demoBtn" type="button">Örnek veriyle görüntüle</button>
+    </div>
   </div>
 
-  <section class="province-section reveal">
+  <div id="demoBanner" class="demo-banner" hidden>
+    <span class="ic" data-icon="alert-triangle" data-icon-size="16"></span>
+    <span>Şu an <strong>örnek veri</strong> gösteriliyor — bu gerçek zamanlı bir yangın verisi değildir.</span>
+  </div>
+
+  <!-- ============ GENEL ============ -->
+  <section class="dash-view is-active" id="view-genel">
+    <div class="stat-tiles in-view">
+      <div class="stat-tile">
+        <span class="stat-tile-icon" data-icon="flame"></span>
+        <span class="stat-label">Aktif Tespit</span>
+        <span class="stat-value" id="statCount">—</span>
+        <span class="stat-sub" id="statCountSub">seçili aralık</span>
+      </div>
+      <div class="stat-tile">
+        <span class="stat-tile-icon" data-icon="thermometer"></span>
+        <span class="stat-label">En Yüksek FRP</span>
+        <span class="stat-value" id="statMaxFrp">—</span>
+        <span class="stat-sub">MW (ısı gücü)</span>
+      </div>
+      <div class="stat-tile">
+        <span class="stat-tile-icon" data-icon="map-pin"></span>
+        <span class="stat-label">En Çok Etkilenen İl</span>
+        <span class="stat-value" id="statRegion">—</span>
+        <span class="stat-sub" id="statRegionSub">—</span>
+      </div>
+      <div class="stat-tile">
+        <span class="stat-tile-icon" data-icon="moon-star"></span>
+        <span class="stat-label">Gündüz / Gece</span>
+        <span class="stat-value" id="statDayNight">—</span>
+        <span class="stat-sub">tespit oranı</span>
+      </div>
+    </div>
+
+    <div class="risk-banner" id="riskBanner">
+      <div class="risk-icon" id="riskIcon" data-icon="flame" data-icon-size="24"></div>
+      <div class="risk-body">
+        <div class="risk-top">
+          <span class="risk-label">Bugünkü Yangın Riski Endeksi</span>
+          <span class="risk-level" id="riskLevel">Hesaplanıyor…</span>
+        </div>
+        <p class="risk-desc" id="riskDesc">Ege ve Akdeniz'deki temsili iller için sıcaklık, nem ve rüzgâr verisinden tahmini bir gösterge hesaplanıyor…</p>
+        <p class="field-hint">Resmî yangın risk tahmini değildir — sezgisel bir formülle (sıcaklık + düşük nem + rüzgâr) hesaplanır. Ayrıntı için "Risk" sekmesine bak.</p>
+      </div>
+    </div>
+
+    <section class="dash-card">
+      <div class="dash-head"><div><h3>Günlük ısı tespiti</h3><p class="field-hint" id="fDailyHint">Seçili gün aralığındaki günlük tespit sayısı</p></div></div>
+      <div id="fDailyChart"></div>
+    </section>
+
+    <div class="dash-2col">
+      <section class="dash-card" style="margin:0">
+        <div class="map-head"><h3>Tespit edilen noktalar</h3><span class="badge badge-live" id="sideCount"><span class="live-blip"></span> —</span></div>
+        <div class="side-list" id="fireListMini" style="max-height:420px;overflow-y:auto"></div>
+      </section>
+      <section class="dash-card" style="margin:0">
+        <div class="map-head"><h3><span class="h-icon" data-icon="bar-chart" data-icon-size="18"></span>En çok tespit alan iller</h3><span class="badge badge-live" id="psCount"><span class="live-blip"></span> —</span></div>
+        <div id="provinceBars"></div>
+      </section>
+    </div>
+
+    <p class="fire-disclaimer">
+      Bu panel NASA FIRMS uydularının kaydettiği <strong>ısı tespitlerini</strong> gösterir. Her tespit bir orman yangını
+      değildir (sanayi ısısı, tarımsal anız, güneş yansıması olabilir) ve <strong>resmî uyarı yerine geçmez</strong>.
+      Resmî bilgi için OGM ve AFAD duyurularını esas alın.
+    </p>
+  </section>
+
+  <!-- ============ HARİTA ============ -->
+  <section class="dash-view" id="view-harita">
     <div class="map-head">
-      <h3><span class="h-icon" data-icon="bar-chart" data-icon-size="18"></span>En çok ısı tespiti alan iller</h3>
-      <span class="badge badge-live" id="psCount"><span class="live-blip"></span> —</span>
+      <h3><span class="h-icon" data-icon="map" data-icon-size="18"></span>Isı tespiti haritası</h3>
+      <span class="badge badge-live" id="mapCount"><span class="live-blip"></span> —</span>
     </div>
-    <div class="province-bars" id="provinceBars">
-      <div class="sr-empty" style="padding:16px;color:var(--text-muted)">Veri bekleniyor…</div>
+    <div id="fireMap" class="map-box" style="height:640px"></div>
+    <div class="legend fire-legend"><span>Düşük FRP</span><div class="legend-bar fire-bar"></div><span>Yüksek FRP</span></div>
+  </section>
+
+  <!-- ============ LİSTE ============ -->
+  <section class="dash-view" id="view-liste">
+    <div class="map-head">
+      <h3><span class="h-icon" data-icon="layers" data-icon-size="18"></span>Tespit listesi</h3>
+      <span class="badge badge-live" id="listCount"><span class="live-blip"></span> —</span>
     </div>
+    <div class="side-list side-list-full" id="fireList"></div>
+  </section>
+
+  <!-- ============ RİSK ============ -->
+  <section class="dash-view" id="view-risk">
+    <div class="dash-2col">
+      <section class="dash-card" style="margin:0">
+        <h3>Bölgesel yangın riski</h3>
+        <div class="dash-donut-body" style="justify-content:center;flex-direction:column">
+          <div id="fRiskGauge"></div>
+          <div id="fRiskLevelBig" style="font-size:1.3rem;font-weight:700;margin-top:4px">—</div>
+        </div>
+        <p class="field-hint" id="fRiskExplain" style="margin-top:10px">—</p>
+      </section>
+      <section class="dash-card" style="margin:0">
+        <h3>Yöntem</h3>
+        <p style="color:var(--text-secondary);font-size:0.9rem;line-height:1.6">
+          Her il için Open-Meteo'dan anlık <strong>sıcaklık</strong>, <strong>bağıl nem</strong> ve <strong>rüzgâr hızı</strong> alınır.
+          Risk puanı = sıcaklık payı (%40) + düşük nem payı (%40) + rüzgâr payı (%20) formülüyle 0–100 arası hesaplanır.
+          Bu, meteorolojik yangın davranışı endekslerinin (FWI vb.) basitleştirilmiş bir yaklaşımıdır ve
+          <strong>resmî bir uyarı değildir</strong>.
+        </p>
+      </section>
+    </div>
+    <section class="dash-card">
+      <h3>İl bazında risk</h3>
+      <div class="f-risk-grid" id="fRiskCities">
+        <div class="skeleton" style="height:200px;width:100%;border-radius:14px"></div>
+      </div>
+    </section>
+  </section>
+
+  <!-- ============ İSTATİSTİK ============ -->
+  <section class="dash-view" id="view-istat">
+    <p class="field-hint" style="margin:0 0 14px">Seçili gün aralığı ve filtrelere göre — kaynak: NASA FIRMS.</p>
+    <div class="dash-2col">
+      <section class="dash-card" style="margin:0">
+        <h3>Isı gücü (FRP) dağılımı</h3>
+        <div id="fFrpHist"></div>
+      </section>
+      <section class="dash-card" style="margin:0">
+        <h3>Güven seviyesi</h3>
+        <div id="fConfDonut"></div>
+      </section>
+    </div>
+    <div class="dash-2col">
+      <section class="dash-card" style="margin:0">
+        <h3>Gündüz / gece tespiti</h3>
+        <div id="fDayNightDonut"></div>
+      </section>
+      <section class="dash-card" style="margin:0">
+        <h3>En çok tespit alan iller</h3>
+        <div id="fProvFull"></div>
+      </section>
+    </div>
+    <section class="dash-card">
+      <h3>En yüksek ısı gücüne sahip tespitler</h3>
+      <div style="overflow-x:auto"><table class="dash-table" id="fBigTable"></table></div>
+    </section>
   </section>
 
 </main>
 
 <footer class="site-footer">
   <div class="container">
-    <div>© <span id="year"></span> TürkiyeCanlı — veri kaynağı: NASA FIRMS (VIIRS/MODIS aktif ateş tespiti).</div>
+    <div>© <span id="year"></span> TürkiyeCanlı — veri kaynağı: NASA FIRMS (VIIRS/MODIS aktif ateş tespiti) + Open-Meteo (risk).</div>
     <div class="sources"><a href="hava.html">Hava</a><a href="deprem.html">Deprem</a><a href="yangin.html">Yangın</a></div>
   </div>
 </footer>
@@ -224,6 +285,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="js/cities.js"></script>
 <script src="js/main.js"></script>
+<script src="js/dash.js"></script>
 <script src="js/fire.js"></script>
 </body>
 </html>
