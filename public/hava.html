@@ -82,128 +82,130 @@
   </div>
 </header>
 
-<main class="container">
+<main class="container wx">
 
-  <section class="weather-current card reveal" id="currentCard">
-    <div class="wc-top">
-      <div class="wc-left">
-        <div class="wc-icon" id="wcIcon"></div>
-        <div>
+  <nav class="wx-tabs" id="wxTabs" aria-label="Hava durumu bölümleri">
+    <button class="wx-tab active" type="button" data-view="genel"><span class="ic" data-icon="sun" data-icon-size="16"></span> Genel</button>
+    <button class="wx-tab" type="button" data-view="saatlik"><span class="ic" data-icon="clock" data-icon-size="16"></span> Saatlik</button>
+    <button class="wx-tab" type="button" data-view="ayrinti"><span class="ic" data-icon="gauge" data-icon-size="16"></span> Ayrıntılar</button>
+    <button class="wx-tab" type="button" data-view="harita"><span class="ic" data-icon="map" data-icon-size="16"></span> Harita</button>
+    <button class="wx-tab" type="button" data-view="aylik"><span class="ic" data-icon="layers" data-icon-size="16"></span> Aylık</button>
+    <button class="wx-tab" type="button" data-view="egilim"><span class="ic" data-icon="trending-up" data-icon-size="16"></span> Eğilimler</button>
+  </nav>
+
+  <div class="wx-cities" id="wxCities" aria-label="Şehir kısayolları"></div>
+
+  <!-- ============ GENEL ============ -->
+  <section class="wx-view is-active" id="view-genel">
+    <div class="wx-hero card">
+      <div class="wx-hero-main">
+        <div class="wx-hero-icon" id="wcIcon"></div>
+        <div class="wx-hero-txt">
           <div class="wc-city" id="wcCity">—</div>
           <div class="wc-desc" id="wcDesc">Yükleniyor…</div>
+          <div class="wx-hero-temp"><span id="wcTemp">--</span><span class="deg">°</span></div>
+          <div class="wx-hero-sub">
+            <span class="wc-hilo-hi" id="wcDayMax">--°</span>
+            <span class="wc-hilo-lo" id="wcDayMin">--°</span>
+            <span class="wx-dot">·</span>
+            Hissedilen <strong id="wcFeels">--°</strong>
+          </div>
         </div>
       </div>
-      <div class="wc-temp">
-        <span id="wcTemp">--</span><span class="deg">°C</span>
-      </div>
-      <div class="wc-hilo">
-        <div class="wc-hilo-row"><span class="wc-hilo-hi" id="wcDayMax">--°</span><span class="wc-hilo-lo" id="wcDayMin">--°</span></div>
-        <div class="wc-feels">Hissedilen <strong id="wcFeels">--°</strong></div>
-      </div>
+      <p class="wc-forecast" id="wcForecast">Tahmin yükleniyor…</p>
+      <div class="wx-quickrow" id="wxQuickRow"></div>
     </div>
-    <p class="wc-forecast" id="wcForecast">Tahmin yükleniyor…</p>
+
+    <section class="wx-chartcard card">
+      <div class="wx-chart-head">
+        <div>
+          <h3>Saatlik sıcaklık</h3>
+          <p class="field-hint" id="wxChartHint">Önümüzdeki 24 saat — üzerine gelerek saat ayrıntısını gör</p>
+        </div>
+        <div class="wx-moon" id="wxMoonBadge"></div>
+      </div>
+      <div class="wx-gchart" id="wxGChart"></div>
+    </section>
+
+    <section class="wx-days card">
+      <h3>10 günlük tahmin</h3>
+      <div class="daily-list" id="dailyGrid">
+        <div class="skeleton" style="height:320px;width:100%;border-radius:14px"></div>
+      </div>
+    </section>
   </section>
 
-  <section class="detail-section reveal">
-    <h3>Bugünün ayrıntıları</h3>
-    <div class="detail-tiles" id="detailTiles">
-      <div class="detail-tile">
-        <span class="dt-label"><span class="ic" data-icon="wind" data-icon-size="15"></span> Rüzgâr</span>
-        <span class="dt-value wind-val">
-          <span class="compass" id="wcCompass" style="--deg:0deg"><span class="needle"></span></span>
-          <span id="wcWind">-- km/s</span>
-        </span>
-        <span class="dt-sub" id="wcWindSub">—</span>
+  <!-- ============ SAATLİK ============ -->
+  <section class="wx-view" id="view-saatlik">
+    <div class="wx-metric-chips" id="wxMetricChips"></div>
+    <section class="wx-chartcard card">
+      <div class="wx-chart-head">
+        <div><h3 id="wxHourlyTitle">Sıcaklık</h3><p class="field-hint">Önümüzdeki 48 saat</p></div>
       </div>
-      <div class="detail-tile">
-        <span class="dt-label"><span class="ic" data-icon="droplet" data-icon-size="15"></span> Nem</span>
-        <span class="dt-value" id="wcHumidity">--%</span>
-        <span class="dt-sub" id="wcHumiditySub">çiy noktası —</span>
-      </div>
-      <div class="detail-tile">
-        <span class="dt-label"><span class="ic" data-icon="navigation" data-icon-size="15"></span> Görüş mesafesi</span>
-        <span class="dt-value" id="wcVisibility">-- km</span>
-        <span class="dt-sub" id="wcVisibilitySub">—</span>
-      </div>
-      <div class="detail-tile">
-        <span class="dt-label"><span class="ic" data-icon="gauge" data-icon-size="15"></span> Basınç</span>
-        <span class="dt-value" id="wcPressure">-- hPa</span>
-        <span class="dt-sub" id="wcPressureSub">—</span>
-      </div>
-      <div class="detail-tile">
-        <span class="dt-label"><span class="ic" data-icon="sun" data-icon-size="15"></span> UV indeksi</span>
-        <span class="dt-value" id="wcUv">--</span>
-        <span class="dt-sub" id="wcUvSub">—</span>
-      </div>
-      <div class="detail-tile">
-        <span class="dt-label"><span class="ic" data-icon="droplet" data-icon-size="15"></span> Yağış (bugün)</span>
-        <span class="dt-value" id="wcPrecip">-- mm</span>
-        <span class="dt-sub" id="wcPrecipSub">olasılık —</span>
-      </div>
-      <div class="detail-tile">
-        <span class="dt-label"><span class="ic" data-icon="sunrise" data-icon-size="15"></span> Gün doğumu</span>
-        <span class="dt-value" id="wcSunrise">--:--</span>
-        <span class="dt-sub">bugün</span>
-      </div>
-      <div class="detail-tile">
-        <span class="dt-label"><span class="ic" data-icon="sunset" data-icon-size="15"></span> Gün batımı</span>
-        <span class="dt-value" id="wcSunset">--:--</span>
-        <span class="dt-sub" id="wcDaylenSub">gün uzunluğu —</span>
-      </div>
-    </div>
-  </section>
-
-  <section class="hourly-section reveal">
-    <div class="map-head">
-      <h3>Saatlik — önümüzdeki 24 saat</h3>
-    </div>
-    <div class="temp-chart-wrap">
-      <svg class="temp-chart" id="tempChart" viewBox="0 0 720 150" preserveAspectRatio="none" aria-hidden="true"></svg>
-    </div>
+      <div class="wx-gchart wx-gchart-tall" id="wxHourlyChart"></div>
+    </section>
     <div class="hourly-strip" id="hourlyStrip">
-      <div class="skeleton" style="height:110px;width:100%;border-radius:14px"></div>
+      <div class="skeleton" style="height:118px;width:100%;border-radius:14px"></div>
     </div>
   </section>
 
-  <section class="daily-section reveal">
-    <h3>10 günlük tahmin</h3>
-    <div class="daily-list" id="dailyGrid">
-      <div class="skeleton" style="height:320px;width:100%;border-radius:14px"></div>
+  <!-- ============ AYRINTILAR ============ -->
+  <section class="wx-view" id="view-ayrinti">
+    <div class="wx-detail-grid" id="wxDetailGrid">
+      <div class="skeleton" style="height:520px;width:100%;border-radius:16px"></div>
     </div>
   </section>
 
-  <div class="filter-bar reveal">
-    <div class="filter-group">
-      <label for="tempRange">Min. sıcaklık</label>
-      <input type="range" id="tempRange" min="-10" max="40" step="1" value="-10" />
-      <span id="tempRangeVal">-10°C+</span>
-    </div>
-    <div class="filter-group">
-      <label for="sortSelect">Sırala</label>
-      <select id="sortSelect" class="filter-select">
-        <option value="none" selected>Coğrafi (varsayılan)</option>
-        <option value="hot">Sıcaktan soğuğa</option>
-        <option value="cold">Soğuktan sıcağa</option>
-      </select>
-    </div>
-    <div class="filter-group">
-      <label><input type="checkbox" id="onlyBadWeather" /> Sadece yağışlı/fırtınalı</label>
-    </div>
-  </div>
-
-  <section class="map-section reveal">
+  <!-- ============ HARİTA ============ -->
+  <section class="wx-view" id="view-harita">
     <div class="map-head">
-      <h3>Türkiye geneli sıcaklık haritası</h3>
-      <span class="badge badge-live"><span class="live-blip"></span> 81 il</span>
+      <h3><span class="h-icon" data-icon="map" data-icon-size="18"></span>Türkiye geneli hava haritası</h3>
+      <div class="wx-map-layers" id="wxMapLayers"></div>
     </div>
     <div id="weatherMap" class="map-box"></div>
-    <div class="legend temp-legend">
-      <span>Soğuk</span>
-      <div class="legend-bar temp-bar"></div>
-      <span>Sıcak</span>
+    <div class="legend" id="wxMapLegend">
+      <span>Soğuk</span><div class="legend-bar temp-bar"></div><span>Sıcak</span>
     </div>
   </section>
 
+  <!-- ============ AYLIK ============ -->
+  <section class="wx-view" id="view-aylik">
+    <div class="wx-month-nav">
+      <button class="icon-btn" id="wxMonthPrev" type="button" aria-label="Önceki ay"><span class="ic" data-icon="arrow-right" data-icon-size="16" style="transform:rotate(180deg)"></span></button>
+      <div class="wx-month-title" id="wxMonthTitle">—</div>
+      <button class="icon-btn" id="wxMonthNext" type="button" aria-label="Sonraki ay"><span class="ic" data-icon="arrow-right" data-icon-size="16"></span></button>
+    </div>
+    <div class="wx-cal-head">
+      <span>Pzt</span><span>Sal</span><span>Çar</span><span>Per</span><span>Cum</span><span>Cmt</span><span>Paz</span>
+    </div>
+    <div class="wx-calendar" id="wxCalendar">
+      <div class="skeleton" style="height:420px;width:100%;border-radius:16px;grid-column:1/-1"></div>
+    </div>
+    <p class="field-hint" id="wxCalNote">Yakın günler gerçek tahmin; uzak günler geçmiş yılların ortalamasından tahmini gösterge.</p>
+  </section>
+
+  <!-- ============ EĞİLİMLER ============ -->
+  <section class="wx-view" id="view-egilim">
+    <div class="wx-trend-top">
+      <div class="wx-donut card" id="wxDonut">
+        <div class="skeleton" style="height:220px;width:100%;border-radius:14px"></div>
+      </div>
+      <div class="wx-climate card" id="wxClimate">
+        <div class="skeleton" style="height:220px;width:100%;border-radius:14px"></div>
+      </div>
+    </div>
+    <section class="wx-band card">
+      <div class="wx-chart-head">
+        <div><h3>Son 12 ay — günlük yüksek / düşük</h3><p class="field-hint" id="wxBandHint">Kırmızı: günlük en yüksek · Mavi: günlük en düşük · Noktalı: 30 günlük ortalama</p></div>
+      </div>
+      <div class="wx-bandchart" id="wxBandChart">
+        <div class="skeleton" style="height:300px;width:100%;border-radius:12px"></div>
+      </div>
+    </section>
+    <div class="wx-tables" id="wxTables"></div>
+  </section>
+
+  <!-- gizli arama girişi (page-head'deki kutu buraya bağlanır) -->
 </main>
 
 <footer class="site-footer">

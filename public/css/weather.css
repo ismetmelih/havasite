@@ -265,35 +265,96 @@
 .search-results .sr-item:hover { background: var(--surface-hover); }
 .search-results .sr-empty { padding: 12px 14px; font-size: 0.82rem; color: var(--text-muted); }
 
-/* -------- guncel hava karti -------- */
-.weather-current {
-  margin-top: 26px;
-  padding: 26px 30px;
+/* ================= HAVA — bölümlü deneyim ================= */
+.wx { padding-top: 22px; }
+
+/* sekmeler */
+.wx-tabs {
+  position: sticky;
+  top: 62px;
+  z-index: 40;
+  display: flex;
+  gap: 4px;
+  padding: 6px;
+  margin-bottom: 16px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bg) 80%, transparent);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  overflow-x: auto;
+  scrollbar-width: none;
 }
-.wc-top {
-  display: grid;
-  grid-template-columns: 1fr auto auto;
+.wx-tabs::-webkit-scrollbar { display: none; }
+.wx-tab {
+  display: inline-flex;
   align-items: center;
-  gap: 30px;
-}
-.wc-left { display: flex; align-items: center; gap: 18px; }
-.wc-icon { width: 76px; height: 76px; color: var(--c-weather-glow); flex-shrink: 0; }
-.wc-icon .wi { width: 100%; height: 100%; }
-.wc-city { font-size: 1.3rem; font-weight: 700; }
-.wc-desc { color: var(--text-secondary); font-size: 0.92rem; margin-top: 2px; }
-.wc-temp {
-  font-size: 3.4rem;
+  gap: 7px;
+  padding: 9px 16px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-secondary);
   font-weight: 600;
-  color: var(--text-primary);
+  font-size: 0.86rem;
   white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
 }
-.wc-temp .deg { font-size: 1.5rem; color: var(--text-muted); font-weight: 500; margin-left: 2px; }
-.wc-hilo { text-align: right; font-size: 0.9rem; }
-.wc-hilo-row { display: flex; gap: 10px; justify-content: flex-end; font-family: var(--font-mono); }
-.wc-hilo-hi { font-weight: 600; }
-.wc-hilo-lo { color: var(--text-muted); }
-.wc-feels { color: var(--text-secondary); margin-top: 4px; }
-.wc-feels strong { color: var(--text-primary); font-family: var(--font-mono); }
+.wx-tab:hover { color: var(--text-primary); }
+.wx-tab.active { background: var(--accent); color: var(--accent-contrast); }
+.wx-tab .ic { opacity: 0.9; }
+
+/* şehir kısayol şeridi */
+.wx-cities {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  margin-bottom: 18px;
+  scrollbar-width: none;
+}
+.wx-cities::-webkit-scrollbar { display: none; }
+.wx-city {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px 8px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-size: 0.84rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.2s ease, transform 0.15s ease;
+}
+.wx-city:hover { transform: translateY(-1px); border-color: var(--border-strong); }
+.wx-city.is-active { border-color: var(--accent); color: var(--text-primary); }
+.wx-city-ic { display: inline-flex; width: 24px; height: 24px; color: var(--c-weather); }
+.wx-city-ic .wi { width: 24px; height: 24px; }
+.wx-city-name { font-weight: 600; }
+.wx-city-temp { font-family: var(--font-mono); font-weight: 600; color: var(--text-primary); }
+
+/* view geçişi */
+.wx-view { display: none; animation: wx-in 0.35s ease; }
+.wx-view.is-active { display: block; }
+@keyframes wx-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { .wx-view { animation: none; } }
+
+/* ---- GENEL: hero ---- */
+.wx-hero { padding: 26px 28px; margin-bottom: 18px; }
+.wx-hero-main { display: flex; align-items: center; gap: 22px; }
+.wx-hero-icon { width: 92px; height: 92px; color: var(--c-weather); flex-shrink: 0; }
+.wx-hero-icon .wi { width: 100%; height: 100%; }
+.wc-city { font-size: 1.35rem; font-weight: 700; }
+.wc-desc { color: var(--text-secondary); font-size: 0.95rem; margin-top: 2px; }
+.wx-hero-temp { font-size: 3.6rem; font-weight: 600; line-height: 1.05; margin-top: 6px; }
+.wx-hero-temp .deg { font-size: 1.6rem; color: var(--text-muted); }
+.wx-hero-sub { margin-top: 6px; color: var(--text-secondary); font-size: 0.92rem; }
+.wx-hero-sub .wc-hilo-hi { font-family: var(--font-mono); font-weight: 600; color: var(--text-primary); }
+.wx-hero-sub .wc-hilo-lo { font-family: var(--font-mono); color: var(--text-muted); margin-left: 8px; }
+.wx-hero-sub strong { font-family: var(--font-mono); color: var(--text-primary); }
+.wx-dot { margin: 0 8px; color: var(--text-muted); }
 .wc-forecast {
   margin: 16px 0 0;
   padding-top: 16px;
@@ -302,44 +363,233 @@
   font-size: 0.95rem;
   line-height: 1.6;
 }
-
-/* -------- bugunun ayrintilari (kutu izgarasi) -------- */
-.detail-section { margin: 34px 0; }
-.detail-section h3 { margin: 0 0 14px; font-size: 1.1rem; }
-.detail-tiles {
+.wx-quickrow {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 1px;
+  margin-top: 18px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--border);
 }
-.detail-tile {
-  padding: 16px;
+@media (max-width: 900px) { .wx-quickrow { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 480px) { .wx-quickrow { grid-template-columns: repeat(2, 1fr); } }
+.wx-qm {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 13px 14px;
+  background: var(--surface);
+}
+.wx-qm-ic { color: var(--c-weather); }
+.wx-qm-label { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.3px; text-transform: uppercase; color: var(--text-muted); }
+.wx-qm-val { font-size: 1.2rem; font-weight: 600; font-family: var(--font-mono); }
+.wx-qm-sub { font-size: 0.76rem; color: var(--text-secondary); }
+
+/* ---- grafik kartı ---- */
+.wx-chartcard { padding: 20px 22px; margin-bottom: 18px; }
+.wx-chart-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 6px; }
+.wx-chart-head h3 { margin: 0 0 3px; font-size: 1.05rem; }
+.wx-moon { display: inline-flex; align-items: center; gap: 8px; font-size: 0.82rem; color: var(--text-secondary); }
+.wx-moonsvg .moon-dark { fill: color-mix(in srgb, var(--text-muted) 45%, var(--surface-2)); stroke: var(--border-strong); stroke-width: 1; }
+.wx-moonsvg .moon-lit { fill: #e8edf3; }
+:root[data-theme="light"] .wx-moonsvg .moon-lit { fill: #f0b83c; }
+
+.wx-gchart { position: relative; width: 100%; height: 240px; margin-top: 8px; overflow: hidden; }
+.wx-gchart-tall { height: 320px; }
+.gc-svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.gc-line { filter: drop-shadow(0 2px 6px rgba(0,0,0,0.25)); }
+.gc-pt { fill: var(--text-primary); opacity: 0; }
+.gc-vt { fill: var(--text-secondary); font-size: 13px; font-weight: 600; text-anchor: middle; font-family: var(--font-mono); }
+.gc-xt { fill: var(--text-muted); font-size: 11px; text-anchor: middle; }
+.gc-xd { fill: var(--text-secondary); font-size: 10px; font-weight: 600; text-anchor: middle; }
+.gc-bar { fill: var(--c-weather); opacity: 0.55; }
+.gc-sun { color: var(--c-quake-2); }
+.gc-cursor { stroke: var(--text-primary); stroke-width: 1; stroke-dasharray: 3 3; opacity: 0.5; }
+.gc-hit { position: absolute; inset: 0; cursor: crosshair; }
+.gc-tip {
+  position: absolute;
+  top: -4px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: var(--surface-2);
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-soft);
+  font-size: 0.8rem;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 5;
+}
+.gc-tip strong { font-family: var(--font-mono); }
+.gc-tip .wi { width: 20px; height: 20px; color: var(--c-weather); }
+.gc-tip-v { font-family: var(--font-mono); font-weight: 600; }
+.gc-tip-p { color: var(--c-weather-2); display: inline-flex; align-items: center; gap: 3px; }
+
+/* metrik çipleri */
+.wx-metric-chips, .wx-map-layers { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+.wx-mchip {
+  padding: 7px 13px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+.wx-mchip:hover { border-color: var(--border-strong); }
+.wx-mchip.active { background: var(--accent-weak); border-color: var(--accent); color: var(--text-primary); }
+
+.wx-days { padding: 20px 22px; }
+.wx-days h3 { margin: 0 0 12px; font-size: 1.05rem; }
+
+/* ---- AYRINTILAR ---- */
+.wx-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 14px;
+}
+.wx-dcard {
+  padding: 16px 18px;
   border-radius: var(--radius-md);
   border: 1px solid var(--border);
   background: var(--surface);
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  min-height: 104px;
+  gap: 8px;
+  min-height: 210px;
 }
-.dt-label { display: inline-flex; align-items: center; gap: 6px; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.4px; text-transform: uppercase; color: var(--text-muted); }
-.dt-label .ic { color: var(--c-weather); }
-.dt-value { font-size: 1.35rem; font-weight: 600; font-family: var(--font-mono); margin-top: auto; }
-.dt-sub { font-size: 0.78rem; color: var(--text-secondary); }
+.wx-dcard-head { font-size: 0.74rem; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase; color: var(--text-muted); }
+.wx-dcard-vis { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 84px; }
+.wx-dcard-vis svg { max-height: 100px; }
+.wx-dcard-val { font-size: 1.7rem; font-weight: 600; font-family: var(--font-mono); }
+.wx-dcard-val small { font-size: 0.9rem; color: var(--text-muted); font-family: var(--font); }
+.wx-dcard-txt { font-family: var(--font); font-size: 1.1rem; font-weight: 600; line-height: 1.3; }
+.wx-dcard-note { font-size: 0.8rem; color: var(--text-secondary); line-height: 1.5; }
 
-/* -------- saatlik sicaklik grafigi -------- */
-.temp-chart-wrap {
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--surface);
-  padding: 8px 6px 2px;
-  margin-bottom: 14px;
-  overflow-x: auto;
+.wx-mini { width: 100%; height: 70px; }
+.wx-gauge { width: 120px; height: 120px; }
+.wx-bars { width: 100%; max-width: 170px; height: 70px; }
+.wx-slider { width: 100%; height: 40px; }
+.wx-sunarc { width: 100%; height: 74px; }
+.wx-moonbig { display: flex; align-items: center; justify-content: center; }
+
+.g-track, .g-track-arc { fill: none; stroke: var(--surface-2); stroke-width: 8; }
+.g-track { stroke-width: 2; }
+.g-track-arc { stroke-linecap: round; }
+.g-seg { fill: none; stroke-width: 8; stroke-linecap: round; }
+.g-card { fill: var(--text-muted); font-size: 12px; font-weight: 700; text-anchor: middle; }
+.g-needle { fill: var(--accent); }
+.g-needle-tail { fill: var(--text-muted); }
+.g-hub { fill: var(--text-primary); }
+.g-dot { fill: var(--text-primary); stroke: var(--surface); stroke-width: 2; }
+.bm-on { fill: var(--c-weather); } .bm-off { fill: var(--surface-2); }
+.vb-on { fill: var(--c-weather); } .vb-off { fill: var(--surface-2); }
+.pb-on { fill: var(--c-quake); } .pb-off { fill: var(--surface-2); }
+.ps-track { fill: var(--surface-2); }
+.ps-thumb { fill: var(--accent); stroke: var(--surface); stroke-width: 2; }
+.rf-track { fill: none; stroke: var(--surface-2); stroke-width: 9; }
+.rf-fill { fill: none; stroke: var(--c-weather); stroke-width: 9; stroke-linecap: round; transition: stroke-dasharray 0.6s ease; }
+.sa-track { fill: none; stroke: var(--surface-2); stroke-width: 3; stroke-dasharray: 4 5; }
+.sa-done { fill: none; stroke: var(--c-quake-2); stroke-width: 3; }
+.sa-horizon { stroke: var(--border); stroke-width: 1; }
+.sa-sun { fill: var(--c-quake-2); }
+
+/* ---- HARİTA ---- */
+#view-harita .map-box { margin-top: 4px; }
+
+/* ---- AYLIK ---- */
+.wx-month-nav { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 14px; }
+.wx-month-title { font-size: 1.15rem; font-weight: 700; min-width: 160px; text-align: center; }
+.wx-cal-head, .wx-calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
 }
-.temp-chart { width: 100%; min-width: 620px; height: 150px; display: block; }
-.temp-chart .tc-line { fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
-.temp-chart .tc-area { fill: var(--accent-weak); stroke: none; }
-.temp-chart .tc-temp { fill: var(--text-primary); font-size: 12px; font-weight: 600; text-anchor: middle; font-family: var(--font-mono); }
-.temp-chart .tc-time { fill: var(--text-muted); font-size: 10px; text-anchor: middle; }
+.wx-cal-head { margin-bottom: 6px; }
+.wx-cal-head span { font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-align: center; text-transform: uppercase; }
+.wx-cal-cell {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  padding: 8px;
+  min-height: 92px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.wx-cal-cell.is-empty { border: none; background: transparent; }
+.wx-cal-cell.is-today { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+.wx-cal-cell.is-est { opacity: 0.62; }
+.wcc-day { font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); align-self: flex-start; display: flex; gap: 4px; align-items: baseline; }
+.wcc-tag { font-size: 0.62rem; color: var(--text-muted); font-weight: 500; }
+.wx-cal-cell .wi { width: 30px; height: 30px; color: var(--c-weather); }
+.wcc-hi { font-family: var(--font-mono); font-weight: 600; font-size: 0.9rem; }
+.wcc-lo { font-family: var(--font-mono); color: var(--text-muted); font-size: 0.8rem; }
+.wcc-na { color: var(--text-muted); }
+
+/* ---- EĞİLİMLER ---- */
+.wx-trend-top { display: grid; grid-template-columns: 1fr 1.3fr; gap: 16px; margin-bottom: 18px; }
+.wx-donut, .wx-climate { padding: 20px 22px; }
+.wx-donut h3, .wx-climate h3, .wx-band h3, .wx-table-card h3 { margin: 0 0 14px; font-size: 1.02rem; }
+.wx-donut-body { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+.wx-donut-svg { width: 130px; height: 130px; flex-shrink: 0; }
+.dn-track { fill: none; stroke: var(--surface-2); stroke-width: 12; }
+.dn-clear { fill: none; stroke: var(--c-quake-2); stroke-width: 12; stroke-linecap: butt; }
+.dn-wet { fill: none; stroke: var(--c-weather); stroke-width: 12; stroke-linecap: butt; }
+.dn-big { fill: var(--text-primary); font-size: 22px; font-weight: 700; text-anchor: middle; font-family: var(--font-mono); }
+.dn-small { fill: var(--text-muted); font-size: 11px; text-anchor: middle; }
+.wx-donut-legend { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 9px; font-size: 0.86rem; color: var(--text-secondary); }
+.wx-donut-legend strong { color: var(--text-primary); font-family: var(--font-mono); }
+.dl-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 7px; }
+.dl-clear { background: var(--c-quake-2); } .dl-wet { background: var(--c-weather); }
+.dl-hi { background: var(--c-fire); } .dl-lo { background: var(--c-weather-2); }
+.wx-clim-grid { display: flex; flex-direction: column; gap: 2px; }
+.wx-clim-row { display: grid; grid-template-columns: 26px 1fr auto; align-items: center; gap: 10px; padding: 11px 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; color: var(--text-secondary); }
+.wx-clim-row:last-child { border-bottom: none; }
+.wx-clim-row .wcr-ic { color: var(--c-weather); display: inline-flex; }
+.wx-clim-row strong { color: var(--text-primary); font-family: var(--font-mono); }
+
+.wx-band { padding: 20px 22px; margin-bottom: 18px; }
+.wx-bandchart { width: 100%; overflow-x: auto; }
+.bc-svg { width: 100%; min-width: 640px; height: 320px; }
+.bc-grid { stroke: var(--border); stroke-width: 1; }
+.bc-vgrid { stroke: var(--border); stroke-width: 1; opacity: 0.5; }
+.bc-yt { fill: var(--text-muted); font-size: 10px; text-anchor: end; font-family: var(--font-mono); }
+.bc-xt { fill: var(--text-secondary); font-size: 11px; text-anchor: middle; font-weight: 600; }
+.bc-band { fill: color-mix(in srgb, var(--c-fire) 12%, transparent); stroke: none; }
+.bc-hi { fill: none; stroke: var(--c-fire); stroke-width: 1.4; opacity: 0.85; }
+.bc-lo { fill: none; stroke: var(--c-weather); stroke-width: 1.4; opacity: 0.85; }
+.bc-roll { fill: none; stroke: var(--text-primary); stroke-width: 1.6; stroke-dasharray: 3 4; opacity: 0.7; }
+.bc-now { stroke: var(--accent); stroke-width: 1.5; }
+.bc-nowt { fill: var(--accent); font-size: 11px; font-weight: 700; }
+
+.wx-tables { display: grid; gap: 16px; }
+.wx-table-card { padding: 20px 22px; }
+.wx-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+.wx-table th { text-align: right; padding: 9px 12px; color: var(--text-muted); font-weight: 700; font-size: 0.74rem; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+.wx-table th:first-child { text-align: left; }
+.wx-table td { padding: 10px 12px; text-align: right; font-family: var(--font-mono); border-bottom: 1px solid var(--border); }
+.wx-table td:first-child { text-align: left; font-family: var(--font); color: var(--text-secondary); }
+.wx-table tr:last-child td { border-bottom: none; }
+
+@media (max-width: 860px) {
+  .wx-tabs { top: 56px; }
+  .wx-hero-main { flex-direction: column; text-align: center; }
+  .wx-trend-top { grid-template-columns: 1fr; }
+  .wx-hero-temp { font-size: 3rem; }
+}
+@media (max-width: 560px) {
+  .wx-cal-cell { min-height: 74px; padding: 5px; }
+  .wx-cal-cell .wi { width: 22px; height: 22px; }
+  .wcc-day { font-size: 0.72rem; }
+}
 
 .wind-val { display: flex; align-items: center; gap: 8px; }
 .compass {
@@ -404,8 +654,6 @@
 @keyframes fog-drift { 0%,100% { transform: translateX(0); opacity: 0.9; } 50% { transform: translateX(4px); opacity: 0.5; } }
 
 /* -------- saatlik serit -------- */
-.hourly-section, .daily-section { margin: 40px 0; }
-.hourly-section h3, .daily-section h3 { margin: 0 0 14px; font-size: 1.1rem; }
 .hourly-strip {
   display: flex;
   gap: 10px;
@@ -414,7 +662,7 @@
   scroll-snap-type: x proximity;
 }
 .hour-card {
-  flex: 0 0 92px;
+  flex: 0 0 88px;
   scroll-snap-align: start;
   padding: 14px 10px;
   border-radius: var(--radius-md);
@@ -467,13 +715,7 @@
   background: linear-gradient(90deg, #5aa9de, #d29a63);
 }
 
-@media (max-width: 980px) {
-  .wc-top { grid-template-columns: 1fr auto; }
-  .wc-hilo { grid-column: 1 / -1; text-align: left; }
-  .wc-hilo-row { justify-content: flex-start; }
-  .detail-tiles { grid-template-columns: repeat(2, 1fr); }
-}
 @media (max-width: 560px) {
-  .day-row { grid-template-columns: 64px 26px 36px 32px 1fr 32px; gap: 8px; padding: 11px 12px; }
-  .search-box input { width: 170px; }
+  .day-row { grid-template-columns: 58px 24px 42px 30px 1fr 30px; gap: 7px; padding: 11px 12px; }
+  .search-box input { width: 150px; }
 }
