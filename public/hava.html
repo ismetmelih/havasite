@@ -84,43 +84,90 @@
 <main class="container">
 
   <section class="weather-current card reveal" id="currentCard">
-    <div class="wc-left">
-      <div class="wc-icon" id="wcIcon"></div>
-      <div>
-        <div class="wc-city" id="wcCity">—</div>
-        <div class="wc-desc" id="wcDesc">Yükleniyor…</div>
+    <div class="wc-top">
+      <div class="wc-left">
+        <div class="wc-icon" id="wcIcon"></div>
+        <div>
+          <div class="wc-city" id="wcCity">—</div>
+          <div class="wc-desc" id="wcDesc">Yükleniyor…</div>
+        </div>
+      </div>
+      <div class="wc-temp">
+        <span id="wcTemp">--</span><span class="deg">°C</span>
+      </div>
+      <div class="wc-hilo">
+        <div class="wc-hilo-row"><span class="wc-hilo-hi" id="wcDayMax">--°</span><span class="wc-hilo-lo" id="wcDayMin">--°</span></div>
+        <div class="wc-feels">Hissedilen <strong id="wcFeels">--°</strong></div>
       </div>
     </div>
-    <div class="wc-temp">
-      <span id="wcTemp">--</span><span class="deg">°C</span>
-    </div>
-    <div class="wc-stats">
-      <div class="wc-stat"><span class="label">Hissedilen</span><span class="val" id="wcFeels">--°</span></div>
-      <div class="wc-stat"><span class="label">Nem</span><span class="val" id="wcHumidity">--%</span></div>
-      <div class="wc-stat"><span class="label">Basınç</span><span class="val" id="wcPressure">-- hPa</span></div>
-      <div class="wc-stat wc-wind">
-        <span class="label">Rüzgâr</span>
-        <span class="val wind-val">
+    <p class="wc-forecast" id="wcForecast">Tahmin yükleniyor…</p>
+  </section>
+
+  <section class="detail-section reveal">
+    <h3>Bugünün ayrıntıları</h3>
+    <div class="detail-tiles" id="detailTiles">
+      <div class="detail-tile">
+        <span class="dt-label">Rüzgâr</span>
+        <span class="dt-value wind-val">
           <span class="compass" id="wcCompass" style="--deg:0deg"><span class="needle"></span></span>
           <span id="wcWind">-- km/s</span>
         </span>
+        <span class="dt-sub" id="wcWindSub">—</span>
       </div>
-      <div class="wc-stat"><span class="label">Gün doğumu</span><span class="val" id="wcSunrise">--:--</span></div>
-      <div class="wc-stat"><span class="label">Gün batımı</span><span class="val" id="wcSunset">--:--</span></div>
+      <div class="detail-tile">
+        <span class="dt-label">Nem</span>
+        <span class="dt-value" id="wcHumidity">--%</span>
+        <span class="dt-sub" id="wcHumiditySub">çiy noktası —</span>
+      </div>
+      <div class="detail-tile">
+        <span class="dt-label">Görüş mesafesi</span>
+        <span class="dt-value" id="wcVisibility">-- km</span>
+        <span class="dt-sub" id="wcVisibilitySub">—</span>
+      </div>
+      <div class="detail-tile">
+        <span class="dt-label">Basınç</span>
+        <span class="dt-value" id="wcPressure">-- hPa</span>
+        <span class="dt-sub" id="wcPressureSub">—</span>
+      </div>
+      <div class="detail-tile">
+        <span class="dt-label">UV indeksi</span>
+        <span class="dt-value" id="wcUv">--</span>
+        <span class="dt-sub" id="wcUvSub">—</span>
+      </div>
+      <div class="detail-tile">
+        <span class="dt-label">Yağış (bugün)</span>
+        <span class="dt-value" id="wcPrecip">-- mm</span>
+        <span class="dt-sub" id="wcPrecipSub">olasılık —</span>
+      </div>
+      <div class="detail-tile">
+        <span class="dt-label">Gün doğumu</span>
+        <span class="dt-value" id="wcSunrise">--:--</span>
+        <span class="dt-sub">bugün</span>
+      </div>
+      <div class="detail-tile">
+        <span class="dt-label">Gün batımı</span>
+        <span class="dt-value" id="wcSunset">--:--</span>
+        <span class="dt-sub" id="wcDaylenSub">gün uzunluğu —</span>
+      </div>
     </div>
   </section>
 
   <section class="hourly-section reveal">
-    <h3>Önümüzdeki 24 saat</h3>
+    <div class="map-head">
+      <h3>Saatlik — önümüzdeki 24 saat</h3>
+    </div>
+    <div class="temp-chart-wrap">
+      <svg class="temp-chart" id="tempChart" viewBox="0 0 720 150" preserveAspectRatio="none" aria-hidden="true"></svg>
+    </div>
     <div class="hourly-strip" id="hourlyStrip">
       <div class="skeleton" style="height:110px;width:100%;border-radius:14px"></div>
     </div>
   </section>
 
   <section class="daily-section reveal">
-    <h3>7 günlük tahmin</h3>
-    <div class="daily-grid" id="dailyGrid">
-      <div class="skeleton" style="height:150px;width:100%;border-radius:14px;grid-column:1/-1"></div>
+    <h3>10 günlük tahmin</h3>
+    <div class="daily-list" id="dailyGrid">
+      <div class="skeleton" style="height:320px;width:100%;border-radius:14px"></div>
     </div>
   </section>
 

@@ -122,17 +122,19 @@
     const params = new URLSearchParams({
       latitude: loc.lat,
       longitude: loc.lon,
-      current: "temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,wind_direction_10m,surface_pressure",
-      hourly: "temperature_2m,precipitation_probability,weather_code",
-      daily: "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset",
+      current: "temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,surface_pressure,precipitation",
+      hourly: "temperature_2m,precipitation_probability,weather_code,visibility,dew_point_2m,uv_index",
+      daily: "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum,uv_index_max,wind_speed_10m_max,sunrise,sunset",
       timezone: "Europe/Istanbul",
-      forecast_days: "7",
+      forecast_days: "10",
     });
 
     try {
       const r = await fetch(`${FORECAST_URL}?${params.toString()}`);
       const data = await r.json();
       renderCurrent(data);
+      renderDetailTiles(data);
+      renderTempChart(data);
       renderHourly(data);
       renderDaily(data);
       const now = new Date();
@@ -174,6 +176,35 @@
     scene.style.setProperty("--scene-bg", SCENE_GRADIENTS[`${cat}-${dayKey}`] || SCENE_GRADIENTS["cloudy-day"]);
   }
 
+  // guncel saatin hourly dizisindeki indexi (ayrinti kutulari + grafik icin)
+  function currentHourIndex(data) {
+    if (!data.hourly || !data.hourly.time) return 0;
+    const nowIso = data.current && data.current.time;
+    const i = data.hourly.time.findIndex((t) => new Date(t) >= new Date(nowIso || Date.now()));
+    return Math.max(i, 0);
+  }
+
+  const WIND_DIRS = ["Kuzey", "Kuzeydoğu", "Doğu", "Güneydoğu", "Güney", "Güneybatı", "Batı", "Kuzeybatı"];
+  function windDirName(deg) {
+    return WIND_DIRS[Math.round(((deg % 360) / 45)) % 8];
+  }
+  function windForce(kmh) {
+    if (kmh < 2) return "Sakin";
+    if (kmh < 12) return "Hafif esinti";
+    if (kmh < 20) return "Tatlı rüzgâr";
+    if (kmh < 30) return "Orta rüzgâr";
+    if (kmh < 40) return "Sert rüzgâr";
+    if (kmh < 62) return "Fırtınamsı rüzgâr";
+    return "Fırtına";
+  }
+  function uvLabel(uv) {
+    if (uv < 3) return "Düşük";
+    if (uv < 6) return "Orta";
+    if (uv < 8) return "Yüksek";
+    if (uv < 11) return "Çok yüksek";
+    return "Aşırı";
+  }
+
   function renderCurrent(data) {
     const c = data.current;
     const code = c.weather_code;
@@ -188,15 +219,95 @@
       window.flashUpdate && window.flashUpdate(tempEl);
     }
     document.getElementById("wcFeels").textContent = `${Math.round(c.apparent_temperature)}°`;
-    document.getElementById("wcHumidity").textContent = `${c.relative_humidity_2m}%`;
-    document.getElementById("wcPressure").textContent = `${Math.round(c.surface_pressure)} hPa`;
+
+    const d = data.daily;
+    if (d && d.temperature_2m_max) {
+      const hi = Math.round(d.temperature_2m_max[0]);
+      const lo = Math.round(d.temperature_2m_min[0]);
+      document.getElementById("wcDayMax").textContent = `${hi}°`;
+      document.getElementById("wcDayMin").textContent = `${lo}°`;
+      const pop = d.precipitation_probability_max ? d.precipitation_probability_max[0] : null;
+      let sentence = `${window.WeatherWMO.label(code)}. Bugün en yüksek ${hi}°, en düşük ${lo}°.`;
+      if (pop != null && pop >= 30) sentence += ` Yağış olasılığı %${pop}.`;
+      const feels = Math.round(c.apparent_temperature);
+      if (Math.abs(feels - Math.round(c.temperature_2m)) >= 3) sentence += ` Dışarısı ${feels}° gibi hissettiriyor.`;
+      document.getElementById("wcForecast").textContent = sentence;
+    }
+  }
+
+  function renderDetailTiles(data) {
+    const c = data.current;
+    const h = data.hourly || {};
+    const i = currentHourIndex(data);
+    const d = data.daily || {};
+
     document.getElementById("wcWind").textContent = `${Math.round(c.wind_speed_10m)} km/s`;
     document.getElementById("wcCompass").style.setProperty("--deg", `${c.wind_direction_10m}deg`);
+    const gust = c.wind_gusts_10m != null ? ` · hamle ${Math.round(c.wind_gusts_10m)}` : "";
+    document.getElementById("wcWindSub").textContent = `${windForce(c.wind_speed_10m)} · ${windDirName(c.wind_direction_10m)}${gust}`;
 
-    if (data.daily && data.daily.sunrise) {
-      document.getElementById("wcSunrise").textContent = formatHM(data.daily.sunrise[0]);
-      document.getElementById("wcSunset").textContent = formatHM(data.daily.sunset[0]);
+    document.getElementById("wcHumidity").textContent = `${c.relative_humidity_2m}%`;
+    const dew = h.dew_point_2m ? Math.round(h.dew_point_2m[i]) : null;
+    document.getElementById("wcHumiditySub").textContent = dew != null ? `çiy noktası ${dew}°` : "";
+
+    const visKm = h.visibility ? h.visibility[i] / 1000 : null;
+    document.getElementById("wcVisibility").textContent = visKm != null ? `${Math.round(visKm)} km` : "—";
+    document.getElementById("wcVisibilitySub").textContent =
+      visKm == null ? "" : visKm >= 10 ? "açık" : visKm >= 4 ? "orta" : "sisli/puslu";
+
+    document.getElementById("wcPressure").textContent = `${Math.round(c.surface_pressure)} hPa`;
+    document.getElementById("wcPressureSub").textContent = c.surface_pressure >= 1013 ? "yüksek basınç" : "alçak basınç";
+
+    const uv = h.uv_index ? h.uv_index[i] : (d.uv_index_max ? d.uv_index_max[0] : null);
+    document.getElementById("wcUv").textContent = uv != null ? Math.round(uv) : "—";
+    document.getElementById("wcUvSub").textContent = uv != null ? uvLabel(uv) : "";
+
+    const precip = d.precipitation_sum ? d.precipitation_sum[0] : c.precipitation;
+    document.getElementById("wcPrecip").textContent = precip != null ? `${precip.toFixed(1)} mm` : "—";
+    const pop = d.precipitation_probability_max ? d.precipitation_probability_max[0] : null;
+    document.getElementById("wcPrecipSub").textContent = pop != null ? `olasılık %${pop}` : "";
+
+    if (d.sunrise) {
+      document.getElementById("wcSunrise").textContent = formatHM(d.sunrise[0]);
+      document.getElementById("wcSunset").textContent = formatHM(d.sunset[0]);
+      const ms = new Date(d.sunset[0]) - new Date(d.sunrise[0]);
+      const hrs = Math.floor(ms / 3600000);
+      const mins = Math.round((ms % 3600000) / 60000);
+      document.getElementById("wcDaylenSub").textContent = `gün uzunluğu ${hrs}s ${mins}dk`;
     }
+  }
+
+  // hourly sicakligi kcompakt bir SVG cizgi grafik olarak cizer (MSN tarzi)
+  function renderTempChart(data) {
+    const svg = document.getElementById("tempChart");
+    if (!svg || !data.hourly) return;
+    const h = data.hourly;
+    const start = currentHourIndex(data);
+    const temps = h.temperature_2m.slice(start, start + 24);
+    const times = h.time.slice(start, start + 24);
+    if (temps.length < 2) return;
+
+    const W = 720, H = 150, padX = 8, padTop = 26, padBot = 24;
+    const min = Math.min(...temps), max = Math.max(...temps);
+    const span = max - min || 1;
+    const x = (idx) => padX + (idx / (temps.length - 1)) * (W - padX * 2);
+    const y = (t) => padTop + (1 - (t - min) / span) * (H - padTop - padBot);
+
+    const linePts = temps.map((t, idx) => `${x(idx).toFixed(1)},${y(t).toFixed(1)}`).join(" ");
+    const areaPts = `${x(0).toFixed(1)},${(H - padBot).toFixed(1)} ${linePts} ${x(temps.length - 1).toFixed(1)},${(H - padBot).toFixed(1)}`;
+
+    let labels = "";
+    temps.forEach((t, idx) => {
+      if (idx % 3 !== 0) return;
+      const d = new Date(times[idx]);
+      labels += `<text x="${x(idx).toFixed(1)}" y="14" class="tc-temp">${Math.round(t)}°</text>`;
+      labels += `<text x="${x(idx).toFixed(1)}" y="${H - 6}" class="tc-time">${idx === 0 ? "Şimdi" : d.getHours() + ":00"}</text>`;
+    });
+
+    svg.innerHTML = `
+      <polygon points="${areaPts}" class="tc-area" />
+      <polyline points="${linePts}" class="tc-line" />
+      ${labels}`;
   }
 
   function formatHM(iso) {
@@ -232,17 +343,32 @@
   function renderDaily(data) {
     const wrap = document.getElementById("dailyGrid");
     const d = data.daily;
-    const days = ["Paz", "Pzt", "Sal", "Çar", "Per", "Cum", "Cmt"];
+    const days = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"];
+    const daysShort = ["Paz", "Pzt", "Sal", "Çar", "Per", "Cum", "Cmt"];
+
+    // tum hafta icin ortak min/max -> hi/lo bar olceklemesi
+    const weekMin = Math.min(...d.temperature_2m_min);
+    const weekMax = Math.max(...d.temperature_2m_max);
+    const weekSpan = weekMax - weekMin || 1;
+
     wrap.innerHTML = d.time
       .map((t, i) => {
         const date = new Date(t);
-        const label = i === 0 ? "Bugün" : days[date.getDay()];
+        const label = i === 0 ? "Bugün" : `${daysShort[date.getDay()]} ${date.getDate()}`;
+        const full = i === 0 ? "Bugün" : days[date.getDay()];
+        const hi = Math.round(d.temperature_2m_max[i]);
+        const lo = Math.round(d.temperature_2m_min[i]);
+        const barLeft = ((d.temperature_2m_min[i] - weekMin) / weekSpan) * 100;
+        const barWidth = ((d.temperature_2m_max[i] - d.temperature_2m_min[i]) / weekSpan) * 100;
+        const pop = d.precipitation_probability_max[i];
         return `
-        <div class="day-card">
-          <span class="dc-day">${label}</span>
-          ${window.WeatherWMO.svg(d.weather_code[i], true)}
-          <span class="dc-range"><span class="hi">${Math.round(d.temperature_2m_max[i])}°</span><span class="lo">${Math.round(d.temperature_2m_min[i])}°</span></span>
-          <span class="dc-pop">${d.precipitation_probability_max[i]}% 💧</span>
+        <div class="day-row" title="${full}">
+          <span class="dr-day">${label}</span>
+          <span class="dr-icon">${window.WeatherWMO.svg(d.weather_code[i], true)}</span>
+          <span class="dr-pop">${pop >= 10 ? pop + "%" : ""}</span>
+          <span class="dr-lo">${lo}°</span>
+          <span class="dr-bar"><span class="dr-bar-fill" style="left:${barLeft.toFixed(0)}%;width:${Math.max(barWidth, 6).toFixed(0)}%"></span></span>
+          <span class="dr-hi">${hi}°</span>
         </div>`;
       })
       .join("");
