@@ -1,0 +1,174 @@
+/* =========================================================================
+   Paylaşılan panel bileşenleri — bölümlü sayfa deneyimi (deprem + yangın)
+   (hava sayfası kendi weather.css'indeki eşdeğerlerini kullanır)
+   ========================================================================= */
+
+.dash { padding-top: 22px; }
+
+/* ---- sekmeler ---- */
+.dash-tabs {
+  position: sticky;
+  top: 62px;
+  z-index: 40;
+  display: flex;
+  gap: 4px;
+  padding: 6px;
+  margin-bottom: 16px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bg) 80%, transparent);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.dash-tabs::-webkit-scrollbar { display: none; }
+.dash-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 16px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 0.86rem;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.dash-tab:hover { color: var(--text-primary); }
+.dash-tab.active { color: var(--accent-contrast); }
+.quake-body .dash-tab.active { background: var(--c-quake); color: #0b0b0b; }
+.fire-body .dash-tab.active { background: var(--c-fire); color: #fff; }
+
+.dash-view { display: none; animation: dash-in 0.35s ease; }
+.dash-view.is-active { display: block; }
+@keyframes dash-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { .dash-view { animation: none; } }
+
+/* ---- çipler ---- */
+.dash-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+.dash-chip {
+  padding: 7px 13px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+.dash-chip:hover { border-color: var(--border-strong); }
+.dash-chip.active { color: var(--text-primary); }
+.quake-body .dash-chip.active { background: color-mix(in srgb, var(--c-quake) 16%, transparent); border-color: var(--c-quake); }
+.fire-body .dash-chip.active { background: color-mix(in srgb, var(--c-fire) 16%, transparent); border-color: var(--c-fire); }
+
+/* ---- kart + başlık ---- */
+.dash-card { padding: 20px 22px; margin-bottom: 18px; }
+.dash-card > h3, .dash-head h3 { margin: 0 0 4px; font-size: 1.05rem; }
+.dash-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 10px; flex-wrap: wrap; }
+.dash-head .field-hint { margin: 0; }
+
+/* ---- gösterge kart ızgarası ---- */
+.dash-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 14px;
+}
+.dash-dcard {
+  padding: 16px 18px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 200px;
+}
+.dash-dcard-head { font-size: 0.74rem; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase; color: var(--text-muted); }
+.dash-dcard-vis { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 84px; }
+.dash-dcard-vis svg { max-height: 110px; }
+.dash-dcard-val { font-size: 1.7rem; font-weight: 600; font-family: var(--font-mono); }
+.dash-dcard-val small { font-size: 0.85rem; color: var(--text-muted); font-family: var(--font); }
+.dash-dcard-note { font-size: 0.8rem; color: var(--text-secondary); line-height: 1.5; }
+
+/* ---- SVG gauge stilleri ---- */
+.dg { width: 120px; height: 120px; }
+.dg-track-arc { fill: none; stroke: var(--surface-2); stroke-width: 8; stroke-linecap: round; }
+.dg-seg { fill: none; stroke-width: 8; stroke-linecap: round; }
+.dg-dot { fill: var(--text-primary); stroke: var(--surface); stroke-width: 2; }
+.dg-card { fill: var(--text-muted); font-size: 12px; font-weight: 700; text-anchor: middle; }
+.dg-needle { fill: var(--accent); }
+.dg-needle-tail { fill: var(--text-muted); }
+.dg-hub { fill: var(--text-primary); }
+.dg-track { fill: none; stroke: var(--surface-2); stroke-width: 2; }
+.dg-ring-track { fill: none; stroke: var(--surface-2); stroke-width: 9; }
+.dg-ring-fill { fill: none; stroke-width: 9; stroke-linecap: round; transition: stroke-dasharray 0.6s ease; }
+.quake-body .dg-ring-fill { stroke: var(--c-quake); }
+.fire-body .dg-ring-fill { stroke: var(--c-fire); }
+
+/* ---- histogram / bar serisi ---- */
+.dash-chartbox {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  padding: 10px 8px 4px;
+  overflow-x: auto;
+}
+.dash-svg { width: 100%; min-width: 520px; display: block; }
+.dc-bar { transition: opacity 0.2s ease; }
+.quake-body .dc-bar { fill: var(--c-quake); }
+.fire-body .dc-bar { fill: var(--c-fire); }
+.dc-bar-2 { fill: var(--c-quake-2); }
+.fire-body .dc-bar-2 { fill: var(--c-fire-2); }
+.dc-xt { fill: var(--text-muted); font-size: 11px; text-anchor: middle; }
+.dc-yt { fill: var(--text-muted); font-size: 10px; text-anchor: end; font-family: var(--font-mono); }
+.dc-vt { fill: var(--text-secondary); font-size: 11px; font-weight: 600; text-anchor: middle; font-family: var(--font-mono); }
+.dc-grid { stroke: var(--border); stroke-width: 1; }
+.dc-line { fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.quake-body .dc-line { stroke: var(--c-quake-2); }
+.fire-body .dc-line { stroke: var(--c-fire-2); }
+.dc-area { opacity: 0.14; }
+.quake-body .dc-area { fill: var(--c-quake); }
+.fire-body .dc-area { fill: var(--c-fire); }
+.dc-now { stroke: var(--accent); stroke-width: 1.5; }
+.dc-nowt { fill: var(--accent); font-size: 11px; font-weight: 700; }
+
+/* 24 saatlik saat kadranı */
+.dash-clock { width: 220px; height: 220px; }
+.clk-track { fill: none; stroke: var(--surface-2); stroke-width: 2; }
+.clk-spoke { stroke: var(--border); stroke-width: 1; }
+.clk-bar { stroke-linecap: round; }
+.quake-body .clk-bar { stroke: var(--c-quake); }
+.fire-body .clk-bar { stroke: var(--c-fire); }
+.clk-lbl { fill: var(--text-muted); font-size: 10px; text-anchor: middle; font-family: var(--font-mono); }
+.clk-center { fill: var(--text-primary); font-size: 13px; font-weight: 700; text-anchor: middle; font-family: var(--font-mono); }
+.clk-center-sub { fill: var(--text-muted); font-size: 9px; text-anchor: middle; }
+
+/* donut */
+.dash-donut-body { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+.dash-donut-svg { width: 130px; height: 130px; flex-shrink: 0; }
+.dd-track { fill: none; stroke: var(--surface-2); stroke-width: 12; }
+.dd-seg { fill: none; stroke-width: 12; stroke-linecap: butt; }
+.dd-big { fill: var(--text-primary); font-size: 22px; font-weight: 700; text-anchor: middle; font-family: var(--font-mono); }
+.dd-small { fill: var(--text-muted); font-size: 11px; text-anchor: middle; }
+.dash-donut-legend { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 9px; font-size: 0.86rem; color: var(--text-secondary); }
+.dash-donut-legend strong { color: var(--text-primary); font-family: var(--font-mono); }
+.dl-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 7px; }
+
+/* tablo */
+.dash-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+.dash-table th { text-align: right; padding: 9px 12px; color: var(--text-muted); font-weight: 700; font-size: 0.74rem; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+.dash-table th:first-child { text-align: left; }
+.dash-table td { padding: 10px 12px; text-align: right; font-family: var(--font-mono); border-bottom: 1px solid var(--border); }
+.dash-table td:first-child { text-align: left; font-family: var(--font); color: var(--text-secondary); }
+.dash-table tr:last-child td { border-bottom: none; }
+
+/* iki-kolon üst blok */
+.dash-2col { display: grid; grid-template-columns: 1fr 1.3fr; gap: 16px; margin-bottom: 18px; }
+@media (max-width: 860px) { .dash-2col { grid-template-columns: 1fr; } .dash-tabs { top: 56px; } }
+
+/* mini çizgi */
+.dash-mini { width: 100%; height: 64px; }

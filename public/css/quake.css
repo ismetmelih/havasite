@@ -6,13 +6,38 @@
   align-items: center;
   gap: 20px;
   padding: 20px 24px;
-  margin-top: 26px;
+  margin-bottom: 18px;
   border-radius: var(--radius-lg);
   border: 1px solid var(--border);
   border-left: 4px solid var(--c-quake);
   background: linear-gradient(180deg, var(--surface), var(--surface-2));
   box-shadow: var(--shadow-soft);
 }
+
+/* -------- filtre çubuğu -------- */
+.q-filterbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 18px;
+  padding: 12px 16px;
+  margin-bottom: 18px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+.q-filterbar .btn { margin-left: auto; }
+
+/* -------- tek başına liste (Liste sekmesi) -------- */
+.side-list-full {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: 8px;
+}
+.dash-2col .side-list { border-radius: var(--radius-sm); }
 .qf-mag {
   flex-shrink: 0;
   width: 68px;

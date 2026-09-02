@@ -288,11 +288,23 @@ async function handleQuakeHistory(req, res, query) {
   let result;
   let source;
   try {
-    result = await fetchAfadQuakes(start, end, 1000);
+    // AFAD filter API tek istekte ~1000 kayitla sinirli ve eskiden yeniye
+    // donuyor; yogun bir 30 gunluk pencerede son gunler eksik kaliyordu.
+    // Bu yuzden pencereyi ~7 gunluk dilimlere bolup birlestiriyoruz.
+    const CHUNK_MS = 7 * 86400000;
+    const chunks = [];
+    for (let s = start.getTime(); s < end.getTime(); s += CHUNK_MS) {
+      chunks.push([new Date(s), new Date(Math.min(s + CHUNK_MS, end.getTime()))]);
+    }
+    const parts = await Promise.all(chunks.map(([cs, ce]) => fetchAfadQuakes(cs, ce, 1000).catch(() => [])));
+    const seen = new Set();
+    result = [];
+    parts.flat().forEach((q) => { if (!seen.has(q.id)) { seen.add(q.id); result.push(q); } });
+    if (!result.length) throw new Error("afad bos");
     source = "afad";
   } catch (err) {
     try {
-      result = await fetchEmscQuakes(`&limit=1000&starttime=${isoNoMs(start)}`);
+      result = await fetchEmscQuakes(`&limit=2000&starttime=${isoNoMs(start)}`);
       source = "emsc";
     } catch (err2) {
       return sendJson(res, 200, { ok: false, reason: "fetch_failed", detail: String(err2.message || err2), data: [] });

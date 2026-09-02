@@ -5,13 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <script>(function(){try{var u=new URLSearchParams(location.search).get('theme');var t=(u==='light'||u==='dark')?u:localStorage.getItem('havasite_theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 <title>Depremler — TürkiyeCanlı</title>
-<meta name="description" content="Türkiye canlı deprem haritası: AFAD kaynaklı son depremler, büyüklüğe göre renklendirilmiş harita, 3B görünüm, 30 günlük zaman tüneli ve il bazlı istatistik." />
+<meta name="description" content="Türkiye canlı deprem haritası: AFAD kaynaklı son depremler, büyüklüğe göre renklendirilmiş harita, 3B görünüm, 30 günlük zaman tüneli ve sismik aktivite istatistikleri." />
 <link rel="icon" type="image/svg+xml" href="img/logo.svg" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" />
 <link rel="stylesheet" href="css/base.css" />
+<link rel="stylesheet" href="css/dash.css" />
 <link rel="stylesheet" href="css/quake.css" />
 </head>
 <body class="quake-body" data-guest-quota>
@@ -38,9 +39,6 @@
 
 <header class="page-head has-scene">
   <div class="page-scene" aria-hidden="true">
-    <span class="ps-orb o1"></span>
-    <span class="ps-orb o2"></span>
-    <span class="ps-orb o3"></span>
     <span class="ps-grid"></span>
     <svg class="qs-wave" viewBox="0 0 800 120" preserveAspectRatio="none">
       <polyline class="qs-wave-line" points="0,60 60,60 80,60 95,20 110,100 125,30 140,90 155,60 175,60 800,60" />
@@ -57,7 +55,7 @@
       </div>
       <div>
         <span class="eyebrow text-quake">DEPREMLER</span>
-        <h1>Türkiye canlı deprem haritası</h1>
+        <h1>Türkiye canlı deprem paneli</h1>
         <p class="page-sub" id="lastUpdated">Yükleniyor…</p>
       </div>
     </div>
@@ -65,62 +63,18 @@
   </div>
 </header>
 
-<main class="container">
+<main class="container dash">
 
-  <section class="quake-featured reveal" id="quakeFeatured" hidden>
-    <div class="qf-mag" id="qfMag">—</div>
-    <div class="qf-body">
-      <span class="qf-eyebrow">EN SON KAYDEDİLEN DEPREM</span>
-      <div class="qf-title" id="qfTitle">—</div>
-      <div class="qf-meta" id="qfMeta">—</div>
-    </div>
-    <div class="qf-side">
-      <div class="qf-dist" id="qfDist" hidden><span class="qf-dist-val" id="qfDistVal">—</span><span class="qf-dist-lbl">sana uzaklık</span></div>
-      <button class="btn btn-ghost btn-sm" id="qfLocate" type="button"><span class="ic" data-icon="map-pin" data-icon-size="15"></span> Konumumu kullan</button>
-    </div>
-  </section>
+  <nav class="dash-tabs" id="qTabs" aria-label="Deprem bölümleri">
+    <button class="dash-tab active" type="button" data-view="genel"><span class="ic" data-icon="activity" data-icon-size="16"></span> Genel</button>
+    <button class="dash-tab" type="button" data-view="harita"><span class="ic" data-icon="map" data-icon-size="16"></span> Harita</button>
+    <button class="dash-tab" type="button" data-view="liste"><span class="ic" data-icon="layers" data-icon-size="16"></span> Liste</button>
+    <button class="dash-tab" type="button" data-view="kure"><span class="ic" data-icon="globe" data-icon-size="16"></span> 3B Küre</button>
+    <button class="dash-tab" type="button" data-view="tunel"><span class="ic" data-icon="clock" data-icon-size="16"></span> Zaman Tüneli</button>
+    <button class="dash-tab" type="button" data-view="istat"><span class="ic" data-icon="bar-chart" data-icon-size="16"></span> İstatistik</button>
+  </nav>
 
-  <section class="quake-globe-section reveal">
-    <div class="quake-globe-head">
-      <div>
-        <h3><span class="h-icon" data-icon="globe" data-icon-size="18"></span>Son 7 günün depremleri — 3B görünüm</h3>
-        <p class="field-hint">Büyüklüğe göre renklenip titreşerek beliren noktalar. Fareyle sürükleyip çevirebilirsin.</p>
-      </div>
-      <span class="badge badge-live" id="globeCount"><span class="live-blip"></span> yükleniyor…</span>
-    </div>
-    <div class="quake-globe-box">
-      <canvas id="quakeGlobeCanvas"></canvas>
-    </div>
-  </section>
-
-  <div class="stat-tiles reveal">
-    <div class="stat-tile">
-      <span class="stat-tile-icon" data-icon="clock"></span>
-      <span class="stat-label">Son Deprem</span>
-      <span class="stat-value" id="statLast">—</span>
-      <span class="stat-sub" id="statLastSub">—</span>
-    </div>
-    <div class="stat-tile">
-      <span class="stat-tile-icon" data-icon="layers"></span>
-      <span class="stat-label">Görüntülenen Toplam</span>
-      <span class="stat-value" id="statCount">—</span>
-      <span class="stat-sub">son ~24 saat</span>
-    </div>
-    <div class="stat-tile">
-      <span class="stat-tile-icon" data-icon="trending-up"></span>
-      <span class="stat-label">En Büyük (24s)</span>
-      <span class="stat-value" id="statMax">—</span>
-      <span class="stat-sub" id="statMaxSub">—</span>
-    </div>
-    <div class="stat-tile">
-      <span class="stat-tile-icon" data-icon="compass"></span>
-      <span class="stat-label">Ortalama Derinlik</span>
-      <span class="stat-value" id="statDepth">—</span>
-      <span class="stat-sub">km</span>
-    </div>
-  </div>
-
-  <div class="filter-bar reveal">
+  <div class="q-filterbar" id="qFilterBar">
     <div class="filter-group">
       <label for="magRange">Min. büyüklük</label>
       <input type="range" id="magRange" min="0" max="6" step="0.1" value="0" />
@@ -132,47 +86,108 @@
         <option value="1">Son 1 saat</option>
         <option value="6">Son 6 saat</option>
         <option value="24" selected>Son 24 saat</option>
+        <option value="72">Son 3 gün</option>
       </select>
     </div>
     <div class="filter-group">
       <label><input type="checkbox" id="onlyFelt" /> Sadece M3.0+</label>
     </div>
+    <button class="btn btn-ghost btn-sm" id="qfLocate" type="button"><span class="ic" data-icon="map-pin" data-icon-size="15"></span> Konumumu kullan</button>
   </div>
 
-  <div class="two-col">
-    <section class="map-section reveal" style="margin:0;">
-      <div class="map-box" id="quakeMap"></div>
-      <div class="legend quake-legend">
-        <span>Küçük</span>
-        <div class="legend-bar quake-bar"></div>
-        <span>Büyük</span>
+  <!-- ============ GENEL ============ -->
+  <section class="dash-view is-active" id="view-genel">
+    <section class="quake-featured" id="quakeFeatured" hidden>
+      <div class="qf-mag" id="qfMag">—</div>
+      <div class="qf-body">
+        <span class="qf-eyebrow">EN SON KAYDEDİLEN DEPREM</span>
+        <div class="qf-title" id="qfTitle">—</div>
+        <div class="qf-meta" id="qfMeta">—</div>
+      </div>
+      <div class="qf-side">
+        <div class="qf-dist" id="qfDist" hidden><span class="qf-dist-val" id="qfDistVal">—</span><span class="qf-dist-lbl">sana uzaklık</span></div>
       </div>
     </section>
 
-    <aside class="side-panel reveal">
-      <div class="side-panel-head">
-        <h3>Son depremler</h3>
-        <span class="badge badge-live" id="sideCount"><span class="live-blip"></span> —</span>
+    <div class="stat-tiles in-view">
+      <div class="stat-tile">
+        <span class="stat-tile-icon" data-icon="clock"></span>
+        <span class="stat-label">Son Deprem</span>
+        <span class="stat-value" id="statLast">—</span>
+        <span class="stat-sub" id="statLastSub">—</span>
       </div>
-      <div class="side-list" id="quakeList">
-        <div class="skeleton" style="height:56px;margin:6px;border-radius:10px"></div>
-        <div class="skeleton" style="height:56px;margin:6px;border-radius:10px"></div>
-        <div class="skeleton" style="height:56px;margin:6px;border-radius:10px"></div>
+      <div class="stat-tile">
+        <span class="stat-tile-icon" data-icon="layers"></span>
+        <span class="stat-label">Görüntülenen</span>
+        <span class="stat-value" id="statCount">—</span>
+        <span class="stat-sub" id="statCountSub">seçili aralık</span>
       </div>
-    </aside>
-  </div>
-
-  <section class="province-section reveal">
-    <div class="map-head">
-      <h3><span class="h-icon" data-icon="bar-chart" data-icon-size="18"></span>En hareketli iller — <span id="psWindow">son 24 saat</span></h3>
-      <span class="badge badge-live" id="psCount"><span class="live-blip"></span> —</span>
+      <div class="stat-tile">
+        <span class="stat-tile-icon" data-icon="trending-up"></span>
+        <span class="stat-label">En Büyük</span>
+        <span class="stat-value" id="statMax">—</span>
+        <span class="stat-sub" id="statMaxSub">—</span>
+      </div>
+      <div class="stat-tile">
+        <span class="stat-tile-icon" data-icon="compass"></span>
+        <span class="stat-label">Ortalama Derinlik</span>
+        <span class="stat-value" id="statDepth">—</span>
+        <span class="stat-sub">km</span>
+      </div>
     </div>
-    <div class="province-bars" id="provinceBars">
-      <div class="sr-empty" style="padding:16px;color:var(--text-muted)">Veri bekleniyor…</div>
+
+    <section class="dash-card">
+      <div class="dash-head">
+        <div><h3>Sismik aktivite — son 24 saat</h3><p class="field-hint">Saat başına kaydedilen deprem sayısı</p></div>
+      </div>
+      <div id="qActivityChart"></div>
+    </section>
+
+    <div class="dash-2col">
+      <section class="dash-card" style="margin:0">
+        <h3>Son depremler</h3>
+        <div class="side-list" id="quakeListMini" style="max-height:420px"></div>
+      </section>
+      <section class="dash-card" style="margin:0">
+        <div class="map-head"><h3><span class="h-icon" data-icon="bar-chart" data-icon-size="18"></span>En hareketli iller — <span id="psWindow">son 24 saat</span></h3><span class="badge badge-live" id="psCount"><span class="live-blip"></span> —</span></div>
+        <div id="provinceBars"></div>
+      </section>
     </div>
   </section>
 
-  <section class="timeline-section reveal">
+  <!-- ============ HARİTA ============ -->
+  <section class="dash-view" id="view-harita">
+    <div class="map-head">
+      <h3><span class="h-icon" data-icon="map" data-icon-size="18"></span>Deprem haritası</h3>
+      <span class="badge badge-live" id="mapCount"><span class="live-blip"></span> —</span>
+    </div>
+    <div id="quakeMap" class="map-box" style="height:640px"></div>
+    <div class="legend quake-legend"><span>Küçük</span><div class="legend-bar quake-bar"></div><span>Büyük</span></div>
+  </section>
+
+  <!-- ============ LİSTE ============ -->
+  <section class="dash-view" id="view-liste">
+    <div class="map-head">
+      <h3><span class="h-icon" data-icon="layers" data-icon-size="18"></span>Deprem listesi</h3>
+      <span class="badge badge-live" id="sideCount"><span class="live-blip"></span> —</span>
+    </div>
+    <div class="side-list side-list-full" id="quakeList"></div>
+  </section>
+
+  <!-- ============ 3B KÜRE ============ -->
+  <section class="dash-view" id="view-kure">
+    <div class="quake-globe-head">
+      <div>
+        <h3><span class="h-icon" data-icon="globe" data-icon-size="18"></span>Son 7 günün depremleri — 3B görünüm</h3>
+        <p class="field-hint">Büyüklüğe göre renklenip titreşerek beliren noktalar. Fareyle sürükleyip çevirebilirsin.</p>
+      </div>
+      <span class="badge badge-live" id="globeCount"><span class="live-blip"></span> yükleniyor…</span>
+    </div>
+    <div class="quake-globe-box"><canvas id="quakeGlobeCanvas"></canvas></div>
+  </section>
+
+  <!-- ============ ZAMAN TÜNELİ ============ -->
+  <section class="dash-view" id="view-tunel">
     <div class="map-head">
       <div>
         <h3><span class="h-icon" data-icon="clock" data-icon-size="18"></span>Zaman tüneli — son 30 gün</h3>
@@ -180,9 +195,7 @@
       </div>
       <span class="badge badge-live" id="timelineCount"><span class="live-blip"></span> yükleniyor…</span>
     </div>
-
-    <div class="map-box" id="timelineMap" style="height:420px;"></div>
-
+    <div class="map-box" id="timelineMap" style="height:460px;"></div>
     <div class="timeline-controls">
       <button class="btn btn-primary btn-sm" id="timelinePlay" type="button"><span class="ic" data-icon="play" data-icon-size="14"></span> <span id="timelinePlayLabel">Oynat</span></button>
       <input type="range" id="timelineSlider" min="0" max="29" value="29" step="1" />
@@ -194,6 +207,39 @@
       </select>
     </div>
     <div class="timeline-daystat" id="timelineDayStat">Gün seçildiğinde o güne ait özet burada görünecek.</div>
+  </section>
+
+  <!-- ============ İSTATİSTİK ============ -->
+  <section class="dash-view" id="view-istat">
+    <p class="field-hint" style="margin:0 0 14px">Aşağıdaki grafikler AFAD arşivinden <strong>son 30 günün</strong> Türkiye depremlerini özetler.</p>
+    <div class="dash-2col">
+      <section class="dash-card" style="margin:0">
+        <h3>Büyüklük dağılımı</h3>
+        <div id="qMagHist"></div>
+      </section>
+      <section class="dash-card" style="margin:0">
+        <h3>Derinlik dağılımı</h3>
+        <div id="qDepthHist"></div>
+      </section>
+    </div>
+    <section class="dash-card">
+      <div class="dash-head"><div><h3>Günlük deprem sayısı — 30 gün</h3><p class="field-hint" id="qDailyHint">Noktalı çizgi: dönem ortalaması</p></div></div>
+      <div id="qDailyChart"></div>
+    </section>
+    <div class="dash-2col">
+      <section class="dash-card" style="margin:0">
+        <h3>Günün saatine göre</h3>
+        <div class="dash-donut-body" style="justify-content:center"><div id="qClock"></div></div>
+      </section>
+      <section class="dash-card" style="margin:0">
+        <h3>En aktif iller — 30 gün</h3>
+        <div id="qProv30"></div>
+      </section>
+    </div>
+    <section class="dash-card">
+      <h3>Son 30 günün en büyük depremleri</h3>
+      <div style="overflow-x:auto"><table class="dash-table" id="qBigTable"></table></div>
+    </section>
   </section>
 
 </main>
@@ -209,6 +255,7 @@
 <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
 <script src="js/cities.js"></script>
 <script src="js/main.js"></script>
+<script src="js/dash.js"></script>
 <script src="js/quake-globe.js"></script>
 <script src="js/quake.js"></script>
 </body>
