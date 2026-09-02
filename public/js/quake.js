@@ -8,11 +8,13 @@
   let firstLoad = true;
   let lastQuakeCityPart = "—";
   let lastQuakeDateStr = null;
+  let userPos = null; // {lat, lon} — konum izni verilirse
 
   document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("year") && (document.getElementById("year").textContent = new Date().getFullYear());
     initMap();
     setupFilters();
+    setupGeo();
     fetchQuakes();
     setInterval(fetchQuakes, REFRESH_MS);
 
@@ -20,6 +22,46 @@
     initTimeline();
     startPulseTicker();
   });
+
+  // ---------------- konum: 'sana uzaklık' ----------------
+  function setupGeo() {
+    const btn = document.getElementById("qfLocate");
+    if (!btn) return;
+    try {
+      const saved = JSON.parse(localStorage.getItem("havasite_user_pos") || "null");
+      if (saved && saved.lat) { userPos = saved; btn.textContent = "📍 Konum güncel"; }
+    } catch {}
+    btn.addEventListener("click", () => {
+      if (!navigator.geolocation) { window.showToast("Tarayıcın konum servisini desteklemiyor."); return; }
+      btn.disabled = true;
+      btn.textContent = "Konum alınıyor…";
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          userPos = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+          try { localStorage.setItem("havasite_user_pos", JSON.stringify(userPos)); } catch {}
+          btn.textContent = "📍 Konum güncel";
+          btn.disabled = false;
+          render();
+        },
+        () => { window.showToast("Konum izni alınamadı."); btn.textContent = "📍 Konumumu kullan"; btn.disabled = false; },
+        { timeout: 8000 }
+      );
+    });
+  }
+
+  function haversineKm(a, b) {
+    const R = 6371;
+    const dLat = ((b.lat - a.lat) * Math.PI) / 180;
+    const dLon = ((b.lon - a.lon) * Math.PI) / 180;
+    const s =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos((a.lat * Math.PI) / 180) * Math.cos((b.lat * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
+    return Math.round(2 * R * Math.asin(Math.sqrt(s)));
+  }
+
+  function provinceOf(q) {
+    return (q.closestCity || "").replace(/\s*yakını$/, "").trim() || null;
+  }
 
   // ---------------- canli nabiz: her saniye "X once" metnini tazeler ----------------
   function startPulseTicker() {
@@ -282,9 +324,66 @@
 
   function render(newOnes = []) {
     const list = filteredData();
+    renderFeatured();
     renderMap(list, newOnes);
     renderList(list, newOnes);
     renderStats(list);
+    renderProvinceStats(list);
+  }
+
+  // en son kaydedilen deprem (filtreden bagimsiz — her zaman en guncel olay)
+  function renderFeatured() {
+    const el = document.getElementById("quakeFeatured");
+    if (!el || !rawData.length) return;
+    const q = [...rawData].sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+    el.hidden = false;
+    const magEl = document.getElementById("qfMag");
+    magEl.textContent = q.mag.toFixed(1);
+    magEl.style.background = magColor(q.mag);
+    document.getElementById("qfTitle").textContent = q.closestCity || q.title;
+    document.getElementById("qfMeta").textContent =
+      `${q.title} · ${q.depth} km derinlik · ${window.timeAgoTR(q.date.replace(" ", "T"))}`;
+    const distWrap = document.getElementById("qfDist");
+    if (userPos && q.lat != null) {
+      distWrap.hidden = false;
+      document.getElementById("qfDistVal").textContent = `${haversineKm(userPos, { lat: q.lat, lon: q.lon })} km`;
+    } else {
+      distWrap.hidden = true;
+    }
+  }
+
+  function renderProvinceStats(list) {
+    const wrap = document.getElementById("provinceBars");
+    const win = document.getElementById("psWindow");
+    const badge = document.getElementById("psCount");
+    if (!wrap) return;
+    const hours = parseInt(document.getElementById("timeSelect").value, 10);
+    win.textContent = hours === 1 ? "son 1 saat" : hours === 6 ? "son 6 saat" : "son 24 saat";
+
+    const counts = new Map();
+    list.forEach((q) => {
+      const p = provinceOf(q);
+      if (!p) return;
+      counts.set(p, (counts.get(p) || 0) + 1);
+    });
+    const rows = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8);
+    badge.innerHTML = `<span class="live-blip"></span> ${counts.size} il`;
+
+    if (!rows.length) {
+      wrap.innerHTML = `<div class="sr-empty" style="padding:16px;color:var(--text-muted)">Seçili aralıkta il eşleşmesi yok.</div>`;
+      return;
+    }
+    const max = rows[0][1];
+    wrap.innerHTML = rows
+      .map(
+        ([name, n]) => `
+        <div class="pb-row">
+          <span class="pb-name">${window.escapeHtml(name)}</span>
+          <span class="pb-track"><span class="pb-fill" style="width:${Math.max((n / max) * 100, 4)}%"></span></span>
+          <span class="pb-count">${n}</span>
+        </div>`
+      )
+      .join("");
   }
 
   function renderMap(list, newOnes) {
@@ -327,12 +426,13 @@
       .slice(0, 120)
       .map((q, i) => {
         const color = magColor(q.mag);
+        const dist = userPos && q.lat != null ? ` · ${haversineKm(userPos, { lat: q.lat, lon: q.lon })} km uzakta` : "";
         return `
         <div class="side-row ${newIds.has(q.id) ? "flash" : ""}" style="--i:${Math.min(i, 14)}" data-id="${q.id}" data-lat="${q.lat}" data-lon="${q.lon}">
           <span class="mag-chip" style="background:${color}">${q.mag.toFixed(1)}</span>
           <div class="row-main">
             <div class="row-title">${window.escapeHtml(q.title)}</div>
-            <div class="row-sub">${q.depth} km derinlik · ${window.timeAgoTR(q.date.replace(" ", "T"))}</div>
+            <div class="row-sub">${q.depth} km derinlik · ${window.timeAgoTR(q.date.replace(" ", "T"))}${dist}</div>
           </div>
         </div>`;
       })

@@ -66,6 +66,19 @@
 
 <main class="container">
 
+  <section class="quake-featured reveal" id="quakeFeatured" hidden>
+    <div class="qf-mag" id="qfMag">—</div>
+    <div class="qf-body">
+      <span class="qf-eyebrow">EN SON KAYDEDİLEN DEPREM</span>
+      <div class="qf-title" id="qfTitle">—</div>
+      <div class="qf-meta" id="qfMeta">—</div>
+    </div>
+    <div class="qf-side">
+      <div class="qf-dist" id="qfDist" hidden><span class="qf-dist-val" id="qfDistVal">—</span><span class="qf-dist-lbl">sana uzaklık</span></div>
+      <button class="btn btn-ghost btn-sm" id="qfLocate" type="button">📍 Konumumu kullan</button>
+    </div>
+  </section>
+
   <section class="quake-globe-section reveal">
     <div class="quake-globe-head">
       <div>
@@ -147,6 +160,16 @@
       </div>
     </aside>
   </div>
+
+  <section class="province-section reveal">
+    <div class="map-head">
+      <h3>📊 En hareketli iller — <span id="psWindow">son 24 saat</span></h3>
+      <span class="badge badge-live" id="psCount"><span class="live-blip"></span> —</span>
+    </div>
+    <div class="province-bars" id="provinceBars">
+      <div class="sr-empty" style="padding:16px;color:var(--text-muted)">Veri bekleniyor…</div>
+    </div>
+  </section>
 
   <section class="timeline-section reveal">
     <div class="map-head">
