@@ -11,6 +11,13 @@ const url = require("url");
 const { getPool, ensureSchema } = require("./lib/db");
 const AuthLib = require("./lib/auth");
 
+// Varsa .env dosyasindaki ortam degiskenlerini yukle (yerel gelistirme ve AWS Amplify:
+// Amplify ortam degiskenleri calisma aninda sunucuya ulasmadigi icin build sirasinda .env'e yazilir).
+const ENV_FILE = path.join(__dirname, ".env");
+if (fs.existsSync(ENV_FILE) && typeof process.loadEnvFile === "function") {
+  process.loadEnvFile(ENV_FILE);
+}
+
 const PUBLIC_DIR = path.join(__dirname, "public");
 let CONFIG = { FIRMS_MAP_KEY: "", PORT: 3000 };
 
