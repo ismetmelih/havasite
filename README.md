@@ -13,7 +13,17 @@ Gereksinim: [Node.js](https://nodejs.org) 18+ ve bir PostgreSQL veritabanı bağ
 ```bash
 cd havasite
 npm install
-DATABASE_URL="postgres://kullanici:sifre@host:5432/veritabani" npm start
+npm start
+```
+
+Ayarlar proje kökündeki `.env` dosyasından okunur (`.gitignore` içinde, depoya gönderilmez):
+
+```
+DATABASE_URL=postgres://kullanici:sifre@host:5432/veritabani
+SESSION_SECRET=uzun-rastgele-bir-deger
+ADMIN_EMAIL=admin@ornek.com
+ADMIN_PASSWORD=guclu-bir-sifre
+FIRMS_MAP_KEY=nasa-firms-anahtari
 ```
 
 Sonra tarayıcında **http://localhost:3000** adresini aç. `DATABASE_URL` tanımlamazsan
@@ -42,7 +52,7 @@ PostgreSQL'de saklanır; şifreler geri döndürülemez şekilde (Node'un yerle�
 bir çerezle yürütülür.
 
 **Admin girişi bundan tamamen ayrıdır** — kayıt formuyla hiçbir ilişkisi yoktur ve
-kimse kayıt olarak admin olamaz. Site sahibi Render panelinde (veya yerelde) iki ortam
+kimse kayıt olarak admin olamaz. Site sahibi AWS Amplify'da (veya yerelde `.env` içinde) iki ortam
 değişkeni tanımlar:
 
 - `ADMIN_EMAIL`
@@ -58,28 +68,32 @@ Admin panelinden kayıtlı müşteri hesaplarını görüntüleyip silebilirsin.
 
 ## Veritabanı
 
-Herhangi bir PostgreSQL bağlantı adresi (`DATABASE_URL` ortam değişkeni) yeterlidir —
-Render'ın kendi PostgreSQL'i, [Neon](https://neon.tech), [Supabase](https://supabase.com)
-vb. Şema (`users` tablosu) sunucu ilk açıldığında ve her kayıt/girişte otomatik
-oluşturulur, elle migration çalıştırmana gerek yok.
+Canlı site [Supabase](https://supabase.com) üzerindeki PostgreSQL'i kullanır; ama herhangi
+bir PostgreSQL bağlantı adresi (`DATABASE_URL`) yeterlidir. Şema (`users` tablosu) sunucu
+ilk açıldığında ve her kayıt/girişte otomatik oluşturulur, elle migration çalıştırmana
+gerek yok.
 
-> Not: Render'ın ücretsiz PostgreSQL planı belirli bir süre sonra (Render'ın o anki
-> koşullarına göre) süresi dolup silinebilir. Kalıcılık önemliyse Neon/Supabase gibi
-> süresiz ücretsiz katmanı olan bir sağlayıcı da `DATABASE_URL` olarak kullanılabilir.
+Supabase kullanırken:
+- AWS Amplify'dan bağlanmak için **Session pooler** adresini kullan
+  (`...pooler.supabase.com:5432`); "Direct connection" adresi IPv6 olduğu için bağlanamayabilir.
+- Şifrede `%`, `@`, `#` gibi karakterler varsa adreste URL kodlanmış yazılmalı (`%` → `%25`, `@` → `%40`).
+- `users` tablosunu Supabase'in herkese açık Data API'sinden gizli tut: RLS açık olsun ve
+  `REVOKE ALL ON TABLE public.users FROM anon, authenticated;` çalıştırılmış olsun.
 
 ## Yangın verisi için NASA FIRMS anahtarı
 
 Yangın sayfasının gerçek veri gösterebilmesi için ücretsiz bir API anahtarı gerekir:
 
 1. https://firms.modaps.eosdis.nasa.gov/api/map_key/ adresine git, e-posta adresinle ücretsiz anahtar iste (anında e-postana gelir).
-2. Yerelde: `config.json` dosyasını aç, `FIRMS_MAP_KEY` alanına anahtarını yapıştır ve sunucuyu yeniden başlat.
-   Render'da: **Environment** sekmesinden `FIRMS_MAP_KEY` ortam değişkenini ekle.
+2. Yerelde: `.env` dosyasına `FIRMS_MAP_KEY=...` satırını ekle (veya `config.json` içindeki
+   `FIRMS_MAP_KEY` alanına yapıştır) ve sunucuyu yeniden başlat.
+   AWS Amplify'da: **Hosting → Environment variables** bölümüne `FIRMS_MAP_KEY` ekle ve **Redeploy** et.
 
 Anahtar girilmeden önce `yangin.html` sayfası kurulum talimatlarını gösterir ve
 istersen **"Örnek veriyle görüntüle"** butonuyla arayüzü örnek (gerçek olmayan,
 açıkça etiketlenmiş) verilerle deneyebilirsin.
 
-`config.json` `.gitignore` içinde — anahtarın yanlışlıkla bir depoya gönderilmez.
+`.env` ve `config.json` `.gitignore` içinde — anahtarın yanlışlıkla bir depoya gönderilmez.
 
 ## Veri kaynakları
 
@@ -88,28 +102,28 @@ açıkça etiketlenmiş) verilerle deneyebilirsin.
   seviyesinde detaylı, anahtarsız. AFAD'a ulaşılamazsa otomatik olarak
   [EMSC](https://www.seismicportal.eu) (Avrupa-Akdeniz Sismoloji Merkezi) yedek
   kaynağına geçilir. (Önceki kaynağımız olan Kandilli'nin bağımsız proxy servisi,
-  Render gibi barındırma sağlayıcılarının sunucu IP'lerini engellediği için bırakıldı.)
+  bulut barındırma sağlayıcılarının sunucu IP'lerini engellediği için bırakıldı.)
 - **Yangın:** [NASA FIRMS](https://firms.modaps.eosdis.nasa.gov) (VIIRS/MODIS uydu aktif ateş tespiti) — ücretsiz anahtar gerekir.
 
 Bu proje bağımsız/gayriresmîdir; resmî afet/acil durum kararları için ilgili
 resmî kurumların (AFAD, Kandilli, OGM vb.) duyurularını esas al.
 
-## Render.com'da canlıya alma
+## AWS Amplify'da canlıya alma
 
-1. Bu repoyu GitHub'a push et (zaten yapıldıysa atla).
-2. [render.com](https://render.com) üzerinde hesabınla GitHub'ı bağla.
-3. **New +** → **Blueprint** ile bu reponun kökündeki `render.yaml` dosyasını seçtir.
-   Bu dosya hem web servisini hem de ücretsiz bir PostgreSQL veritabanını otomatik
-   kurar ve `DATABASE_URL` / `SESSION_SECRET` değişkenlerini otomatik bağlar.
-4. Kurulum ekranında `FIRMS_MAP_KEY` (opsiyonel, yangın verisi için) ve `ADMIN_EMAIL` /
-   `ADMIN_PASSWORD` (admin paneline giriş için — kendi belirlediğin bilgiler) değerlerini gir.
-   Blueprint kurulumunu ilk seferinde yaptıysan, bu değişkenleri sonradan Render panelinde
-   servisin **Environment** sekmesinden de ekleyebilir/değiştirebilirsin.
-5. Deploy tamamlanınca Render'ın verdiği `https://<servis-adi>.onrender.com`
-   adresinden sitene, `/admin.html` adresinden de admin paneline ulaşırsın.
+Site [AWS Amplify Hosting](https://aws.amazon.com/amplify/hosting/) üzerinde çalışır;
+`main` dalına her push'ta otomatik yeniden yayınlanır. Node sunucusu Amplify'ın
+[deployment specification](https://docs.aws.amazon.com/amplify/latest/userguide/deploy-express-server.html)
+ile "Compute" olarak, `public/` klasörü ise CDN'den statik olarak sunulur.
 
-> Not: Ücretsiz web servis planı bir süre trafik almazsa "uykuya" geçer; ilk istekte
-> birkaç saniye gecikme olabilir.
+İlk kurulum:
+1. AWS Konsolu → **Amplify** → **Create new app** → **GitHub** → bu repo, `main` dalı.
+2. Build ayarlarını değiştirme; kökteki `amplify.yml` kullanılır.
+3. **Environment variables** kısmına `DATABASE_URL`, `SESSION_SECRET`, `ADMIN_EMAIL`,
+   `ADMIN_PASSWORD` ve (isteğe bağlı) `FIRMS_MAP_KEY` ekle → **Save and deploy**.
+
+> Önemli: Amplify ortam değişkenleri çalışma anında sunucuya ulaşmaz; `bin/amplify-build.sh`
+> bunları build sırasında sunucunun `.env` dosyasına yazar. Bu yüzden bir değişkeni
+> ekledikten/değiştirdikten sonra **Redeploy** gerekir.
 
 ## Proje yapısı
 
@@ -119,8 +133,11 @@ havasite/
   lib/
     db.js             # Postgres pool + otomatik sema
     auth.js           # sifre hashleme + imzali oturum cerezi
-  config.json         # NASA FIRMS anahtari (git'e dahil edilmez)
-  render.yaml          # Render Blueprint: web servis + ucretsiz Postgres
+  .env                # yerel ayarlar: DATABASE_URL, ADMIN_*, FIRMS_MAP_KEY (git'e dahil edilmez)
+  config.json         # (istege bagli) NASA FIRMS anahtari (git'e dahil edilmez)
+  amplify.yml         # AWS Amplify build ayari
+  deploy-manifest.json # Amplify: hangi yol sunucuya, hangisi CDN'e gider
+  bin/amplify-build.sh # Amplify dagitim paketini (.amplify-hosting) olusturur
   public/
     index.html, login.html, hava.html, deprem.html, yangin.html, admin.html, ayarlar.html
     css/               # base.css (ortak) + sayfa bazli stiller

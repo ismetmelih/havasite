@@ -28,7 +28,7 @@ function loadConfig() {
   } catch (err) {
     console.warn("[uyari] config.json okunamadi, varsayilanlar kullaniliyor:", err.message);
   }
-  // Ortam degiskenleri (ornegin Render.com'daki Environment Variables) config.json'u ezer.
+  // Ortam degiskenleri (ornegin AWS Amplify Environment variables) config.json'u ezer.
   // Boylece config.json git'e dahil edilmese bile (.gitignore) barindirma platformunda calisir.
   if (process.env.FIRMS_MAP_KEY) CONFIG.FIRMS_MAP_KEY = process.env.FIRMS_MAP_KEY;
   if (process.env.PORT) CONFIG.PORT = process.env.PORT;
@@ -433,7 +433,7 @@ async function requireDb(res) {
     sendJson(res, 200, {
       ok: false,
       reason: "no_database",
-      message: "DATABASE_URL tanimli degil veya veritabanina baglanilamadi. Render panelinde bir PostgreSQL ekleyip DATABASE_URL ortam degiskenini tanimla.",
+      message: "DATABASE_URL tanimli degil veya veritabanina baglanilamadi. DATABASE_URL ortam degiskenini tanimla (AWS Amplify: Environment variables + Redeploy).",
     });
     return false;
   }
@@ -551,7 +551,7 @@ async function handleUpdateMe(req, res) {
 
 // ---------- admin ----------
 // Admin, normal kullanici hesaplarindan tamamen bagimsizdir: musteri kayit/giris
-// sistemiyle hicbir iliskisi yoktur. Site sahibi Render panelinde (veya yerelde)
+// sistemiyle hicbir iliskisi yoktur. Site sahibi AWS Amplify'da (veya yerelde .env icinde)
 // ADMIN_EMAIL ve ADMIN_PASSWORD ortam degiskenlerini tanimlar; admin.html'deki
 // giris formu bu bilgilerle dogrulanir ve ayri, kisa omurlu bir oturum cerezi alir.
 function adminCredentialsConfigured() {
@@ -569,7 +569,7 @@ async function handleAdminLogin(req, res) {
     return sendJson(res, 200, {
       ok: false,
       reason: "not_configured",
-      message: "Sunucuda ADMIN_EMAIL / ADMIN_PASSWORD ortam degiskenleri tanimli degil. Render panelinden ekleyin.",
+      message: "Sunucuda ADMIN_EMAIL / ADMIN_PASSWORD ortam degiskenleri tanimli degil. AWS Amplify Environment variables bolumunden ekleyip Redeploy edin.",
     });
   }
   const email = String(body.email || "").trim().toLowerCase();
