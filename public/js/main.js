@@ -13,7 +13,7 @@
   };
   const baseMaps = [];
   function currentMapTheme() {
-    return document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+    return document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark";
   }
   function setBaseLayers(entry) {
     if (entry.layers) entry.layers.forEach((l) => entry.map.removeLayer(l));
@@ -386,9 +386,9 @@
 
   function getTheme() {
     try {
-      return localStorage.getItem(THEME_KEY) === "dark" ? "dark" : "light";
+      return localStorage.getItem(THEME_KEY) === "light" ? "light" : "dark";
     } catch {
-      return "light";
+      return "dark";
     }
   }
 
@@ -396,11 +396,12 @@
     document.documentElement.setAttribute("data-theme", theme);
     // telefonun durum cubugu / tarayici cubugu temaya uysun
     const themeMeta = document.querySelector('meta[name="theme-color"]');
-    if (themeMeta) themeMeta.setAttribute("content", theme === "light" ? "#f3f3f5" : "#0f0f12");
+    if (themeMeta) themeMeta.setAttribute("content", theme === "light" ? "#eef2f8" : "#0a1224");
     if (persist) {
       try { localStorage.setItem(THEME_KEY, theme); } catch {}
     }
     if (window.HavaMap && window.HavaMap.refreshBaseLayers) window.HavaMap.refreshBaseLayers();
+    if (window.HavaChart) window.HavaChart.refreshTheme();
     document.querySelectorAll("[data-theme-icon]").forEach((el) => {
       el.innerHTML = theme === "light" ? SUN_ICON : MOON_ICON;
     });
@@ -411,7 +412,7 @@
 
   window.HavaTheme = {
     get: getTheme,
-    set: (t) => applyTheme(t === "dark" ? "dark" : "light"),
+    set: (t) => applyTheme(t === "light" ? "light" : "dark"),
   };
 
   function setupThemeToggle() {

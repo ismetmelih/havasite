@@ -187,7 +187,7 @@
         let h = parseInt(hhmm.slice(0, 2), 10);
         if (!Number.isNaN(h)) hrs[(h + 3) % 24]++;
       });
-      D.histogram($("fDailyChart"), hrs.map((v, i) => ({ v, label: i % 3 === 0 ? `${String(i).padStart(2, "0")}` : "" })), { height: 200 });
+      D.histogram($("fDailyChart"), hrs.map((v, i) => ({ v, label: `${String(i).padStart(2, "0")}:00` })), { height: 230, label: "Tespit" });
       return;
     }
     $("fDailyHint").textContent = "Seçili gün aralığındaki günlük tespit sayısı";
@@ -200,7 +200,7 @@
       const key = d.toISOString().slice(0, 10);
       arr.push({ v: byDay.get(key) || 0, label: `${d.getDate()} ${AY[d.getMonth()]}` });
     }
-    D.histogram($("fDailyChart"), arr, { height: 200 });
+    D.histogram($("fDailyChart"), arr, { height: 230, label: "Tespit" });
   }
 
   function rowHtml(f, i) {

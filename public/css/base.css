@@ -10,93 +10,111 @@
 @font-face { font-family: "Satoshi"; src: url("../fonts/satoshi-500.woff2") format("woff2"); font-weight: 500; font-display: swap; }
 @font-face { font-family: "Satoshi"; src: url("../fonts/satoshi-700.woff2") format("woff2"); font-weight: 700; font-display: swap; }
 
-/* ---------------- acik tema (varsayilan) ---------------- */
+/* ---------------- koyu lacivert tema (varsayilan) — panel / tahmin yazilimi gorunumu ---------------- */
 :root {
-  color-scheme: light;
-
-  /* zeminler — sicak olmayan, notr kirik beyaz; kartlar beyaz ve kenarliksiz */
-  --bg: #f3f3f5;
-  --bg-alt: #e9e9ed;
-  --surface: #ffffff;
-  --surface-2: #f3f3f5;
-  --surface-hover: #ebebef;
-  --border: rgba(16, 16, 24, 0.07);
-  --border-strong: rgba(16, 16, 24, 0.14);
-
-  /* metin */
-  --text-primary: #111114;
-  --text-secondary: #54555e;
-  --text-muted: #8a8b95;
-
-  /* tek marka vurgusu */
-  --accent: #1d8ce8;
-  --accent-2: #1673c2;
-  --accent-weak: rgba(29, 140, 232, 0.11);
-  --accent-contrast: #ffffff;
-
-  /* kategori renkleri — yalnizca veri anlami icin */
-  --c-weather: #1d8ce8;
-  --c-weather-2: #4aa4ee;
-  --c-weather-glow: #1d8ce8;
-  --c-quake: #d27a22;
-  --c-quake-2: #b8661a;
-  --c-fire: #de4a3f;
-  --c-fire-2: #c13a30;
-
-  /* durum renkleri */
-  --status-good: #2f9e62;
-  --status-warning: #d99a1e;
-  --status-serious: #d9772e;
-  --status-critical: #dc4646;
-
-  --radius-sm: 10px;
-  --radius-md: 16px;
-  --radius-lg: 24px;
-  --shadow-soft: 0 1px 2px rgba(16, 16, 24, 0.04), 0 10px 30px -12px rgba(16, 16, 24, 0.12);
-  --font: "Satoshi", "Segoe UI", system-ui, -apple-system, sans-serif;
-  --font-display: "Cabinet Grotesk", "Satoshi", system-ui, sans-serif;
-  /* veri/sayi: esit genislikli rakamlar (Satoshi tnum) */
-  --font-mono: "Satoshi", "Segoe UI", system-ui, sans-serif;
-
-  --ambient-weather: #e3eefb;
-  --ambient-quake: #f6ebdd;
-  --ambient-fire: #f8e3e0;
-}
-
-/* ---------------- koyu tema: notr antrasit (lacivert degil) ---------------- */
-:root[data-theme="dark"] {
   color-scheme: dark;
 
-  --bg: #0f0f12;
-  --bg-alt: #0a0a0c;
-  --surface: #18181c;
-  --surface-2: #202025;
-  --surface-hover: #28282e;
-  --border: rgba(255, 255, 255, 0.07);
-  --border-strong: rgba(255, 255, 255, 0.14);
+  /* zeminler — derin lacivert, kartlar bir ton acik ve ince mavimsi kenarli */
+  --bg: #0a1224;
+  --bg-alt: #070d1b;
+  --surface: #0f1a31;
+  --surface-2: #14213d;
+  --surface-hover: #1a2a4b;
+  --border: rgba(104, 145, 222, 0.16);
+  --border-strong: rgba(104, 145, 222, 0.30);
+  --chart-grid: rgba(120, 155, 225, 0.10);
 
-  --text-primary: #f4f4f6;
-  --text-secondary: #a3a3ad;
-  --text-muted: #6f6f7a;
+  /* metin */
+  --text-primary: #e7eef9;
+  --text-secondary: #a2b3cd;
+  --text-muted: #6d809f;
 
-  --accent: #3b9ef0;
-  --accent-2: #6db6f4;
-  --accent-weak: rgba(59, 158, 240, 0.15);
+  /* marka vurgusu — camgobegi */
+  --accent: #22d3ee;
+  --accent-2: #67e8f9;
+  --accent-weak: rgba(34, 211, 238, 0.12);
+  --accent-contrast: #03222a;
+
+  /* kategori renkleri */
+  --c-weather: #38bdf8;
+  --c-weather-2: #7dd3fc;
+  --c-weather-glow: #38bdf8;
+  --c-quake: #f5a524;
+  --c-quake-2: #fbbf5a;
+  --c-fire: #f87171;
+  --c-fire-2: #fca5a5;
+
+  /* deger tonlari (istatistik kartlari) */
+  --tone-red: #f87171;
+  --tone-cyan: #38bdf8;
+  --tone-green: #34d399;
+  --tone-blue: #93c5fd;
+  --tone-amber: #fbbf24;
+  --tone-violet: #a78bfa;
+  --tone-teal: #2dd4bf;
+
+  /* durum renkleri */
+  --status-good: #34d399;
+  --status-warning: #fbbf24;
+  --status-serious: #fb923c;
+  --status-critical: #ef4444;
+
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --shadow-soft: 0 12px 34px -16px rgba(0, 0, 0, 0.7);
+  --font: "Satoshi", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-display: "Satoshi", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "Satoshi", "Segoe UI", system-ui, sans-serif;
+
+  --ambient-weather: #0c1a2e;
+  --ambient-quake: #17140f;
+  --ambient-fire: #1a1016;
+}
+
+/* ---------------- acik tema (isteğe bagli) ---------------- */
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --bg: #eef2f8;
+  --bg-alt: #e2e8f2;
+  --surface: #ffffff;
+  --surface-2: #f2f5fa;
+  --surface-hover: #e7edf6;
+  --border: rgba(30, 60, 120, 0.12);
+  --border-strong: rgba(30, 60, 120, 0.22);
+  --chart-grid: rgba(30, 60, 120, 0.08);
+
+  --text-primary: #0f1b33;
+  --text-secondary: #4a5a78;
+  --text-muted: #7f8ca6;
+
+  --accent: #0891b2;
+  --accent-2: #0e7490;
+  --accent-weak: rgba(8, 145, 178, 0.12);
   --accent-contrast: #ffffff;
 
-  --c-weather: #3b9ef0;
-  --c-weather-2: #6db6f4;
-  --c-weather-glow: #3b9ef0;
-  --c-quake: #e0913f;
-  --c-quake-2: #e9aa68;
-  --c-fire: #e8594f;
-  --c-fire-2: #ef8078;
+  --c-weather: #0284c7;
+  --c-weather-2: #0ea5e9;
+  --c-weather-glow: #0284c7;
+  --c-quake: #d97706;
+  --c-quake-2: #b45309;
+  --c-fire: #dc2626;
+  --c-fire-2: #b91c1c;
 
-  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.3), 0 16px 40px -16px rgba(0, 0, 0, 0.6);
+  --tone-red: #dc2626;
+  --tone-cyan: #0284c7;
+  --tone-green: #059669;
+  --tone-blue: #2563eb;
+  --tone-amber: #d97706;
+  --tone-violet: #7c3aed;
+  --tone-teal: #0d9488;
 
-  --ambient-weather: #111a24;
-  --ambient-quake: #1d1712;
-  --ambient-fire: #1f1312;
+  --shadow-soft: 0 10px 30px -14px rgba(15, 27, 51, 0.18);
+
+  --ambient-weather: #dde9f7;
+  --ambient-quake: #f3eadc;
+  --ambient-fire: #f5e1e1;
 }
 
 * {
@@ -132,9 +150,9 @@ body {
 
 h1, h2, h3, h4 {
   font-family: var(--font-display);
-  font-weight: 800;
-  letter-spacing: -0.025em;
-  line-height: 1.08;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.15;
   text-wrap: balance;
 }
 p { text-wrap: pretty; }
@@ -1452,8 +1470,8 @@ select.filter-select:active {
 /* Esri "Dark Gray" zeminini navy temaya yaklastirmak icin karart; harita
    (hero gibi) her iki temada da koyu kalir. Etiket katmani ayri filtreyle
    okunur tutulur. */
-:root[data-theme="dark"] .hava-basemap { filter: brightness(0.6) saturate(0.8) contrast(1.06); }
-:root[data-theme="dark"] .hava-basemap-ref { filter: brightness(1.05) contrast(1.15); opacity: 0.9; }
+:root:not([data-theme="light"]) .hava-basemap { filter: brightness(0.6) saturate(0.8) contrast(1.06); }
+:root:not([data-theme="light"]) .hava-basemap-ref { filter: brightness(1.05) contrast(1.15); opacity: 0.9; }
 .leaflet-popup-content-wrapper {
   background: var(--surface-2);
   color: var(--text-primary);
@@ -1784,3 +1802,123 @@ body { padding-top: var(--safe-top); }
 .admin-login-card { padding: 30px 24px 26px; }
 /* kusuratli yakinlikta harita karolari arasinda 1px bosluk kaliyordu (acik temada beyaz cizgi) */
 .leaflet-container img.leaflet-tile { mix-blend-mode: normal; width: 257px !important; height: 257px !important; }
+
+/* =========================================================================
+   PANEL GORUNUMU (tahmin yazilimi tarzi): lacivert zemin, ince kenarli kartlar,
+   renkli buyuk degerler, tonlu grafik kartlari
+   ========================================================================= */
+body {
+  background:
+    radial-gradient(1200px 600px at 85% -10%, color-mix(in srgb, var(--accent) 7%, transparent), transparent 60%),
+    radial-gradient(900px 500px at -10% 10%, color-mix(in srgb, var(--c-weather) 6%, transparent), transparent 60%),
+    var(--bg);
+  background-attachment: fixed;
+}
+
+.card {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--text-primary) 2.5%, transparent), transparent 40%),
+    var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+}
+
+/* ---- sayfa basligi: kutulu baslik karti + parlayan ikon ---- */
+.page-head { border-bottom: none; padding-bottom: 6px; }
+.page-head-row {
+  position: relative;
+  z-index: 1;
+  padding: 22px 26px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--page-tone, var(--accent)) 10%, transparent), transparent 55%),
+    color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-soft);
+}
+.weather-body { --page-tone: var(--c-weather); }
+.quake-body { --page-tone: var(--c-quake); }
+.fire-body { --page-tone: var(--c-fire); }
+.page-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--page-tone, var(--accent)) 35%, transparent);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--page-tone, var(--accent)) 26%, var(--surface-2)), var(--surface-2)) !important;
+  box-shadow: 0 0 28px -6px color-mix(in srgb, var(--page-tone, var(--accent)) 55%, transparent);
+}
+.page-head h1 {
+  background: linear-gradient(90deg, var(--page-tone, var(--accent)), color-mix(in srgb, var(--page-tone, var(--accent)) 55%, var(--text-primary)));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.page-head .eyebrow { color: var(--text-secondary); letter-spacing: 0.12em; }
+
+/* ---- istatistik kartlari: solda etiket + buyuk renkli deger, sagda renkli ikon ---- */
+.stat-tile {
+  --tone: var(--tone-cyan);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 92px;
+  padding: 16px 64px 16px 18px;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+.stat-tiles .stat-tile:nth-child(4n + 1) { --tone: var(--tone-red); }
+.stat-tiles .stat-tile:nth-child(4n + 2) { --tone: var(--tone-cyan); }
+.stat-tiles .stat-tile:nth-child(4n + 3) { --tone: var(--tone-green); }
+.stat-tiles .stat-tile:nth-child(4n + 4) { --tone: var(--tone-blue); }
+.stat-tile .stat-label { text-transform: none; letter-spacing: 0; font-weight: 500; font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 4px; padding-right: 0; }
+.stat-tile .stat-value { color: var(--tone); font-size: 1.65rem; font-weight: 700; }
+.stat-tile .stat-sub { color: var(--text-muted); }
+.stat-tile-icon,
+.weather-body .stat-tile-icon,
+.quake-body .stat-tile-icon,
+.fire-body .stat-tile-icon {
+  top: 50%;
+  right: 18px;
+  transform: translateY(-50%);
+  color: var(--tone);
+  opacity: 1;
+}
+.stat-tile-icon .ic { width: 30px; height: 30px; }
+.stat-tile:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--tone) 45%, var(--border)); box-shadow: 0 14px 30px -16px color-mix(in srgb, var(--tone) 60%, transparent); }
+
+/* ---- rozetler: ince cerceveli, tonlu ---- */
+.badge {
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  color: var(--accent);
+}
+
+/* ---- sekme cubugu ---- */
+.dash-tabs, .wx-tabs { background: color-mix(in srgb, var(--surface) 85%, transparent); border-color: var(--border); }
+.wx-tab.active { background: var(--accent); color: var(--accent-contrast); box-shadow: 0 6px 18px -8px var(--accent); }
+
+/* ---- grafik kutusu ---- */
+.hc-box { position: relative; width: 100%; }
+
+/* ---- birincil dugme: camgobegi, koyu yazi ---- */
+.btn-primary { background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 70%, var(--c-weather))); color: var(--accent-contrast); }
+.btn-primary:hover { background: var(--accent-2); }
+
+/* ---- baslik vurgulari ---- */
+.accent-text {
+  background: linear-gradient(90deg, var(--accent), var(--c-weather));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+@media (max-width: 560px) {
+  .stat-tile { padding: 14px 42px 14px 14px; min-height: 84px; }
+  .stat-tile-icon { top: 16px; right: 12px; transform: none; }
+  .stat-tile-icon .ic { width: 22px; height: 22px; }
+  .stat-tile .stat-value { font-size: 1.3rem; }
+  .page-head-row { padding: 16px; }
+  .page-icon { width: 48px; height: 48px; border-radius: 14px; }
+}

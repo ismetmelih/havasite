@@ -183,3 +183,16 @@
   .dash-card { padding: 16px 14px; }
   .dash-table td, .dash-table th { white-space: nowrap; padding: 9px 10px; }
 }
+
+/* ---- panel gorunumu: kart basliklari ve sayfa tonu ---- */
+.dash-card {
+  background:
+    linear-gradient(160deg, color-mix(in srgb, var(--page-tone, var(--accent)) 8%, transparent), transparent 55%),
+    var(--surface);
+}
+.dash-head h3 { display: flex; align-items: center; gap: 8px; }
+.dash-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+}

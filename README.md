@@ -104,7 +104,9 @@ verisini önbelleğe alır; bağlantı yokken son bilinen veri, hiç açılmamı
 `offline.html` gösterilir. Önbellek davranışı değiştirildiğinde `sw.js` içindeki `VERSION`
 artırılmalı.
 
-Yazı tipleri: Cabinet Grotesk (başlıklar) ve Satoshi (metin/rakamlar), [Fontshare](https://www.fontshare.com) — ITF Free Font License, `fonts/` altında yerel.
+Grafikler: [Chart.js](https://www.chartjs.org) 4 (MIT, `js/vendor/`), ortak ayarlar `js/charts.js` içinde.
+
+Yazı tipleri: Satoshi (metin/rakamlar) ve Cabinet Grotesk, [Fontshare](https://www.fontshare.com) — ITF Free Font License, `fonts/` altında yerel.
 
 İkonlar: 3D ikonlar [Microsoft Fluent Emoji](https://github.com/microsoft/fluentui-emoji)
 (MIT, `img/3d/`), arayüz ikonları [Phosphor Icons](https://phosphoricons.com) (MIT, `js/main.js`).

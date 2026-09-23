@@ -340,3 +340,6 @@
 }
 .hero-cta .btn { padding: 13px 24px; font-size: 0.98rem; }
 .hero-cta .btn-ghost { border-color: var(--border-strong); background: var(--surface); }
+@media (max-width: 560px) {
+  .hero h1 { font-size: 2.3rem; letter-spacing: -0.035em; }
+}

@@ -8,7 +8,7 @@
 <meta name="description" content="Türkiye geneli anlık hava durumu: 81 il canlı sıcaklık haritası, saatlik ve 10 günlük tahmin, rüzgâr, nem, basınç ve UV ayrıntıları. Kaynak: Open-Meteo." />
 <link rel="icon" type="image/svg+xml" href="img/logo.svg" />
 <link rel="manifest" href="/manifest.webmanifest" />
-<meta name="theme-color" content="#f3f3f5" />
+<meta name="theme-color" content="#0a1224" />
 <link rel="apple-touch-icon" href="/img/app/apple-touch-icon.png" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
@@ -109,12 +109,22 @@
     <section class="wx-chartcard card">
       <div class="wx-chart-head">
         <div>
-          <h3>Saatlik sıcaklık</h3>
-          <p class="field-hint" id="wxChartHint">Önümüzdeki 24 saat — üzerine gelerek saat ayrıntısını gör</p>
+          <h3><span class="h-icon ic" data-icon="thermometer" data-icon-size="18"></span>Saatlik sıcaklık</h3>
+          <p class="field-hint" id="wxChartHint">Önümüzdeki 48 saat — üzerine gelerek ya da dokunarak saat ayrıntısını gör</p>
         </div>
         <div class="wx-moon" id="wxMoonBadge"></div>
       </div>
       <div class="wx-gchart" id="wxGChart"></div>
+    </section>
+
+    <section class="wx-chartcard wx-chartcard-rain card">
+      <div class="wx-chart-head">
+        <div>
+          <h3><span class="h-icon ic" data-icon="droplet" data-icon-size="18"></span>Yağış miktarı &amp; ihtimali</h3>
+          <p class="field-hint" id="wxRainHint">Önümüzdeki 48 saat</p>
+        </div>
+      </div>
+      <div class="wx-gchart" id="wxRainChart"></div>
     </section>
 
     <section class="wx-days card">
@@ -208,6 +218,8 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="js/cities.js"></script>
 <script src="js/main.js"></script>
+<script src="js/vendor/chart.umd.min.js"></script>
+<script src="js/charts.js"></script>
 <script src="js/weather-icons.js"></script>
 <script src="js/weather.js"></script>
 </body>

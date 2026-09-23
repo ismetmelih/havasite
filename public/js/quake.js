@@ -189,7 +189,7 @@
       const hoursAgo = Math.floor((now.getTime() - t) / 3600000);
       if (hoursAgo >= 0 && hoursAgo < 24) buckets[23 - hoursAgo]++;
     });
-    D.daySeries($("qActivityChart"), buckets.map((v, i) => ({ v, label: i % 4 === 0 ? `${labels[i]}:00` : "" })), { height: 200 });
+    D.daySeries($("qActivityChart"), buckets.map((v, i) => ({ v, label: `${labels[i]}:00` })), { height: 230, label: "Deprem" });
   }
 
   function rowHtml(q, i, flash) {
@@ -390,8 +390,8 @@
     $("qDailyHint").textContent = `Dönem ortalaması: günde ${dailyAvg.toFixed(1)} deprem`;
     D.daySeries($("qDailyChart"), dayArr.map(([k, v], i) => {
       const d = new Date(k);
-      return { v, label: i % 5 === 0 ? `${d.getDate()} ${["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"][d.getMonth()]}` : "" };
-    }), { height: 220 });
+      return { v, label: `${d.getDate()} ${["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"][d.getMonth()]}` };
+    }), { height: 240, label: "Deprem" });
 
     // 24 saat kadranı
     const hourCounts = new Array(24).fill(0);

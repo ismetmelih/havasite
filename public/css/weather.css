@@ -391,41 +391,9 @@
 .wx-moon { display: inline-flex; align-items: center; gap: 8px; font-size: 0.82rem; color: var(--text-secondary); }
 .wx-moonsvg .moon-dark { fill: color-mix(in srgb, var(--text-muted) 45%, var(--surface-2)); stroke: var(--border-strong); stroke-width: 1; }
 .wx-moonsvg .moon-lit { fill: #e8edf3; }
-:root:not([data-theme="dark"]) .wx-moonsvg .moon-lit { fill: #f0b83c; }
+:root[data-theme="light"] .wx-moonsvg .moon-lit { fill: #f0b83c; }
 
-.wx-gchart { position: relative; width: 100%; height: 240px; margin-top: 8px; overflow: hidden; }
-.wx-gchart-tall { height: 320px; }
-.gc-svg { width: 100%; height: 100%; display: block; overflow: visible; }
-.gc-line { filter: drop-shadow(0 2px 6px rgba(0,0,0,0.25)); }
-.gc-pt { fill: var(--text-primary); opacity: 0; }
-.gc-vt { fill: var(--text-secondary); font-size: 13px; font-weight: 600; text-anchor: middle; font-family: var(--font-mono); }
-.gc-xt { fill: var(--text-muted); font-size: 11px; text-anchor: middle; }
-.gc-xd { fill: var(--text-secondary); font-size: 10px; font-weight: 600; text-anchor: middle; }
-.gc-bar { fill: var(--c-weather); opacity: 0.55; }
-.gc-sun { color: var(--c-quake-2); }
-.gc-cursor { stroke: var(--text-primary); stroke-width: 1; stroke-dasharray: 3 3; opacity: 0.5; }
-.gc-hit { position: absolute; inset: 0; cursor: crosshair; }
-.gc-tip {
-  position: absolute;
-  top: -4px;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
-  border-radius: 10px;
-  background: var(--surface-2);
-  border: 1px solid var(--border-strong);
-  box-shadow: var(--shadow-soft);
-  font-size: 0.8rem;
-  white-space: nowrap;
-  pointer-events: none;
-  z-index: 5;
-}
-.gc-tip strong { font-family: var(--font-mono); }
-.gc-tip .wi { width: 20px; height: 20px; color: var(--c-weather); }
-.gc-tip-v { font-family: var(--font-mono); font-weight: 600; }
-.gc-tip-p { color: var(--c-weather-2); display: inline-flex; align-items: center; gap: 3px; }
+.wx-gchart { position: relative; width: 100%; margin-top: 10px; }
 
 /* metrik çipleri */
 .wx-metric-chips, .wx-map-layers { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
@@ -708,4 +676,32 @@ img.wi-fog { opacity: 0.7; }
   .wcc-tag { display: none; }
   .wcc-hi { font-size: 0.78rem; }
   .wcc-lo { font-size: 0.7rem; }
+}
+
+/* ---- panel gorunumu: tonlu grafik kartlari ve renkli olcumler ---- */
+.wx-chartcard {
+  --tone: var(--tone-red);
+  background:
+    linear-gradient(160deg, color-mix(in srgb, var(--tone) 13%, transparent), transparent 62%),
+    var(--surface);
+  border-color: color-mix(in srgb, var(--tone) 24%, var(--border));
+}
+.wx-chartcard .wx-chart-head h3 { color: var(--tone); display: flex; align-items: center; }
+.wx-chartcard .wx-chart-head h3 .h-icon { color: var(--tone); }
+.wx-chartcard-rain { --tone: var(--tone-cyan); }
+#view-saatlik .wx-chartcard { --tone: var(--accent); }
+
+.wx-qm { --tone: var(--tone-cyan); }
+.wx-qm:nth-child(6n + 1) { --tone: var(--tone-teal); }
+.wx-qm:nth-child(6n + 2) { --tone: var(--tone-cyan); }
+.wx-qm:nth-child(6n + 3) { --tone: var(--tone-blue); }
+.wx-qm:nth-child(6n + 4) { --tone: var(--tone-violet); }
+.wx-qm:nth-child(6n + 5) { --tone: var(--tone-amber); }
+.wx-qm:nth-child(6n + 6) { --tone: var(--tone-green); }
+.wx-qm-ic { color: var(--tone); }
+.wx-qm-val { color: var(--tone); font-weight: 700; }
+.wx-qm-label { text-transform: none; letter-spacing: 0; font-size: 0.78rem; font-weight: 500; color: var(--text-secondary); }
+@media (max-width: 560px) {
+  .wx-chart-head { flex-direction: column; gap: 6px; }
+  .wx-chartcard { padding: 16px 14px; }
 }

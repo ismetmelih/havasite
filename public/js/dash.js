@@ -83,50 +83,37 @@ window.Dash = (function () {
     </svg>`;
   }
 
-  /* ---- histogram ---- */
-  function histogram(el, bins, opts) {
-    opts = opts || {};
-    const W = 640, H = 220, padL = 34, padR = 8, padT = 22, padB = 34;
-    const max = Math.max(1, ...bins.map((b) => b.v));
-    const bw = (W - padL - padR) / bins.length;
-    const y = (v) => padT + (1 - v / max) * (H - padT - padB);
-    let g = "";
-    for (let t = 0; t <= max; t += Math.max(1, Math.ceil(max / 4))) {
-      g += `<line x1="${padL}" y1="${y(t).toFixed(1)}" x2="${W - padR}" y2="${y(t).toFixed(1)}" class="dc-grid"/><text x="${padL - 6}" y="${(y(t) + 3).toFixed(1)}" class="dc-yt">${t}</text>`;
-    }
-    let bars = "";
-    bins.forEach((b, i) => {
-      const x = padL + i * bw + bw * 0.14;
-      const w = bw * 0.72;
-      const bh = H - padB - y(b.v);
-      bars += `<rect x="${x.toFixed(1)}" y="${y(b.v).toFixed(1)}" width="${w.toFixed(1)}" height="${Math.max(bh, 0).toFixed(1)}" rx="2" class="dc-bar"/>`;
-      if (b.v > 0) bars += `<text x="${(x + w / 2).toFixed(1)}" y="${(y(b.v) - 6).toFixed(1)}" class="dc-vt">${b.v}</text>`;
-      bars += `<text x="${(x + w / 2).toFixed(1)}" y="${H - 14}" class="dc-xt">${b.label}</text>`;
-    });
-    el.innerHTML = `<div class="dash-chartbox"><svg viewBox="0 0 ${W} ${H}" class="dash-svg" style="height:${opts.height || 220}px">${g}${bars}</svg></div>`;
+  // sayfa temasina gore grafik rengi (deprem: turuncu, yangin: kirmizi)
+  function pageColor() {
+    if (document.body.classList.contains("fire-body")) return "var(--c-fire)";
+    if (document.body.classList.contains("quake-body")) return "var(--c-quake)";
+    return "var(--accent)";
   }
 
-  /* ---- gün gün bar/çizgi serisi ---- */
+  /* ---- histogram (Chart.js cubuk) ---- */
+  function histogram(el, bins, opts) {
+    opts = opts || {};
+    window.HavaChart.bar(el, {
+      labels: bins.map((b) => b.label),
+      data: bins.map((b) => b.v),
+      color: opts.color || pageColor(),
+      label: opts.label || "Adet",
+      height: opts.height || 230,
+      integer: true,
+    });
+  }
+
+  /* ---- gun gun / saat saat alan grafigi (Chart.js) ---- */
   function daySeries(el, points, opts) {
     opts = opts || {};
-    const W = 900, H = 240, padL = 34, padR = 10, padT = 22, padB = 40;
-    const n = points.length;
-    const max = Math.max(1, ...points.map((p) => p.v));
-    const x = (i) => padL + (i / Math.max(n - 1, 1)) * (W - padL - padR);
-    const y = (v) => padT + (1 - v / max) * (H - padT - padB);
-    let g = "";
-    for (let t = 0; t <= max; t += Math.max(1, Math.ceil(max / 4))) {
-      g += `<line x1="${padL}" y1="${y(t).toFixed(1)}" x2="${W - padR}" y2="${y(t).toFixed(1)}" class="dc-grid"/><text x="${padL - 6}" y="${(y(t) + 3).toFixed(1)}" class="dc-yt">${t}</text>`;
-    }
-    const pts = points.map((p, i) => [x(i), y(p.v)]);
-    const line = catmullRom(pts);
-    const area = `${line} L${x(n - 1)},${H - padB} L${x(0)},${H - padB} Z`;
-    let xl = "";
-    const step = Math.ceil(n / 8);
-    points.forEach((p, i) => { if (i % step === 0 || i === n - 1) xl += `<text x="${x(i).toFixed(1)}" y="${H - 14}" class="dc-xt">${p.label}</text>`; });
-    let dots = pts.map((p, i) => `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="2.5" class="dc-bar"/>`).join("");
-    el.innerHTML = `<div class="dash-chartbox"><svg viewBox="0 0 ${W} ${H}" class="dash-svg" style="height:${opts.height || 240}px">
-      ${g}<path d="${area}" class="dc-area"/><path d="${line}" class="dc-line"/>${dots}${xl}</svg></div>`;
+    window.HavaChart.line(el, {
+      labels: points.map((p) => p.label),
+      datasets: [{ label: opts.label || "Adet", data: points.map((p) => p.v), color: opts.color || pageColor(), fill: true }],
+      height: opts.height || 240,
+      beginAtZero: true,
+      integer: true,
+      decimals: 0,
+    });
   }
 
   /* ---- 24 saatlik kadran ---- */

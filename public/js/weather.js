@@ -267,7 +267,8 @@
       </div>`).join("");
 
     // saatlik sıcaklık grafiği (24 saat)
-    drawGradientChart($("wxGChart"), buildSeries("temp", 24), { unit: "°", colorByTemp: true });
+    drawGradientChart($("wxGChart"), buildSeries("temp", 48), { unit: "°C" });
+    drawRainChart($("wxRainChart"), 48);
 
     // ay evresi
     const mp = moonPhase(new Date());
@@ -325,15 +326,15 @@
      SAATLİK
      ============================================================ */
   const METRICS = [
-    { key: "temp", label: "Sıcaklık", unit: "°", field: "temperature_2m", colorByTemp: true },
-    { key: "feels", label: "Hissedilen", unit: "°", field: "apparent_temperature", colorByTemp: true },
-    { key: "pop", label: "Yağış olasılığı", unit: "%", field: "precipitation_probability" },
-    { key: "precip", label: "Yağış", unit: " mm", field: "precipitation" },
-    { key: "wind", label: "Rüzgâr", unit: " km/s", field: "wind_speed_10m" },
-    { key: "humidity", label: "Nem", unit: "%", field: "relative_humidity_2m" },
-    { key: "cloud", label: "Bulut örtüsü", unit: "%", field: "cloud_cover" },
-    { key: "pressure", label: "Basınç", unit: " hPa", field: "pressure_msl" },
-    { key: "uv", label: "UV", unit: "", field: "uv_index" },
+    { key: "temp", label: "Sıcaklık", unit: "°C", field: "temperature_2m", colorByTemp: true, color: "#f87171" },
+    { key: "feels", label: "Hissedilen", unit: "°C", field: "apparent_temperature", colorByTemp: true, color: "#fb923c" },
+    { key: "pop", label: "Yağış olasılığı", unit: "%", field: "precipitation_probability", color: "#34d399", min: 0, max: 100 },
+    { key: "precip", label: "Yağış", unit: " mm", field: "precipitation", color: "#38bdf8", beginAtZero: true },
+    { key: "wind", label: "Rüzgâr", unit: " km/s", field: "wind_speed_10m", color: "#2dd4bf", beginAtZero: true },
+    { key: "humidity", label: "Nem", unit: "%", field: "relative_humidity_2m", color: "#60a5fa", min: 0, max: 100 },
+    { key: "cloud", label: "Bulut örtüsü", unit: "%", field: "cloud_cover", color: "#94a3b8", min: 0, max: 100 },
+    { key: "pressure", label: "Basınç", unit: " hPa", field: "pressure_msl", color: "#a78bfa" },
+    { key: "uv", label: "UV", unit: "", field: "uv_index", color: "#fbbf24", beginAtZero: true },
   ];
   function setupMetricChips() {
     const wrap = $("wxMetricChips");
@@ -365,7 +366,7 @@
     const m = METRICS.find((x) => x.key === state.metric) || METRICS[0];
     $("wxHourlyTitle").textContent = m.label;
     const series = buildSeries(state.metric, 48);
-    drawGradientChart($("wxHourlyChart"), series, { unit: m.unit, colorByTemp: !!m.colorByTemp });
+    drawGradientChart($("wxHourlyChart"), series, { unit: m.unit, height: 320 });
 
     // saatlik kart şeridi (48 saat)
     const h = state.f.hourly, s = nowIndex();
@@ -385,8 +386,20 @@
   }
 
   /* ============================================================
-     GRADIENT CHART (imza görsel)
+     SAATLIK GRAFIKLER (Chart.js — js/charts.js)
      ============================================================ */
+  function hourLabel(t, i) {
+    const dt = new Date(t);
+    if (i === 0) return "Şimdi";
+    if (dt.getHours() === 0) return `${dt.getDate()} ${AY_KISA[dt.getMonth()]}`;
+    return `${String(dt.getHours()).padStart(2, "0")}:00`;
+  }
+  function hourTitle(t, i) {
+    const dt = new Date(t);
+    return `${i === 0 ? "Şimdi · " : ""}${dt.getDate()} ${AY_KISA[dt.getMonth()]} ${String(dt.getHours()).padStart(2, "0")}:00`;
+  }
+
+  // kucuk sparkline'lar (Ayrintilar kartlari) icin yumusak egri
   function catmullRom(pts) {
     if (pts.length < 2) return "";
     let d = `M${pts[0][0]},${pts[0][1]}`;
@@ -398,113 +411,43 @@
     }
     return d;
   }
-  let gcSeq = 0;
+
   function drawGradientChart(container, series, opts) {
-    if (!container) return;
+    if (!container || !series.vals || series.vals.length < 2) return;
     opts = opts || {};
-    const vals = series.vals, times = series.times;
-    if (!vals || vals.length < 2) { container.innerHTML = ""; return; }
-    const W = 1000, H = 260, padL = 24, padR = 20, padT = 34, padB = 46;
-    let min = Math.min(...vals), max = Math.max(...vals);
-    if (max - min < 1) { max += 1; min -= 1; }
-    const pad = (max - min) * 0.12; min -= pad; max += pad;
-    const x = (i) => padL + (i / (vals.length - 1)) * (W - padL - padR);
-    const y = (v) => padT + (1 - (v - min) / (max - min)) * (H - padT - padB);
-    const pts = vals.map((v, i) => [x(i), y(v)]);
-    const line = catmullRom(pts);
-    const area = `${line} L${x(vals.length - 1)},${H - padB} L${x(0)},${H - padB} Z`;
-
-    const uid = `gc${++gcSeq}`;
-    const acc = accentColor();
-    let gradStops = "";
-    if (opts.colorByTemp) {
-      vals.forEach((v, i) => { gradStops += `<stop offset="${((i / (vals.length - 1)) * 100).toFixed(1)}%" stop-color="${tempColor(v)}"/>`; });
-    } else {
-      gradStops = `<stop offset="0%" stop-color="${acc}"/><stop offset="100%" stop-color="${acc}"/>`;
-    }
-
-    // x ekseni etiketleri (her 3-6 saatte)
-    const step = vals.length > 30 ? 6 : 3;
-    let xlab = "";
-    times.forEach((t, i) => {
-      if (i % step !== 0 && i !== vals.length - 1) return;
-      const dt = new Date(t);
-      const lbl = i === 0 ? "Şimdi" : `${dt.getHours()}:00`;
-      xlab += `<text x="${x(i).toFixed(0)}" y="${H - 24}" class="gc-xt">${lbl}</text>`;
-      // gün değişiminde tarih
-      if (dt.getHours() === 0) xlab += `<text x="${x(i).toFixed(0)}" y="${H - 8}" class="gc-xd">${dt.getDate()} ${AY_KISA[dt.getMonth()]}</text>`;
+    const m = series.m;
+    window.HavaChart.line(container, {
+      labels: series.times.map(hourLabel),
+      datasets: [{ label: m.label, data: series.vals.map((v) => (v == null ? null : Math.round(v * 10) / 10)), color: m.color || "#38bdf8", fill: true }],
+      unit: opts.unit != null ? opts.unit : m.unit,
+      height: opts.height || 280,
+      min: m.min, max: m.max, beginAtZero: m.beginAtZero,
+      tooltipTitle: (i) => hourTitle(series.times[i], i),
+      tooltipExtra: (i) => {
+        const lines = [" " + window.WeatherWMO.label(series.codes[i])];
+        if (m.key !== "pop" && series.pop[i] >= 10) lines.push(` Yağış ihtimali: %${series.pop[i]}`);
+        return lines;
+      },
     });
+  }
 
-    // değer etiketleri (tepe/dip)
-    let vlab = "";
-    for (let i = 0; i < vals.length; i += step) {
-      vlab += `<text x="${x(i).toFixed(0)}" y="${(y(vals[i]) - 12).toFixed(0)}" class="gc-vt">${round(vals[i])}${opts.unit || ""}</text>`;
-    }
-
-    // gün doğumu/batımı işaretleri
-    let sun = "";
-    const di = todayIndex(), d = state.f.daily;
-    [["sunrise", "sunrise"], ["sunset", "sunset"]].forEach(([f, ic]) => {
-      for (let k = di; k < di + 3 && d[f][k]; k++) {
-        const st = new Date(d[f][k]).getTime();
-        const t0 = new Date(times[0]).getTime(), t1 = new Date(times[vals.length - 1]).getTime();
-        if (st < t0 || st > t1) continue;
-        const frac = (st - t0) / (t1 - t0);
-        const px = padL + frac * (W - padL - padR);
-        sun += `<g transform="translate(${px.toFixed(0)},${H - padB + 2})" class="gc-sun">${window.HavaIcon(ic, { size: 15 })}</g>`;
-      }
+  // gonderilen ornekteki gibi: saatlik yagis miktari (cubuk) + ihtimal (cizgi)
+  function drawRainChart(container, hours) {
+    if (!container) return;
+    const h = state.f.hourly, s = nowIndex();
+    const n = Math.min(hours, h.time.length - s);
+    const times = h.time.slice(s, s + n);
+    window.HavaChart.rain(container, {
+      labels: times.map(hourLabel),
+      amount: (h.precipitation || []).slice(s, s + n).map((v) => (v == null ? 0 : Math.round(v * 10) / 10)),
+      probability: (h.precipitation_probability || []).slice(s, s + n),
+      tooltipTitle: (i) => hourTitle(times[i], i),
+      height: 280,
     });
-
-    // yağış çubukları
-    let bars = "";
-    series.pop.forEach((p, i) => {
-      if (!p || p < 10) return;
-      const bh = (p / 100) * 20;
-      bars += `<rect x="${(x(i) - 2).toFixed(0)}" y="${(H - padB - bh).toFixed(0)}" width="4" height="${bh.toFixed(0)}" rx="1" class="gc-bar"/>`;
-    });
-
-    container.innerHTML = `
-      <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" class="gc-svg">
-        <defs>
-          <linearGradient id="${uid}" x1="0" y1="0" x2="1" y2="0">${gradStops}</linearGradient>
-          <linearGradient id="${uid}v" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#fff" stop-opacity="0.55"/>
-            <stop offset="100%" stop-color="#fff" stop-opacity="0"/>
-          </linearGradient>
-          <mask id="${uid}m"><rect width="${W}" height="${H}" fill="url(#${uid}v)"/></mask>
-        </defs>
-        <path d="${area}" fill="url(#${uid})" mask="url(#${uid}m)" opacity="0.9"/>
-        ${bars}
-        <path d="${line}" fill="none" stroke="url(#${uid})" stroke-width="3" stroke-linecap="round" class="gc-line"/>
-        ${pts.map((p) => `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="2.5" class="gc-pt"/>`).join("")}
-        ${vlab}${xlab}${sun}
-        <line class="gc-cursor" x1="0" y1="${padT}" x2="0" y2="${H - padB}" style="display:none"/>
-      </svg>
-      <div class="gc-tip" style="display:none"></div>
-      <div class="gc-hit"></div>`;
-
-    // etkileşim
-    const svgEl = container.querySelector(".gc-svg");
-    const tip = container.querySelector(".gc-tip");
-    const cursor = container.querySelector(".gc-cursor");
-    const hit = container.querySelector(".gc-hit");
-    function move(clientX) {
-      const rect = svgEl.getBoundingClientRect();
-      const rel = clamp((clientX - rect.left) / rect.width, 0, 1);
-      const i = clamp(Math.round(rel * (vals.length - 1)), 0, vals.length - 1);
-      const dt = new Date(times[i]);
-      cursor.style.display = "block";
-      cursor.setAttribute("x1", x(i)); cursor.setAttribute("x2", x(i));
-      tip.style.display = "block";
-      tip.style.left = `${(x(i) / W) * 100}%`;
-      tip.innerHTML = `<strong>${i === 0 ? "Şimdi" : dt.getHours() + ":00"}</strong>
-        ${window.WeatherWMO.svg(series.codes[i], series.isDay[i] === 1)}
-        <span class="gc-tip-v">${round(vals[i])}${opts.unit || ""}</span>
-        ${series.pop[i] >= 10 ? `<span class="gc-tip-p">${window.HavaIcon("droplet", { size: 11 })} %${series.pop[i]}</span>` : ""}`;
-    }
-    hit.addEventListener("mousemove", (e) => move(e.clientX));
-    hit.addEventListener("touchmove", (e) => { if (e.touches[0]) move(e.touches[0].clientX); }, { passive: true });
-    hit.addEventListener("mouseleave", () => { tip.style.display = "none"; cursor.style.display = "none"; });
+    const total = (h.precipitation || []).slice(s, s + n).reduce((a, v) => a + (v || 0), 0);
+    const maxP = Math.max(0, ...(h.precipitation_probability || []).slice(s, s + n));
+    const hint = $("wxRainHint");
+    if (hint) hint.textContent = `Önümüzdeki ${n} saat · toplam ${total.toFixed(1)} mm · en yüksek ihtimal %${maxP}`;
   }
 
   /* ============================================================
@@ -1032,52 +975,20 @@
   function avg(arr) { const c = arr.filter((x) => x != null); return c.reduce((s, x) => s + x, 0) / (c.length || 1); }
 
   function drawBandChart(a, rollHi, rollLo) {
-    const W = 1000, H = 320, padL = 34, padR = 10, padT = 20, padB = 40;
-    const n = a.time.length;
-    const allV = [...a.temperature_2m_max, ...a.temperature_2m_min].filter((x) => x != null);
-    let mn = Math.floor(Math.min(...allV) / 5) * 5 - 2;
-    let mx = Math.ceil(Math.max(...allV) / 5) * 5 + 2;
-    const x = (i) => padL + (i / (n - 1)) * (W - padL - padR);
-    const y = (v) => padT + (1 - (v - mn) / (mx - mn)) * (H - padT - padB);
-
-    const hiPath = a.temperature_2m_max.map((v, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
-    const loPath = a.temperature_2m_min.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).reverse().map((p, i) => `${i ? "L" : "L"}${p}`).join(" ");
-    const band = `${hiPath} ${loPath} Z`;
-
-    const rHi = rollHi.map((v, i) => v == null ? "" : `${i ? "L" : "M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
-    const rLo = rollLo.map((v, i) => v == null ? "" : `${i ? "L" : "M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
-
-    // y ekseni
-    let yaxis = "";
-    for (let t = Math.ceil(mn / 10) * 10; t <= mx; t += 10) {
-      yaxis += `<line x1="${padL}" y1="${y(t).toFixed(1)}" x2="${W - padR}" y2="${y(t).toFixed(1)}" class="bc-grid"/>
-        <text x="${padL - 6}" y="${(y(t) + 3).toFixed(1)}" class="bc-yt">${t}°</text>`;
-    }
-    // x ekseni (ay isimleri)
-    let xaxis = "";
-    let lastM = -1;
-    a.time.forEach((t, i) => {
-      const d = new Date(t);
-      if (d.getMonth() !== lastM) {
-        lastM = d.getMonth();
-        xaxis += `<text x="${x(i).toFixed(1)}" y="${H - 14}" class="bc-xt">${AY_KISA[lastM]}</text>`;
-        xaxis += `<line x1="${x(i).toFixed(1)}" y1="${padT}" x2="${x(i).toFixed(1)}" y2="${H - padB}" class="bc-vgrid"/>`;
-      }
+    const r1 = (arr) => arr.map((v) => (v == null ? null : Math.round(v * 10) / 10));
+    window.HavaChart.line($("wxBandChart"), {
+      labels: a.time.map((t) => { const d = new Date(t); return `${d.getDate()} ${AY_KISA[d.getMonth()]}`; }),
+      datasets: [
+        { label: "En düşük", data: r1(a.temperature_2m_min), color: "#60a5fa", width: 1.5 },
+        { label: "En yüksek", data: r1(a.temperature_2m_max), color: "#f87171", width: 1.5, fill: "between" },
+        { label: "30 gün ort. (yüksek)", data: r1(rollHi), color: "#fca5a5", dashed: true, width: 2 },
+        { label: "30 gün ort. (düşük)", data: r1(rollLo), color: "#93c5fd", dashed: true, width: 2 },
+      ],
+      unit: "°C",
+      height: 320,
+      legend: true,
+      tooltipTitle: (i) => { const d = new Date(a.time[i]); return `${d.getDate()} ${AY_KISA[d.getMonth()]} ${d.getFullYear()}`; },
     });
-    // bugün çizgisi
-    const nowX = x(n - 1);
-
-    $("wxBandChart").innerHTML = `
-      <svg viewBox="0 0 ${W} ${H}" class="bc-svg" preserveAspectRatio="none">
-        ${yaxis}${xaxis}
-        <path d="${band}" class="bc-band"/>
-        <path d="${a.temperature_2m_max.map((v, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ")}" class="bc-hi"/>
-        <path d="${a.temperature_2m_min.map((v, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ")}" class="bc-lo"/>
-        <path d="${rHi}" class="bc-roll"/>
-        <path d="${rLo}" class="bc-roll"/>
-        <line x1="${nowX.toFixed(1)}" y1="${padT}" x2="${nowX.toFixed(1)}" y2="${H - padB}" class="bc-now"/>
-        <text x="${(nowX - 4).toFixed(1)}" y="${padT - 6}" class="bc-nowt" text-anchor="end">Bugün</text>
-      </svg>`;
   }
 
   function donutSvg(clear, wet) {
