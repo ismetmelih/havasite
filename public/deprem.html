@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <script>(function(){try{var u=new URLSearchParams(location.search).get('theme');var t=(u==='light'||u==='dark')?u:localStorage.getItem('havasite_theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 <title>Depremler — TürkiyeCanlı</title>
-<meta name="description" content="Türkiye canlı deprem haritası: AFAD kaynaklı son depremler, büyüklüğe göre renklendirilmiş harita, 3B görünüm, 30 günlük zaman tüneli ve sismik aktivite istatistikleri." />
+<meta name="description" content="Türkiye canlı deprem haritası: AFAD kaynaklı son depremler, büyüklüğe göre renklendirilmiş harita, 30 günlük zaman tüneli ve sismik aktivite istatistikleri." />
 <link rel="icon" type="image/svg+xml" href="img/logo.svg" />
 <link rel="manifest" href="/manifest.webmanifest" />
 <meta name="theme-color" content="#0a1224" />
@@ -67,7 +67,6 @@
     <button class="dash-tab active" type="button" data-view="genel"><span class="ic" data-icon="activity" data-icon-size="16"></span> Genel</button>
     <button class="dash-tab" type="button" data-view="harita"><span class="ic" data-icon="map" data-icon-size="16"></span> Harita</button>
     <button class="dash-tab" type="button" data-view="liste"><span class="ic" data-icon="layers" data-icon-size="16"></span> Liste</button>
-    <button class="dash-tab" type="button" data-view="kure"><span class="ic" data-icon="globe" data-icon-size="16"></span> 3B Küre</button>
     <button class="dash-tab" type="button" data-view="tunel"><span class="ic" data-icon="clock" data-icon-size="16"></span> Zaman Tüneli</button>
     <button class="dash-tab" type="button" data-view="istat"><span class="ic" data-icon="bar-chart" data-icon-size="16"></span> İstatistik</button>
   </nav>
@@ -172,18 +171,6 @@
     <div class="side-list side-list-full" id="quakeList"></div>
   </section>
 
-  <!-- ============ 3B KÜRE ============ -->
-  <section class="dash-view" id="view-kure">
-    <div class="quake-globe-head">
-      <div>
-        <h3><span class="h-icon" data-icon="globe" data-icon-size="18"></span>Son 7 günün depremleri — 3B görünüm</h3>
-        <p class="field-hint">Büyüklüğe göre renklenip titreşerek beliren noktalar. Sürükleyerek çevirebilirsin.</p>
-      </div>
-      <span class="badge badge-live" id="globeCount"><span class="live-blip"></span> yükleniyor…</span>
-    </div>
-    <div class="quake-globe-box"><canvas id="quakeGlobeCanvas"></canvas></div>
-  </section>
-
   <!-- ============ ZAMAN TÜNELİ ============ -->
   <section class="dash-view" id="view-tunel">
     <div class="map-head">
@@ -250,13 +237,11 @@
 </footer>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
 <script src="js/cities.js"></script>
 <script src="js/main.js"></script>
 <script src="js/vendor/chart.umd.min.js"></script>
 <script src="js/charts.js"></script>
 <script src="js/dash.js"></script>
-<script src="js/quake-globe.js"></script>
 <script src="js/quake.js"></script>
 </body>
 </html>

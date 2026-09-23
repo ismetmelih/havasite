@@ -30,17 +30,17 @@ Sonra tarayıcında **http://localhost:3000** adresini aç. `DATABASE_URL` tanı
 site yine açılır (hava/deprem/yangın verisi ve harita CDN'leri için internet bağlantısı
 gerekir) ama giriş/kayıt ve admin paneli "veritabanı yok" mesajı gösterir.
 
-Harita (Leaflet) ve 3D arka plan (Three.js) kütüphaneleri sayfalarda CDN üzerinden
+Harita kütüphanesi (Leaflet) sayfalarda CDN üzerinden
 otomatik yüklenir.
 
 ## Sayfalar
 
 | Sayfa | Açıklama | Erişim |
 |---|---|---|
-| `index.html` | Ana sayfa — 3D animasyonlu hero, canlı özet şerit; 3 kategori kartı sadece giriş yapınca görünür | herkese açık |
+| `index.html` | Ana sayfa — canlı özet şerit; 3 kategori kartı sadece giriş yapınca görünür | herkese açık |
 | `login.html` | Giriş / kayıt ekranı (gerçek sunucu tarafı hesaplar) | herkese açık |
 | `hava.html` | Anlık hava durumu, saatlik/7 günlük tahmin, 81 illik sıcaklık haritası + filtreler | **giriş gerekli** |
-| `deprem.html` | Canlı deprem haritası, 3D glob (sürükleyerek çevrilebilir), filtreler | **giriş gerekli** |
+| `deprem.html` | Canlı deprem haritası, liste, 30 günlük zaman tüneli, istatistikler, filtreler | **giriş gerekli** |
 | `yangin.html` | NASA FIRMS uydu verisiyle canlı yangın haritası, alev animasyonu, filtreler | **giriş gerekli** |
 | `admin.html` | Kullanıcı listesi, rol yönetimi, site/servis durumu | **sadece admin** |
 
@@ -121,7 +121,7 @@ Yazı tipleri: Satoshi (metin/rakamlar) ve Cabinet Grotesk, [Fontshare](https://
   bulut barındırma sağlayıcılarının sunucu IP'lerini engellediği için bırakıldı.)
 - **Yangın:** [NASA FIRMS](https://firms.modaps.eosdis.nasa.gov) (VIIRS/MODIS uydu aktif ateş tespiti) — ücretsiz anahtar gerekir.
 
-Bu proje bağımsız/gayriresmîdir; resmî afet/acil durum kararları için ilgili
+Bu proje bağımsızdır ve kamuya açık verileri kullanır; resmî afet/acil durum kararları için ilgili
 resmî kurumların (AFAD, Kandilli, OGM vb.) duyurularını esas al.
 
 ## AWS Amplify'da canlıya alma
@@ -157,5 +157,5 @@ havasite/
   public/
     index.html, login.html, hava.html, deprem.html, yangin.html, admin.html, ayarlar.html
     css/               # base.css (ortak) + sayfa bazli stiller
-    js/                # main.js (ortak/oturum), three-bg.js (3D), weather.js, quake.js, quake-globe.js, fire.js, admin.js, ...
+    js/                # main.js (ortak/oturum), charts.js (grafikler), weather.js, quake.js, fire.js, admin.js, ...
 ```

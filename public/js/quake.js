@@ -1,6 +1,6 @@
 /* =========================================================================
    TürkiyeCanlı — Depremler
-   Bölümler: Genel · Harita · Liste · 3B Küre · Zaman Tüneli · İstatistik
+   Bölümler: Genel · Harita · Liste · Zaman Tüneli · İstatistik
    Kaynak: /api/quakes (AFAD canlı) + /api/quakes/history (30 gün arşiv)
    ========================================================================= */
 (function () {
@@ -12,7 +12,7 @@
     raw: [], knownIds: new Set(), firstLoad: true,
     view: "genel", userPos: null,
     map: null, layer: null, mapReady: false,
-    globeReady: false, tunelReady: false,
+    tunelReady: false,
     hist: null, histLoading: false,
   };
   let lastCity = "—", lastDate = null;
@@ -42,7 +42,6 @@
     const showFilter = ["genel", "harita", "liste"].includes(v);
     $("qFilterBar").style.display = showFilter ? "" : "none";
     if (v === "harita") initMap();
-    if (v === "kure") initGlobe();
     if (v === "tunel") initTimeline();
     if (v === "istat") ensureHistory();
     if (state.raw.length) render();
@@ -261,19 +260,6 @@
       m._qid = q.id;
       if (newIds.has(q.id)) m.openPopup();
     });
-  }
-
-  /* ---------------- 3B KÜRE ---------------- */
-  function initGlobe() {
-    if (state.globeReady || !window.QuakeGlobe) return;
-    state.globeReady = true;
-    const globe = window.QuakeGlobe.create("quakeGlobeCanvas");
-    if (!globe) return;
-    fetch("/api/quakes/history?days=7").then((r) => r.json()).then((data) => {
-      const b = $("globeCount");
-      if (data.ok) { globe.setQuakes(data.data); b.innerHTML = `<span class="live-blip"></span> ${data.count} deprem (7 gün)`; }
-      else b.innerHTML = `<span class="live-blip"></span> veri alınamadı`;
-    }).catch(() => { $("globeCount").innerHTML = `<span class="live-blip"></span> bağlantı hatası`; });
   }
 
   /* ---------------- ZAMAN TÜNELİ ---------------- */
