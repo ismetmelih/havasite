@@ -62,7 +62,7 @@
   height: 56px;
   border-radius: 50%;
   background: #e7ecf3;
-  box-shadow: inset -15px -6px 0 0 #0b0f14, 0 0 24px 5px rgba(231, 236, 243, 0.3);
+  box-shadow: inset -15px -6px 0 0 var(--bg), 0 0 24px 5px rgba(231, 236, 243, 0.3);
   opacity: 0;
   transition: opacity 1s ease;
 }
@@ -391,7 +391,7 @@
 .wx-moon { display: inline-flex; align-items: center; gap: 8px; font-size: 0.82rem; color: var(--text-secondary); }
 .wx-moonsvg .moon-dark { fill: color-mix(in srgb, var(--text-muted) 45%, var(--surface-2)); stroke: var(--border-strong); stroke-width: 1; }
 .wx-moonsvg .moon-lit { fill: #e8edf3; }
-:root[data-theme="light"] .wx-moonsvg .moon-lit { fill: #f0b83c; }
+:root:not([data-theme="dark"]) .wx-moonsvg .moon-lit { fill: #f0b83c; }
 
 .wx-gchart { position: relative; width: 100%; height: 240px; margin-top: 8px; overflow: hidden; }
 .wx-gchart-tall { height: 320px; }

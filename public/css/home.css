@@ -9,8 +9,8 @@
   justify-content: center;
   overflow: hidden;
   background:
-    radial-gradient(ellipse 90% 60% at 78% -10%, color-mix(in srgb, var(--accent) 16%, transparent) 0%, transparent 60%),
-    linear-gradient(180deg, #0c1524 0%, var(--bg) 60%);
+    radial-gradient(ellipse 70% 55% at 50% -12%, color-mix(in srgb, var(--accent) 12%, transparent) 0%, transparent 65%),
+    var(--bg);
 }
 
 /* ince, kurumsal ölçüm ızgarası — dekoratif 3B sahne yerine */
@@ -46,12 +46,12 @@
 }
 
 .hero h1 {
-  font-size: clamp(2.2rem, 5.5vw, 4.1rem);
-  line-height: 1.1;
-  margin: 22px 0 18px;
+  font-size: clamp(2.6rem, 7vw, 5.6rem);
+  line-height: 0.98;
+  margin: 24px 0 22px;
   font-weight: 800;
-  letter-spacing: -0.5px;
-  max-width: 900px;
+  letter-spacing: -0.045em;
+  max-width: 980px;
 }
 
 .accent-text {
@@ -312,3 +312,31 @@
   .ticker-sep { display: none; }
   .ticker-item { min-width: 0; }
 }
+
+/* ---- basligin etrafinda suzulen 3D ikonlar ---- */
+.hero-float { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+.hf {
+  position: absolute;
+  width: clamp(56px, 6vw, 92px);
+  height: auto;
+  filter: drop-shadow(0 18px 24px rgba(16, 16, 24, 0.18));
+  animation: hf-float 7s ease-in-out infinite;
+  user-select: none;
+}
+.hf-1 { top: 22%; left: 9%; --r: -10deg; }
+.hf-2 { top: 18%; right: 10%; --r: 8deg; animation-duration: 8s; animation-delay: -2s; }
+.hf-3 { bottom: 26%; left: 14%; --r: 6deg; width: clamp(48px, 5vw, 76px); animation-duration: 6.5s; animation-delay: -4s; }
+.hf-4 { bottom: 22%; right: 13%; --r: -12deg; width: clamp(48px, 5vw, 78px); animation-duration: 9s; animation-delay: -1s; }
+@keyframes hf-float {
+  0%, 100% { transform: translateY(0) rotate(var(--r)); }
+  50% { transform: translateY(-14px) rotate(calc(var(--r) * -0.4)); }
+}
+@media (prefers-reduced-motion: reduce) { .hf { animation: none; transform: rotate(var(--r)); } }
+@media (max-width: 860px) {
+  .hf { width: 52px; }
+  .hf-1 { top: 13%; left: 4%; }
+  .hf-2 { top: 11%; right: 5%; }
+  .hf-3, .hf-4 { display: none; }
+}
+.hero-cta .btn { padding: 13px 24px; font-size: 0.98rem; }
+.hero-cta .btn-ghost { border-color: var(--border-strong); background: var(--surface); }

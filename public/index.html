@@ -8,15 +8,14 @@
 <meta name="description" content="Türkiye için anlık hava durumu, canlı deprem haritası ve uydu tabanlı yangın tespiti tek bir yerde." />
 <link rel="icon" type="image/svg+xml" href="img/logo.svg" />
 <link rel="manifest" href="/manifest.webmanifest" />
-<meta name="theme-color" content="#0e1626" />
+<meta name="theme-color" content="#f3f3f5" />
 <link rel="apple-touch-icon" href="/img/app/apple-touch-icon.png" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-title" content="TürkiyeCanlı" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" />
+<link rel="preload" href="/fonts/satoshi-400.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="preload" href="/fonts/cabinet-grotesk-800.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="stylesheet" href="css/base.css" />
 <link rel="stylesheet" href="css/home.css" />
 </head>
@@ -42,6 +41,12 @@
 
 <header class="hero">
   <div class="hero-grid" aria-hidden="true"></div>
+  <div class="hero-float" aria-hidden="true">
+    <img class="hf hf-1" src="img/3d/sun-cloud.png" alt="" draggable="false" />
+    <img class="hf hf-2" src="img/3d/globe.png" alt="" draggable="false" />
+    <img class="hf hf-3" src="img/3d/fire.png" alt="" draggable="false" />
+    <img class="hf hf-4" src="img/3d/satellite.png" alt="" draggable="false" />
+  </div>
   <div class="hero-fade"></div>
   <div class="container hero-content">
     <span class="badge badge-live reveal in-view"><span class="live-blip"></span> CANLI VERİ AKIŞI</span>

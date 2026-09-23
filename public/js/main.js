@@ -7,17 +7,34 @@
   // filigrani). Esri'nin "Dark Gray Canvas" servisi anahtarsiz, ucretsiz ve koyu;
   // navy temaya yaklastirmak icin hafif bir CSS filtresiyle karartiliyor
   // (bkz. base.css .hava-basemap).
+  const BASEMAPS = {
+    dark: ["Canvas/World_Dark_Gray_Base", "Canvas/World_Dark_Gray_Reference"],
+    light: ["Canvas/World_Light_Gray_Base", "Canvas/World_Light_Gray_Reference"],
+  };
+  const baseMaps = [];
+  function currentMapTheme() {
+    return document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+  }
+  function setBaseLayers(entry) {
+    if (entry.layers) entry.layers.forEach((l) => entry.map.removeLayer(l));
+    const [base, ref] = BASEMAPS[currentMapTheme()];
+    const url = (name) => `https://server.arcgisonline.com/ArcGIS/rest/services/${name}/MapServer/tile/{z}/{y}/{x}`;
+    entry.layers = [
+      L.tileLayer(url(base), { attribution: "Tiles &copy; Esri, HERE, Garmin, &copy; OpenStreetMap", maxZoom: 16, className: "hava-basemap" }),
+      L.tileLayer(url(ref), { maxZoom: 16, className: "hava-basemap-ref" }),
+    ];
+    entry.layers.forEach((l) => l.addTo(entry.map).bringToBack());
+  }
+
   window.HavaMap = {
     addBaseLayer: function (map) {
       if (typeof L === "undefined" || !map) return;
-      L.tileLayer(
-        "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
-        { attribution: "Tiles &copy; Esri, HERE, Garmin, &copy; OpenStreetMap", maxZoom: 16, className: "hava-basemap" }
-      ).addTo(map);
-      L.tileLayer(
-        "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}",
-        { maxZoom: 16, className: "hava-basemap-ref" }
-      ).addTo(map);
+      const entry = { map, layers: null };
+      baseMaps.push(entry);
+      setBaseLayers(entry);
+    },
+    refreshBaseLayers: function () {
+      baseMaps.forEach(setBaseLayers);
     },
     // Dar ekranlarda sabit yakinlik Turkiye'nin batisini disarida birakiyor;
     // tum ulkeyi kutuya sigdir.
@@ -369,9 +386,9 @@
 
   function getTheme() {
     try {
-      return localStorage.getItem(THEME_KEY) === "light" ? "light" : "dark";
+      return localStorage.getItem(THEME_KEY) === "dark" ? "dark" : "light";
     } catch {
-      return "dark";
+      return "light";
     }
   }
 
@@ -379,10 +396,11 @@
     document.documentElement.setAttribute("data-theme", theme);
     // telefonun durum cubugu / tarayici cubugu temaya uysun
     const themeMeta = document.querySelector('meta[name="theme-color"]');
-    if (themeMeta) themeMeta.setAttribute("content", theme === "light" ? "#f4f6f9" : "#0e1626");
+    if (themeMeta) themeMeta.setAttribute("content", theme === "light" ? "#f3f3f5" : "#0f0f12");
     if (persist) {
       try { localStorage.setItem(THEME_KEY, theme); } catch {}
     }
+    if (window.HavaMap && window.HavaMap.refreshBaseLayers) window.HavaMap.refreshBaseLayers();
     document.querySelectorAll("[data-theme-icon]").forEach((el) => {
       el.innerHTML = theme === "light" ? SUN_ICON : MOON_ICON;
     });
@@ -393,7 +411,7 @@
 
   window.HavaTheme = {
     get: getTheme,
-    set: (t) => applyTheme(t === "light" ? "light" : "dark"),
+    set: (t) => applyTheme(t === "dark" ? "dark" : "light"),
   };
 
   function setupThemeToggle() {

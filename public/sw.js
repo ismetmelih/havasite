@@ -6,7 +6,7 @@
 // - Gorseller, yazi tipleri ve surumlu CDN kutuphaneleri: once onbellek (hizli), arka planda tazele.
 // - /api/quakes ve /api/fires: once ag; baglanti yoksa son bilinen veri gosterilir.
 // - Giris/admin API'leri ve harita karolari hic onbelleklenmez.
-const VERSION = "v1";
+const VERSION = "v2";
 const SHELL_CACHE = `tc-shell-${VERSION}`;
 const RUNTIME_CACHE = `tc-runtime-${VERSION}`;
 
@@ -35,11 +35,15 @@ const SHELL = [
   "/js/quake-globe.js",
   "/js/fire.js",
   "/img/logo.svg",
+  "/fonts/satoshi-400.woff2",
+  "/fonts/satoshi-500.woff2",
+  "/fonts/satoshi-700.woff2",
+  "/fonts/cabinet-grotesk-800.woff2",
   "/img/app/icon-192.png",
   "/manifest.webmanifest",
 ];
 
-const CDN_HOSTS = ["unpkg.com", "fonts.googleapis.com", "fonts.gstatic.com"];
+const CDN_HOSTS = ["unpkg.com"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
