@@ -195,6 +195,10 @@
 .cat-quake .cat-icon { background: color-mix(in srgb, var(--c-quake) 15%, transparent); color: var(--c-quake-2); }
 .cat-fire .cat-icon { background: color-mix(in srgb, var(--c-fire) 15%, transparent); color: var(--c-fire-2); }
 .cat-icon svg { width: 34px; height: 34px; }
+/* 3D ikon: karo zemin yok, ikonun kendisi one ciksin */
+.cat-weather .cat-icon, .cat-quake .cat-icon, .cat-fire .cat-icon { background: none; width: 76px; height: 76px; margin-bottom: 14px; }
+.cat-icon .icon-3d { transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.cat-card:hover .cat-icon .icon-3d { transform: translateY(-4px) rotate(-6deg) scale(1.06); }
 
 .cat-card h3 {
   position: relative;

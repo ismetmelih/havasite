@@ -2,11 +2,18 @@
 <html lang="tr" class="auth-pending">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <script>(function(){try{var u=new URLSearchParams(location.search).get('theme');var t=(u==='light'||u==='dark')?u:localStorage.getItem('havasite_theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 <title>Yangınlar — TürkiyeCanlı</title>
 <meta name="description" content="NASA FIRMS uydu verisiyle Türkiye aktif yangın / ısı tespiti paneli: canlı harita, ısı gücü (FRP) istatistikleri, il sıralaması ve hava koşullarına dayalı tahmini yangın riski." />
 <link rel="icon" type="image/svg+xml" href="img/logo.svg" />
+<link rel="manifest" href="/manifest.webmanifest" />
+<meta name="theme-color" content="#0e1626" />
+<link rel="apple-touch-icon" href="/img/app/apple-touch-icon.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="TürkiyeCanlı" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -29,9 +36,7 @@
   <div class="nav-account">
     <div class="nav-actions">
       <button class="icon-btn" id="themeToggle" type="button" aria-label="Açık/Koyu tema" title="Açık/Koyu tema"><span data-theme-icon></span></button>
-      <a class="icon-btn icon-settings" href="ayarlar.html" aria-label="Ayarlar" title="Ayarlar">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 13a7.4 7.4 0 0 0 .1-2l1.9-1.5-2-3.5-2.3.9a7.6 7.6 0 0 0-1.7-1L15 3.5h-4l-.4 2.4a7.6 7.6 0 0 0-1.7 1l-2.3-.9-2 3.5L6.5 11a7.4 7.4 0 0 0 0 2l-1.9 1.5 2 3.5 2.3-.9a7.6 7.6 0 0 0 1.7 1l.4 2.4h4l.4-2.4a7.6 7.6 0 0 0 1.7-1l2.3.9 2-3.5-1.9-1.5Z"/></svg>
-      </a>
+      <a class="icon-btn icon-settings" href="ayarlar.html" aria-label="Ayarlar" title="Ayarlar"><span class="ic" data-icon="settings" data-icon-size="18"></span></a>
     </div>
     <div class="nav-user" id="navUser"></div>
   </div>
@@ -41,11 +46,7 @@
   <div class="page-scene" aria-hidden="true"><span class="ps-grid"></span></div>
   <div class="container page-head-row">
     <div class="page-head-title">
-      <div class="page-icon icon-fire-wrap">
-        <svg viewBox="0 0 64 64" class="icon-fire">
-          <path class="flame" d="M32 6c4 8-3 11-3 18 0 5 4 7 7 7 5 0 9-4 9-10 6 6 9 14 9 20 0 12-10 21-22 21S10 53 10 41c0-9 5-15 9-20 1 6 5 9 9 9 3 0-3-4 4-24Z" fill="currentColor"/>
-        </svg>
-      </div>
+      <div class="page-icon icon-fire-wrap"><img class="icon-3d" src="img/3d/fire.png" alt="" draggable="false" /></div>
       <div>
         <span class="eyebrow text-fire">YANGINLAR</span>
         <h1>Uydu tabanlı yangın izleme paneli</h1>

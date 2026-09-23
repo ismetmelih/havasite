@@ -1,0 +1,25 @@
+{
+  "id": "/",
+  "name": "TürkiyeCanlı — Hava, Deprem & Yangın",
+  "short_name": "TürkiyeCanlı",
+  "description": "Türkiye için canlı hava durumu, deprem ve uydu tabanlı yangın takibi.",
+  "lang": "tr",
+  "dir": "ltr",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0e1626",
+  "theme_color": "#0e1626",
+  "categories": ["weather", "news", "utilities"],
+  "icons": [
+    { "src": "/img/app/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/img/app/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/img/app/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Hava Durumu", "url": "/hava.html", "icons": [{ "src": "/img/3d/sun-cloud.png", "sizes": "256x256", "type": "image/png" }] },
+    { "name": "Depremler", "url": "/deprem.html", "icons": [{ "src": "/img/3d/globe.png", "sizes": "256x256", "type": "image/png" }] },
+    { "name": "Yangınlar", "url": "/yangin.html", "icons": [{ "src": "/img/3d/fire.png", "sizes": "256x256", "type": "image/png" }] }
+  ]
+}

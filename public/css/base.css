@@ -915,24 +915,15 @@ input {
   background: var(--surface-hover);
 }
 
-/* ---------------- kategoriye ozel animasyonlu ikonlar ----------------
-   Ana sayfadaki kategori kartlarinda da, veri sayfalarinin basliginda da
-   kullanilir (.cat-icon ve .page-icon aynı svg yapisini paylasir). */
-.icon-sun .rays { transform-origin: 32px 32px; animation: sun-spin 9s linear infinite; }
-@keyframes sun-spin { to { transform: rotate(360deg); } }
-
-.icon-quake .r1 { transform-origin: 32px 32px; animation: quake-ring 2.2s ease-out infinite; }
-.icon-quake .r2 { transform-origin: 32px 32px; animation: quake-ring 2.2s ease-out infinite 1.1s; }
-@keyframes quake-ring {
-  0% { transform: scale(0.6); opacity: 1; }
-  100% { transform: scale(2.1); opacity: 0; }
-}
-
-.icon-fire .flame { animation: flame-flicker 1.8s ease-in-out infinite; transform-origin: 32px 56px; }
-@keyframes flame-flicker {
-  0%, 100% { transform: scale(1) skewX(0deg); }
-  30% { transform: scale(1.04, 0.97) skewX(-2deg); }
-  60% { transform: scale(0.97, 1.05) skewX(2deg); }
+/* ---------------- 3D ikonlar (img/3d, Microsoft Fluent Emoji — MIT) ---------------- */
+.icon-3d {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  user-select: none;
+  -webkit-user-drag: none;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.25));
 }
 
 .page-icon {
@@ -945,6 +936,7 @@ input {
   flex-shrink: 0;
 }
 .page-icon svg { width: 30px; height: 30px; }
+.page-icon .icon-3d { width: 72%; height: 72%; }
 .page-icon.icon-weather { background: color-mix(in srgb, var(--c-weather) 15%, transparent); color: var(--c-weather-glow); }
 .page-icon.icon-quake-wrap { background: color-mix(in srgb, var(--c-quake) 15%, transparent); color: var(--c-quake-2); }
 .page-icon.icon-fire-wrap { background: color-mix(in srgb, var(--c-fire) 15%, transparent); color: var(--c-fire-2); }
@@ -1660,7 +1652,12 @@ select.filter-select:active {
   /* ust cubuk: logo solda, hesap dugmeleri + menu sagda; hicbiri ezilmesin */
   .site-nav { padding: 10px 14px; gap: 8px; }
   .site-nav > * { flex-shrink: 0; }
+  /* yer daralirsa kisalan tek sey logo yazisi olsun; menu dugmesi hep ekranda kalsin */
+  .site-nav > .brand { flex-shrink: 1; min-width: 0; overflow: hidden; white-space: nowrap; }
   .brand { gap: 8px; font-size: 1rem; }
+  /* misafir kotasi: "Misafir" yazisi olmadan, noktalar + Giris */
+  .guest-quota { padding: 4px 4px 4px 10px; gap: 6px; }
+  .guest-quota .gq-text { display: none; }
   .brand-logo { width: 26px; height: 26px; }
   .nav-account { order: 2; margin-left: auto; }
   .hamburger {
@@ -1729,4 +1726,71 @@ select.filter-select:active {
 /* haritalar telefonda ekrani tamamen kaplamasin: altinda/ustunde sayfayi kaydirmak icin yer kalsin */
 @media (max-width: 560px) {
   .map-box { height: min(56vh, 420px) !important; }
+}
+@media (max-width: 370px) {
+  /* cok dar telefonlar: logo yazisini kaldir, sadece logo */
+  .brand { font-size: 0; gap: 0; }
+  .brand-logo { width: 30px; height: 30px; }
+}
+
+/* ---- ana ekrana eklenen uygulama (iOS tam ekran): saat/centik alani ---- */
+:root { --safe-top: env(safe-area-inset-top, 0px); }
+body { padding-top: var(--safe-top); }
+.site-nav { padding-top: calc(14px + var(--safe-top)); }
+@media (max-width: 560px) {
+  .site-nav { padding-top: calc(10px + var(--safe-top)); }
+}
+
+/* ---- "ana ekrana ekle" karti ---- */
+.install-card {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  z-index: 450;
+  max-width: 460px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 12px 12px 12px;
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  border: 1px solid var(--border);
+  box-shadow: 0 18px 40px -12px rgba(0, 0, 0, 0.5);
+  transform: translateY(140%);
+  opacity: 0;
+  transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.3, 1), opacity 0.3s ease;
+}
+.install-card.show { transform: translateY(0); opacity: 1; }
+.install-card-icon { width: 48px; height: 48px; border-radius: 12px; flex-shrink: 0; }
+.install-card-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; }
+.install-card-text strong { font-size: 0.92rem; }
+.install-card-text span { font-size: 0.8rem; color: var(--text-secondary); line-height: 1.45; }
+.install-card-text b { color: var(--text-primary); font-weight: 700; }
+.install-inline-ic { vertical-align: -0.2em; color: var(--accent); }
+.install-card-btn { flex-shrink: 0; }
+.install-card-close {
+  flex-shrink: 0;
+  align-self: flex-start;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+/* kart acikken ACIL dugmesi kartin ustune ciksin */
+.has-install-card .emergency-fab { bottom: calc(100px + env(safe-area-inset-bottom, 0px)); }
+/* telefonda misafirin "Giris Yap" dugmesi tek bir oka donmesin: yazi kalsin, ok gitsin */
+@media (max-width: 860px) {
+  .nav-user .btn span.label { display: inline; }
+  .nav-user .btn .ic { display: none; }
+  .nav-user .btn { padding: 8px 14px; }
 }

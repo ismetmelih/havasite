@@ -95,6 +95,18 @@ açıkça etiketlenmiş) verilerle deneyebilirsin.
 
 `.env` ve `config.json` `.gitignore` içinde — anahtarın yanlışlıkla bir depoya gönderilmez.
 
+## Uygulama (ana ekrana ekle / PWA)
+
+Site aynı zamanda telefona kurulabilen bir uygulamadır: `manifest.webmanifest`, `sw.js`
+(service worker) ve `img/app/` ikonları sayesinde Android'de "Yükle", iPhone'da Safari →
+Paylaş → **Ana Ekrana Ekle** ile tam ekran açılır. Service worker sayfaları ve son deprem/yangın
+verisini önbelleğe alır; bağlantı yokken son bilinen veri, hiç açılmamış sayfalarda
+`offline.html` gösterilir. Önbellek davranışı değiştirildiğinde `sw.js` içindeki `VERSION`
+artırılmalı.
+
+İkonlar: 3D ikonlar [Microsoft Fluent Emoji](https://github.com/microsoft/fluentui-emoji)
+(MIT, `img/3d/`), arayüz ikonları [Phosphor Icons](https://phosphoricons.com) (MIT, `js/main.js`).
+
 ## Veri kaynakları
 
 - **Hava durumu:** [Open-Meteo](https://open-meteo.com) — anahtarsız, ücretsiz.
