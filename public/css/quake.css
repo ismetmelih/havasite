@@ -175,3 +175,7 @@
   0%, 100% { transform: scale(1); opacity: 1; }
   50% { transform: scale(1.4); opacity: 0.55; }
 }
+/* sismograf cizgisi dar ekranda "son guncelleme" yazisinin ustunden geciyor */
+@media (max-width: 560px) {
+  .qs-wave { bottom: 2%; opacity: 0.6; }
+}

@@ -296,3 +296,15 @@
   .ticker { gap: 10px; padding: 14px 16px; }
   .ticker-item { min-width: 74px; }
 }
+/* canli serit: telefonda 2x2 izgara (ayraclar alt satira dusup kayiyordu) */
+@media (max-width: 560px) {
+  .ticker {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px 10px;
+    border-radius: 24px;
+    padding: 16px;
+  }
+  .ticker-sep { display: none; }
+  .ticker-item { min-width: 0; }
+}

@@ -248,8 +248,9 @@
   function initMap() {
     if (state.mapReady) { setTimeout(() => state.map.invalidateSize(), 60); return; }
     state.mapReady = true;
-    state.map = L.map("fireMap", { scrollWheelZoom: true }).setView([39.0, 35.2], 5.8);
+    state.map = L.map("fireMap", { scrollWheelZoom: true, zoomSnap: 0.25 }).setView([39.0, 35.2], 5.8);
     window.HavaMap.addBaseLayer(state.map);
+    window.HavaMap.fitTurkey(state.map);
     state.layer = L.layerGroup().addTo(state.map);
     renderMap(filtered());
   }

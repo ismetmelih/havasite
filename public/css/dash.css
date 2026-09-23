@@ -172,3 +172,14 @@
 
 /* mini çizgi */
 .dash-mini { width: 100%; height: 64px; }
+
+/* ---- mobil ---- */
+.dash-tab { flex-shrink: 0; }
+@media (max-width: 560px) { .dash-tabs { top: 60px; } }
+/* grid cocuklari icerikleri (genis grafik/tablo) yuzunden sayfayi genisletmesin;
+   genis icerik kendi kutusunda yatay kayar */
+.dash-2col > * { min-width: 0; }
+@media (max-width: 560px) {
+  .dash-card { padding: 16px 14px; }
+  .dash-table td, .dash-table th { white-space: nowrap; padding: 9px 10px; }
+}

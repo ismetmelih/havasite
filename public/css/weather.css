@@ -719,3 +719,25 @@
   .day-row { grid-template-columns: 58px 24px 42px 30px 1fr 30px; gap: 7px; padding: 11px 12px; }
   .search-box input { width: 150px; }
 }
+
+/* ---- mobil ---- */
+.wx-tab, .wx-city { flex-shrink: 0; }
+.weather-theme .page-head-row { position: relative; z-index: 1; }
+@media (max-width: 560px) {
+  .wx-tabs { top: 60px; }
+  /* dekoratif bulutlar dar ekranda basligin ustune biniyor: soluklastir */
+  .weather-scene[data-cat] .ws-cloud { opacity: 0.28; }
+  .search-wrap { width: 100%; display: flex; gap: 8px; }
+  .search-box { flex: 1; min-width: 0; }
+  .search-box input { width: 100%; }
+}
+/* takvim: 7 sutun dar ekrana sigsin (1fr = minmax(auto,1fr) hucreleri genisletiyordu) */
+.wx-cal-head, .wx-calendar { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.wx-cal-cell { min-width: 0; }
+@media (max-width: 400px) {
+  .wx-cal-head, .wx-calendar { gap: 3px; }
+  .wx-cal-cell { padding: 4px 2px; border-radius: 8px; }
+  .wcc-tag { display: none; }
+  .wcc-hi { font-size: 0.78rem; }
+  .wcc-lo { font-size: 0.7rem; }
+}

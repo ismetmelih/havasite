@@ -19,6 +19,12 @@
         { maxZoom: 16, className: "hava-basemap-ref" }
       ).addTo(map);
     },
+    // Dar ekranlarda sabit yakinlik Turkiye'nin batisini disarida birakiyor;
+    // tum ulkeyi kutuya sigdir.
+    fitTurkey: function (map) {
+      if (!map || window.innerWidth > 700) return;
+      map.fitBounds([[35.8, 25.7], [42.1, 44.8]], { padding: [4, 4] });
+    },
   };
 
   // ---------------- kurumsal ikon seti (inline SVG, Lucide tarzi) ----------------
@@ -203,8 +209,8 @@
           </div>
         </div>
         <div class="em-numbers">
-          <div class="em-number"><div class="num">112</div><div class="lbl">Acil Çağrı Merkezi</div></div>
-          <div class="em-number"><div class="num">122</div><div class="lbl">AFAD İhbar Hattı</div></div>
+          <a class="em-number" href="tel:112"><div class="num">112</div><div class="lbl">Acil Çağrı Merkezi</div></a>
+          <a class="em-number" href="tel:122"><div class="num">122</div><div class="lbl">AFAD İhbar Hattı</div></a>
         </div>
         <p class="em-note">
           Bu ekran gayriresmî bir özet sunar; kendi verilerimizi doğrudan aramadan kontrol etmene yardımcı olur.

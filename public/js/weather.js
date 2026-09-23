@@ -769,8 +769,9 @@
   function initMap() {
     if (state.mapReady) { setTimeout(() => state.map.invalidateSize(), 100); return; }
     state.mapReady = true;
-    state.map = L.map("weatherMap", { scrollWheelZoom: true }).setView([39.0, 35.2], 5.6);
+    state.map = L.map("weatherMap", { scrollWheelZoom: true, zoomSnap: 0.25 }).setView([39.0, 35.2], 5.6);
     window.HavaMap.addBaseLayer(state.map);
+    window.HavaMap.fitTurkey(state.map);
     state.cityLayer = L.layerGroup().addTo(state.map);
     loadCityGrid();
     updateMapLegend();

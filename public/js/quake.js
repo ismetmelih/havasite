@@ -238,8 +238,9 @@
   function initMap() {
     if (state.mapReady) { setTimeout(() => state.map.invalidateSize(), 60); return; }
     state.mapReady = true;
-    state.map = L.map("quakeMap", { scrollWheelZoom: true }).setView([39.0, 35.2], 5.8);
+    state.map = L.map("quakeMap", { scrollWheelZoom: true, zoomSnap: 0.25 }).setView([39.0, 35.2], 5.8);
     window.HavaMap.addBaseLayer(state.map);
+    window.HavaMap.fitTurkey(state.map);
     state.layer = L.layerGroup().addTo(state.map);
     renderMap(filtered(), []);
   }
@@ -281,9 +282,10 @@
     state.tunelReady = true;
     const sliderEl = $("timelineSlider"), playBtn = $("timelinePlay"), dateEl = $("timelineDate");
     const dayStatEl = $("timelineDayStat"), speedSel = $("timelineSpeed"), countBadge = $("timelineCount");
-    const tMap = L.map("timelineMap", { scrollWheelZoom: true }).setView([39.0, 35.2], 5.6);
+    const tMap = L.map("timelineMap", { scrollWheelZoom: true, zoomSnap: 0.25 }).setView([39.0, 35.2], 5.6);
     state._tMap = tMap;
     window.HavaMap.addBaseLayer(tMap);
+    window.HavaMap.fitTurkey(tMap);
     const tLayer = L.layerGroup().addTo(tMap);
     let days = [], playing = false, playTimer = null;
 
