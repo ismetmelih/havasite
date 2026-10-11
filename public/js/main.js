@@ -19,17 +19,16 @@
     if (entry.layers) entry.layers.forEach((l) => entry.map.removeLayer(l));
     const [base, ref] = BASEMAPS[currentMapTheme()];
     const url = (name) => `https://server.arcgisonline.com/ArcGIS/rest/services/${name}/MapServer/tile/{z}/{y}/{x}`;
-    entry.layers = [
-      L.tileLayer(url(base), { attribution: "Tiles &copy; Esri, HERE, Garmin, &copy; OpenStreetMap", maxZoom: 16, className: "hava-basemap" }),
-      L.tileLayer(url(ref), { maxZoom: 16, className: "hava-basemap-ref" }),
-    ];
+    entry.layers = [L.tileLayer(url(base), { attribution: "Tiles &copy; Esri, HERE, Garmin, &copy; OpenStreetMap", maxZoom: 16, className: "hava-basemap" })];
+    if (entry.labels) entry.layers.push(L.tileLayer(url(ref), { maxZoom: 16, className: "hava-basemap-ref" }));
     entry.layers.forEach((l) => l.addTo(entry.map).bringToBack());
   }
 
   window.HavaMap = {
-    addBaseLayer: function (map) {
+    // opts.labels: false -> ulke/sehir adlari katmani eklenmez (kendi etiketlerini cizen haritalar icin)
+    addBaseLayer: function (map, opts) {
       if (typeof L === "undefined" || !map) return;
-      const entry = { map, layers: null };
+      const entry = { map, layers: null, labels: !opts || opts.labels !== false };
       baseMaps.push(entry);
       setBaseLayers(entry);
     },
@@ -288,7 +287,17 @@
       .catch(() => {});
   }
 
+  // yapiskan sekme cubuklari sabit ust menunun hemen altinda dursun (menu yuksekligi ekrana gore degisiyor)
+  function trackNavHeight() {
+    const nav = document.querySelector(".site-nav");
+    if (!nav) return;
+    const set = () => document.documentElement.style.setProperty("--nav-h", `${Math.round(nav.getBoundingClientRect().height)}px`);
+    set();
+    if ("ResizeObserver" in window) new ResizeObserver(set).observe(nav);
+  }
+
   document.addEventListener("DOMContentLoaded", () => {
+    trackNavHeight();
     const yearEl = document.getElementById("year");
     if (yearEl && !yearEl.textContent) yearEl.textContent = new Date().getFullYear();
     setupFooter();

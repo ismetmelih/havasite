@@ -123,6 +123,7 @@
   <!-- ============ GENEL ============ -->
   <section class="wx-view is-active" id="view-genel">
     <div class="wx-hero card">
+      <div class="wx-hero-top">
       <div class="wx-hero-main">
         <div class="wx-hero-icon" id="wcIcon"></div>
         <div class="wx-hero-txt">
@@ -136,6 +137,11 @@
             Hissedilen <strong id="wcFeels">--°</strong>
           </div>
         </div>
+      </div>
+      <div class="wx-hero-side">
+        <div class="wx-next-head"><span>Önümüzdeki saatler</span><span class="wx-sun-mini" id="wcSun"></span></div>
+        <div class="wx-next" id="wcNext"></div>
+      </div>
       </div>
       <p class="wc-forecast" id="wcForecast">Tahmin yükleniyor…</p>
       <div class="wx-quickrow" id="wxQuickRow"></div>
@@ -197,10 +203,12 @@
       <h3><span class="h-icon" data-icon="map" data-icon-size="18"></span>Türkiye geneli hava haritası</h3>
       <div class="wx-map-layers" id="wxMapLayers"></div>
     </div>
-    <div id="weatherMap" class="map-box"></div>
-    <div class="legend" id="wxMapLegend">
-      <span>Soğuk</span><div class="legend-bar temp-bar"></div><span>Sıcak</span>
+    <div class="wx-mapwrap">
+      <div id="weatherMap" class="map-box" role="region" aria-label="Türkiye il bazında hava haritası"></div>
+      <div class="wx-map-stats" id="wxMapStats" aria-live="polite"></div>
+      <div class="wx-map-legend" id="wxMapLegend"></div>
     </div>
+    <p class="wx-map-hint">Bir ile dokun veya tıkla: o ilin ayrıntılı tahmini yüklenir. Kaydırarak yakınlaştırmak için önce haritaya tıkla.</p>
   </section>
 
   <!-- ============ AYLIK ============ -->

@@ -34,7 +34,7 @@
     metric: "temp",
     monthOffset: 0,
     mapLayer: "temp",
-    map: null, cityLayer: null, mapReady: false,
+    map: null, labelLayer: null, provLayer: null, mapReady: false, cityByName: null, labels: null,
     cityRows: [],
   };
 
@@ -211,6 +211,28 @@
     const feels = round(c.apparent_temperature);
     if (Math.abs(feels - round(c.temperature_2m)) >= 3) s += ` Dışarısı ${feels}° gibi hissettiriyor.`;
     $("wcForecast").textContent = s;
+    renderNextHours();
+  }
+  // baslik kartinin sagi: siradaki 8 saat + gun dogumu/batimi
+  function renderNextHours() {
+    const h = state.f.hourly, d = state.f.daily, ni = nowIndex(), di = todayIndex();
+    const el = $("wcNext");
+    if (!el) return;
+    const items = [];
+    for (let i = ni; i < Math.min(ni + 8, h.time.length); i++) {
+      const pop = h.precipitation_probability ? h.precipitation_probability[i] : null;
+      items.push(`<div class="wx-nh${i === ni ? " now" : ""}">
+        <span class="nh-t">${i === ni ? "Şimdi" : fmtHM(h.time[i])}</span>
+        <span class="nh-ic">${window.WeatherWMO.svg(h.weather_code[i], h.is_day ? h.is_day[i] === 1 : true)}</span>
+        <b class="nh-v">${round(h.temperature_2m[i])}°</b>
+        <span class="nh-p">${pop >= 20 ? `%${pop}` : ""}</span>
+      </div>`);
+    }
+    el.innerHTML = items.join("");
+    const sun = $("wcSun");
+    if (sun && d.sunrise && d.sunrise[di]) {
+      sun.innerHTML = `${window.HavaIcon ? window.HavaIcon("sun", { size: 13 }) : ""}${fmtHM(d.sunrise[di])}<span class="wx-dot">·</span>${window.HavaIcon ? window.HavaIcon("moon", { size: 13 }) : ""}${fmtHM(d.sunset[di])}`;
+    }
   }
   function setFlash(id, val) {
     const el = $(id); if (!el) return;
@@ -706,37 +728,61 @@
   }
 
   /* ============================================================
-     HARİTA
+     HARİTA — il sınırları seçilen değere göre renklenir, il etiketleri
+     çakışmayacak şekilde seyreltilir (öncelik: seçili il, büyük şehirler).
+     Sınırlar: geoBoundaries (© OpenStreetMap katkıcıları, CC BY-SA)
      ============================================================ */
+  const TR_BOUNDS = [[35.8, 25.7], [42.1, 44.8]];
+  const MAP_LAYERS = {
+    temp: { label: "Sıcaklık", unit: "°C", key: "temp", fmt: (v) => `${round(v)}°`, hi: "En sıcak", lo: "En soğuk",
+      stops: [[-10, [124, 92, 214]], [0, [64, 132, 232]], [8, [45, 182, 214]], [15, [72, 196, 140]], [21, [226, 206, 80]], [27, [242, 146, 52]], [34, [226, 64, 64]], [40, [168, 34, 74]]] },
+    humidity: { label: "Nem", unit: "%", key: "humidity", fmt: (v) => `%${round(v)}`, hi: "En nemli", lo: "En kuru",
+      stops: [[10, [214, 150, 80]], [35, [222, 200, 110]], [55, [92, 196, 160]], [75, [52, 160, 220]], [100, [72, 92, 214]]] },
+    wind: { label: "Rüzgâr", unit: "km/s", key: "wind", fmt: (v) => `${round(v)}`, hi: "En rüzgârlı", lo: "En sakin",
+      stops: [[0, [72, 170, 200]], [10, [92, 196, 140]], [20, [226, 206, 80]], [35, [242, 128, 52]], [55, [214, 52, 80]], [75, [150, 60, 190]]] },
+    cloud: { label: "Bulut", unit: "%", key: "cloud", fmt: (v) => `%${round(v)}`, hi: "En bulutlu", lo: "En açık",
+      stops: [[0, [64, 150, 232]], [40, [120, 160, 200]], [80, [150, 160, 176]], [100, [196, 200, 210]]] },
+  };
+  const MAP_PRIORITY = ["İstanbul", "Ankara", "İzmir", "Antalya", "Bursa", "Adana", "Konya", "Gaziantep", "Diyarbakır", "Samsun", "Trabzon", "Erzurum", "Van", "Kayseri", "Eskişehir", "Mersin", "Şanlıurfa", "Malatya", "Sivas", "Edirne", "Muğla", "Kastamonu", "Hatay"];
+  const mapMeta = () => MAP_LAYERS[state.mapLayer] || MAP_LAYERS.temp;
+  const mapColor = (row) => scale(mapMeta().stops, row[mapMeta().key]);
+  const activeProvince = () => state.loc.region || state.loc.name;
+
   function setupMapLayers() {
     const wrap = $("wxMapLayers");
     if (!wrap) return;
-    const layers = [["temp", "Sıcaklık"], ["humidity", "Nem"], ["wind", "Rüzgâr"], ["cloud", "Bulut"]];
-    wrap.innerHTML = layers.map(([k, l]) => `<button class="wx-mchip${k === "temp" ? " active" : ""}" type="button" data-layer="${k}">${l}</button>`).join("");
+    wrap.innerHTML = Object.entries(MAP_LAYERS).map(([k, m]) => `<button class="wx-mchip${k === state.mapLayer ? " active" : ""}" type="button" data-layer="${k}">${m.label}</button>`).join("");
     wrap.querySelectorAll(".wx-mchip").forEach((b) => b.addEventListener("click", () => {
       state.mapLayer = b.dataset.layer;
       wrap.querySelectorAll(".wx-mchip").forEach((x) => x.classList.toggle("active", x === b));
-      drawCityMarkers();
+      paintMap();
       updateMapLegend();
     }));
   }
   function initMap() {
-    if (state.mapReady) { setTimeout(() => state.map.invalidateSize(), 100); return; }
+    if (state.mapReady) { setTimeout(() => { state.map.invalidateSize(); paintMap(); }, 100); return; }
     state.mapReady = true;
-    state.map = L.map("weatherMap", { scrollWheelZoom: true, zoomSnap: 0.25 }).setView([39.0, 35.2], 5.6);
-    window.HavaMap.addBaseLayer(state.map);
-    window.HavaMap.fitTurkey(state.map);
-    state.cityLayer = L.layerGroup().addTo(state.map);
-    loadCityGrid();
+    const map = L.map("weatherMap", { zoomControl: false, scrollWheelZoom: false, zoomSnap: 0.25, minZoom: 4.5, maxZoom: 10, maxBounds: [[32, 20], [46, 50]], maxBoundsViscosity: 0.8 });
+    state.map = map;
+    L.control.zoom({ position: "topright", zoomInTitle: "Yakınlaştır", zoomOutTitle: "Uzaklaştır" }).addTo(map);
+    // genis ekranda soldaki ozet paneli ve alttaki olcek Turkiye'nin ustune binmesin
+    const wide = window.innerWidth > 700;
+    map.fitBounds(TR_BOUNDS, wide ? { paddingTopLeft: [200, 10], paddingBottomRight: [10, 40] } : { padding: [6, 6] });
+    window.HavaMap.addBaseLayer(map, { labels: false });
+    map.attributionControl.addAttribution("Sınırlar: geoBoundaries");
+    // sayfa kaydirilirken harita tekerlegi yakalamasin; haritaya tiklayinca acilir
+    map.once("click", () => map.scrollWheelZoom.enable());
+    state.labelLayer = L.layerGroup().addTo(map);
+    map.on("zoomend", () => map.getContainer().classList.toggle("show-names", map.getZoom() >= 7));
+    map.on("moveend", declutterLabels);
+    loadMapData();
     updateMapLegend();
   }
-  async function loadCityGrid() {
+  async function refreshCityRows() {
     const cities = window.TR_CITIES || [];
     if (!cities.length) return;
-    const lats = cities.map((c) => c.lat).join(",");
-    const lons = cities.map((c) => c.lon).join(",");
     try {
-      const r = await fetch(`${FORECAST_URL}?latitude=${lats}&longitude=${lons}&current=temperature_2m,weather_code,relative_humidity_2m,wind_speed_10m,cloud_cover&timezone=Europe%2FIstanbul`);
+      const r = await fetch(`${FORECAST_URL}?latitude=${cities.map((c) => c.lat).join(",")}&longitude=${cities.map((c) => c.lon).join(",")}&current=temperature_2m,weather_code,relative_humidity_2m,wind_speed_10m,cloud_cover&timezone=Europe%2FIstanbul`);
       const data = await r.json();
       const arr = Array.isArray(data) ? data : [data];
       state.cityRows = arr.map((d, i) => {
@@ -744,58 +790,111 @@
         if (!c || !d.current) return null;
         return { c, temp: d.current.temperature_2m, code: d.current.weather_code, humidity: d.current.relative_humidity_2m, wind: d.current.wind_speed_10m, cloud: d.current.cloud_cover };
       }).filter(Boolean);
-      drawCityMarkers();
+      state.cityByName = new Map(state.cityRows.map((row) => [row.c.name, row]));
+      state.mapUpdated = new Date();
     } catch { /* sessiz */ }
-    setInterval(async () => {
-      try {
-        const r = await fetch(`${FORECAST_URL}?latitude=${lats}&longitude=${lons}&current=temperature_2m,weather_code,relative_humidity_2m,wind_speed_10m,cloud_cover&timezone=Europe%2FIstanbul`);
-        const data = await r.json();
-        const arr = Array.isArray(data) ? data : [data];
-        state.cityRows = arr.map((d, i) => {
-          const c = cities[i]; if (!c || !d.current) return null;
-          return { c, temp: d.current.temperature_2m, code: d.current.weather_code, humidity: d.current.relative_humidity_2m, wind: d.current.wind_speed_10m, cloud: d.current.cloud_cover };
-        }).filter(Boolean);
-        drawCityMarkers();
-      } catch {}
-    }, REFRESH_MS);
   }
-  function layerValueColor(row) {
-    const L = state.mapLayer;
-    if (L === "temp") return { v: `${round(row.temp)}°`, color: tempColor(row.temp) };
-    if (L === "humidity") return { v: `%${round(row.humidity)}`, color: scale([[20, [214, 160, 100]], [50, [150, 175, 150]], [75, [120, 190, 190]], [100, [79, 120, 200]]], row.humidity) };
-    if (L === "wind") return { v: `${round(row.wind)}`, color: scale([[0, [120, 190, 190]], [15, [150, 175, 150]], [30, [214, 160, 100]], [50, [200, 70, 70]]], row.wind) };
-    if (L === "cloud") return { v: `%${round(row.cloud)}`, color: scale([[0, [90, 169, 222]], [50, [150, 160, 175]], [100, [110, 120, 135]]], row.cloud) };
-    return { v: `${round(row.temp)}°`, color: tempColor(row.temp) };
+  async function loadMapData() {
+    const geoP = fetch("/data/tr-iller.geojson").then((r) => r.json()).catch(() => null);
+    await refreshCityRows();
+    const geo = await geoP;
+    if (geo) {
+      state.provLayer = L.geoJSON(geo, {
+        style: provStyle,
+        onEachFeature: (f, layer) => {
+          layer.on({ mouseover: () => layer.bringToFront(), click: () => pickCity(f.properties.n) });
+          layer.bindTooltip(() => provTooltip(f.properties.n), { sticky: true, direction: "top", offset: [0, -10], className: "prov-tip" });
+        },
+      }).addTo(state.map);
+    }
+    paintMap();
+    setInterval(async () => { await refreshCityRows(); paintMap(); }, REFRESH_MS);
   }
-  function drawCityMarkers() {
-    if (!state.cityLayer) return;
-    state.cityLayer.clearLayers();
-    state.cityRows.forEach((row) => {
-      const { v, color } = layerValueColor(row);
-      const active = row.c.name === state.loc.name;
-      const html = `<div class="tm-wrap">
-        <div class="tm-aura" style="background:${color}"></div>
-        <div class="tm-dot ${active ? "tm-active" : ""}" style="background:${color}"><span>${v}</span></div>
-      </div>`;
-      const icon = L.divIcon({ className: "", html, iconSize: [60, 60], iconAnchor: [30, 30] });
-      const m = L.marker([row.c.lat, row.c.lon], { icon }).addTo(state.cityLayer);
-      m.bindPopup(`<div class="map-pop"><strong>${window.escapeHtml(row.c.name)}</strong><br/>${round(row.temp)}°C · ${window.WeatherWMO.label(row.code)}<br/>%${round(row.humidity)} nem · ${round(row.wind)} km/s</div>`);
-      m.on("click", () => {
-        state.loc = { name: row.c.name, lat: row.c.lat, lon: row.c.lon };
-        saveJson("havasite_last_city", state.loc);
-        state.archive = null;
-        loadWeather();
-      });
+  function provStyle(f) {
+    const row = state.cityByName && state.cityByName.get(f.properties.n);
+    const active = f.properties.n === activeProvince();
+    return { className: "prov", fillColor: row ? mapColor(row) : "#55606e", fillOpacity: active ? 0.85 : 0.6, weight: active ? 2.5 : 0.8, color: active ? "#ffffff" : "#0b1626" };
+  }
+  function provTooltip(name) {
+    const row = state.cityByName && state.cityByName.get(name);
+    if (!row) return window.escapeHtml(name);
+    return `<strong>${window.escapeHtml(name)}</strong><span class="pt-main">${round(row.temp)}°C · ${window.WeatherWMO.label(row.code)}</span><span class="pt-sub">%${round(row.humidity)} nem · ${round(row.wind)} km/s rüzgâr · %${round(row.cloud)} bulut</span>`;
+  }
+  function pickCity(name) {
+    const row = state.cityByName && state.cityByName.get(name);
+    if (!row) return;
+    selectPlace({ name: row.c.name, lat: row.c.lat, lon: row.c.lon });
+    paintMap();
+    window.showToast && window.showToast(`${row.c.name} seçildi — ayrıntılar Genel sekmesinde.`);
+  }
+  function paintMap() {
+    if (!state.map) return;
+    if (state.provLayer) {
+      state.provLayer.setStyle(provStyle);
+      state.provLayer.eachLayer((l) => { if (l.feature.properties.n === activeProvince()) l.bringToFront(); });
+    }
+    drawLabels();
+    renderMapStats();
+  }
+  function drawLabels() {
+    if (!state.labelLayer) return;
+    state.labelLayer.clearLayers();
+    const meta = mapMeta();
+    const act = activeProvince();
+    state.labels = state.cityRows.map((row) => {
+      const active = row.c.name === act;
+      const html = `<div class="pl${active ? " pl-active" : ""}"><b>${meta.fmt(row[meta.key])}</b><span>${window.escapeHtml(row.c.name)}</span></div>`;
+      const m = L.marker([row.c.lat, row.c.lon], { icon: L.divIcon({ className: "pl-anchor", html, iconSize: [0, 0] }), title: row.c.name, riseOnHover: true })
+        .on("click", () => pickCity(row.c.name))
+        .addTo(state.labelLayer);
+      const pri = MAP_PRIORITY.indexOf(row.c.name);
+      return { m, active, rank: active ? -1 : pri === -1 ? 100 : pri };
     });
+    declutterLabels();
+  }
+  function declutterLabels() {
+    if (!state.labels || !state.map) return;
+    const placed = [];
+    [...state.labels].sort((a, b) => a.rank - b.rank).forEach((it) => {
+      const el = it.m.getElement();
+      const box = el && el.firstElementChild;
+      if (!box) return;
+      const p = state.map.latLngToContainerPoint(it.m.getLatLng());
+      const w = box.offsetWidth / 2 + 3, h = box.offsetHeight / 2 + 3;
+      const r = { x1: p.x - w, x2: p.x + w, y1: p.y - h, y2: p.y + h };
+      const hit = !it.active && placed.some((q) => r.x1 < q.x2 && r.x2 > q.x1 && r.y1 < q.y2 && r.y2 > q.y1);
+      el.classList.toggle("pl-hidden", hit);
+      if (!hit) placed.push(r);
+    });
+  }
+  function renderMapStats() {
+    const el = $("wxMapStats");
+    if (!el || !state.cityRows.length) return;
+    const meta = mapMeta();
+    const vals = state.cityRows.filter((r) => Number.isFinite(r[meta.key]));
+    if (!vals.length) return;
+    const hi = vals.reduce((a, b) => (b[meta.key] > a[meta.key] ? b : a));
+    const lo = vals.reduce((a, b) => (b[meta.key] < a[meta.key] ? b : a));
+    const avg = vals.reduce((s, r) => s + r[meta.key], 0) / vals.length;
+    const t = state.mapUpdated ? state.mapUpdated.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" }) : "";
+    const chip = (lbl, row) => `<button type="button" class="ms-item" data-city="${window.escapeHtml(row.c.name)}"><span>${lbl}</span><b>${window.escapeHtml(row.c.name)} <i style="color:${mapColor(row)}">${meta.fmt(row[meta.key])}</i></b></button>`;
+    el.innerHTML = `${chip(meta.hi, hi)}${chip(meta.lo, lo)}
+      <div class="ms-item"><span>Türkiye ortalaması</span><b>${meta.fmt(avg)}${meta.key === "wind" ? " km/s" : ""}</b></div>
+      <div class="ms-live"><i></i>Canlı · ${t}</div>`;
+    el.querySelectorAll("button[data-city]").forEach((b) => b.addEventListener("click", () => {
+      const row = state.cityByName.get(b.dataset.city);
+      if (row) state.map.flyTo([row.c.lat, row.c.lon], 7.25, { duration: 0.8 });
+    }));
   }
   function updateMapLegend() {
     const el = $("wxMapLegend"); if (!el) return;
-    const map = {
-      temp: ["Soğuk", "temp-bar", "Sıcak"], humidity: ["Kuru", "temp-bar", "Nemli"],
-      wind: ["Sakin", "quake-bar", "Kuvvetli"], cloud: ["Açık", "temp-bar", "Kapalı"],
-    };
-    const [a, bar, b] = map[state.mapLayer] || map.temp;
-    el.innerHTML = `<span>${a}</span><div class="legend-bar ${bar}"></div><span>${b}</span>`;
+    const meta = mapMeta();
+    const s = meta.stops, min = s[0][0], max = s[s.length - 1][0];
+    const pos = (v) => ((v - min) / (max - min)) * 100;
+    const grad = s.map(([v, c]) => `${rgb(c)} ${pos(v).toFixed(1)}%`).join(", ");
+    el.innerHTML = `<span class="ml-title">${meta.label} <small>${meta.unit}</small></span>
+      <div class="ml-scale"><div class="ml-bar" style="background:linear-gradient(90deg, ${grad})"></div>
+      <div class="ml-ticks">${s.map(([v]) => `<span style="left:${pos(v).toFixed(1)}%">${v}</span>`).join("")}</div></div>`;
   }
 
   /* ============================================================

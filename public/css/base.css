@@ -2034,3 +2034,10 @@ h3:has(> .h-icon) { display: flex; align-items: center; }
 @media (prefers-reduced-motion: reduce) { .sys-status.ok .sys-dot { animation: none; } }
 @media (max-width: 860px) { .site-footer .footer-grid { grid-template-columns: 1fr 1fr; } .footer-brand { grid-column: 1 / -1; } }
 @media (max-width: 480px) { .site-footer .footer-grid { grid-template-columns: 1fr; } .sys-status .sys-detail { display: none; } }
+
+/* harita katmanlari (z-index 400+) sabit ust menunun ustune cikmasin */
+.leaflet-container { isolation: isolate; z-index: 0; }
+.wx-tabs, .dash-tabs { top: calc(var(--nav-h, calc(62px + var(--safe-top))) + 6px) !important; }
+/* baslik karti alttaki kartlarla ayni hizada dursun (telefonda kenara yapismasin) */
+.page-head-row.container { max-width: calc(min(1240px, 100%) - 48px); }
+@media (max-width: 560px) { .page-head-row.container { max-width: calc(100% - 32px); } }
