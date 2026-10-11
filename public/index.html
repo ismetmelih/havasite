@@ -21,7 +21,7 @@
 <link rel="icon" href="/favicon.ico" sizes="32x32" />
 <link rel="icon" type="image/svg+xml" href="img/logo.svg" />
 <link rel="manifest" href="/manifest.webmanifest" />
-<meta name="theme-color" content="#0a1224" />
+<meta name="theme-color" content="#0d0f13" />
 <link rel="apple-touch-icon" href="/img/app/apple-touch-icon.png" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
@@ -51,124 +51,219 @@
   </div>
 </nav>
 
-<header class="hero">
-  <div class="hero-grid" aria-hidden="true"></div>
-  <div class="hero-float" aria-hidden="true">
-    <img class="hf hf-1" src="img/3d/sun-cloud.png" alt="" draggable="false" />
-    <img class="hf hf-2" src="img/3d/globe.png" alt="" draggable="false" />
-    <img class="hf hf-3" src="img/3d/fire.png" alt="" draggable="false" />
-    <img class="hf hf-4" src="img/3d/satellite.png" alt="" draggable="false" />
-  </div>
-  <div class="hero-fade"></div>
-  <div class="container hero-content">
-    <span class="badge badge-live reveal in-view"><span class="live-blip"></span> CANLI VERİ AKIŞI</span>
-    <h1 class="reveal in-view">Türkiye'yi <span class="accent-text">anlık</span><br />tek ekrandan takip et</h1>
-    <p class="hero-sub reveal in-view">
-      Hava durumu, deprem ve yangın verilerini gerçek kaynaklardan çekip
-      canlı haritalar üzerinde, saniyeler içinde güncellenen bir panelde sunuyoruz.
-    </p>
-    <div class="hero-cta reveal in-view">
-      <a href="hava.html" class="btn btn-primary">Hava Durumunu Gör <span class="ic" data-icon="arrow-right" data-icon-size="15"></span></a>
-      <a href="deprem.html" class="btn btn-ghost">Deprem Haritası</a>
-      <a href="yangin.html" class="btn btn-ghost">Yangın Takibi</a>
+<header class="lp-hero">
+  <div class="container lp-hero-grid">
+    <div class="lp-hero-copy">
+      <span class="pill-label">Türkiye'nin canlı hava, deprem ve yangın paneli</span>
+      <h1>Türkiye'de olan biteni <span class="accent-text">anında</span> görün.</h1>
+      <p class="lp-lead">
+        AFAD, NASA FIRMS ve Open-Meteo'nun açık verilerini tek ekranda birleştirdik. Son depremleri canlı izleyin,
+        81 il ve 973 ilçenin hava durumuna bakın, uydudan tespit edilen yangınları haritada görün.
+        Bildirimleri açın; telefonunuz kilitliyken bile haberdar olun.
+      </p>
+      <div class="lp-cta">
+        <a href="deprem.html" class="btn btn-primary btn-lg"><span class="ic" data-icon="wave" data-icon-size="18"></span> Son depremleri gör</a>
+        <button type="button" class="btn btn-ghost btn-lg" data-install><span class="ic" data-icon="download" data-icon-size="18"></span> Uygulamayı yükle</button>
+      </div>
+      <dl class="lp-stats">
+        <div><dt>3</dt><dd>Resmî ve açık kaynak</dd></div>
+        <div><dt>2 dk</dt><dd>Bildirim kontrolü</dd></div>
+        <div><dt>7/24</dt><dd>Kesintisiz izleme</dd></div>
+      </dl>
     </div>
 
-    <div class="ticker glass reveal in-view" id="ticker">
-      <div class="ticker-item">
-        <span class="ticker-label">Saat</span>
-        <span class="ticker-value" id="tkClock">--:--:--</span>
+    <div class="lp-hero-visual" aria-hidden="true">
+      <div class="lp-rings"><span></span><span></span><span></span></div>
+      <div class="phone">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div class="ph-status"><span id="phClock">--:--</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
+          <div class="ph-tabs"><span class="on">Depremler</span><span>Hava</span><span>Yangın</span></div>
+          <div class="ph-list" id="phList">
+            <div class="ph-item skeleton-row"></div><div class="ph-item skeleton-row"></div><div class="ph-item skeleton-row"></div><div class="ph-item skeleton-row"></div>
+          </div>
+          <div class="ph-nav"><span class="on"><span class="ic" data-icon="wave" data-icon-size="16"></span></span><span><span class="ic" data-icon="map" data-icon-size="16"></span></span><span class="sos"><span class="ic" data-icon="siren" data-icon-size="16"></span></span><span><span class="ic" data-icon="bell" data-icon-size="16"></span></span><span><span class="ic" data-icon="settings" data-icon-size="16"></span></span></div>
+        </div>
       </div>
-      <div class="ticker-sep"></div>
-      <div class="ticker-item">
-        <span class="ticker-label text-weather">Ankara</span>
-        <span class="ticker-value" id="tkWeather"><span class="skeleton" style="width:52px;height:16px;display:inline-block"></span></span>
+      <div class="lp-float lp-notif" id="phNotif">
+        <span class="lp-notif-ic"><span class="ic" data-icon="bell" data-icon-size="18"></span></span>
+        <div><b>TürkiyeCanlı</b><span id="phNotifText">Son deprem bilgisi yükleniyor…</span></div>
+        <em>şimdi</em>
       </div>
-      <div class="ticker-sep"></div>
-      <div class="ticker-item">
-        <span class="ticker-label text-quake">Son Deprem</span>
-        <span class="ticker-value" id="tkQuake"><span class="skeleton" style="width:110px;height:16px;display:inline-block"></span></span>
-      </div>
-      <div class="ticker-sep"></div>
-      <div class="ticker-item">
-        <span class="ticker-label text-fire">Aktif Yangın (24s)</span>
-        <span class="ticker-value" id="tkFire"><span class="skeleton" style="width:40px;height:16px;display:inline-block"></span></span>
-      </div>
+      <div class="lp-float lp-mag" id="phMag">—<small>Mw</small></div>
+      <div class="lp-float lp-wx" id="phWx"><span class="dot"></span><div><b id="phWxT">—</b><span>Ankara · <span id="phWxD">hava durumu</span></span></div></div>
     </div>
   </div>
-  <div class="scroll-cue reveal in-view"><span></span>aşağı kaydır</div>
 </header>
 
 <main>
-  <section class="trust-band" aria-label="Rakamlarla TürkiyeCanlı">
-    <div class="container trust-grid">
-      <div class="trust-item"><span class="ic" data-icon="map" data-icon-size="20"></span><b>81 il · 973 ilçe</b><span>il ve ilçe bazında hava durumu</span></div>
-      <div class="trust-item"><span class="ic" data-icon="layers" data-icon-size="20"></span><b>6 tahmin modeli</b><span>ECMWF, GFS, ICON, ARPEGE, GEM, UKMO</span></div>
-      <div class="trust-item"><span class="ic" data-icon="clock-countdown" data-icon-size="20"></span><b>2 dakikada bir</b><span>yeni deprem kontrolü ve bildirim</span></div>
-      <div class="trust-item"><span class="ic" data-icon="check-circle" data-icon-size="20"></span><b>3 açık veri kaynağı</b><span>AFAD · NASA FIRMS · Open-Meteo</span></div>
+  <section class="lp-sources" aria-label="Veri kaynakları">
+    <div class="container lp-sources-row">
+      <span class="lp-sources-label">Resmî ve açık veri kaynakları</span>
+      <div class="lp-sources-list">
+        <a href="https://deprem.afad.gov.tr" target="_blank" rel="noopener"><span class="ic" data-icon="shield-check" data-icon-size="16"></span>AFAD</a>
+        <a href="https://www.emsc-csem.org" target="_blank" rel="noopener"><span class="ic" data-icon="globe" data-icon-size="16"></span>EMSC</a>
+        <a href="https://firms.modaps.eosdis.nasa.gov" target="_blank" rel="noopener"><span class="ic" data-icon="satellite" data-icon-size="16"></span>NASA FIRMS</a>
+        <a href="https://open-meteo.com" target="_blank" rel="noopener"><span class="ic" data-icon="cloud-sun" data-icon-size="16"></span>Open-Meteo</a>
+      </div>
     </div>
   </section>
 
-  <section class="section" id="kategoriler">
+  <section class="section lp-latest" id="son-depremler">
     <div class="container">
-      <div class="section-head reveal">
-        <span class="eyebrow">3 KATEGORİ · TEK PANEL</span>
-        <h2>Neyi takip etmek istiyorsun?</h2>
-        <p>Her kategori kendi canlı kaynağından beslenir ve haritada anında görselleşir.</p>
+      <div class="lp-head-row">
+        <div>
+          <span class="pill-label">AFAD · son depremler</span>
+          <h2>Az önce nerede <span class="accent-text">deprem oldu?</span></h2>
+          <p>AFAD verilerine göre Türkiye ve çevresindeki son 5 deprem. Liste her dakika kendiliğinden yenilenir.</p>
+        </div>
+        <a class="btn btn-ghost btn-sm" href="deprem.html?v=liste">Tüm son depremler <span class="ic" data-icon="arrow-right" data-icon-size="15"></span></a>
       </div>
+      <div class="lp-quakes" id="lpQuakes">
+        <div class="lp-q skeleton-row"></div><div class="lp-q skeleton-row"></div><div class="lp-q skeleton-row"></div><div class="lp-q skeleton-row"></div><div class="lp-q skeleton-row"></div>
+      </div>
+      <div class="lp-latest-foot">
+        <span class="lp-updated"><span class="live-dot"></span><span id="lpUpdated">Güncelleniyor…</span> · Kaynak: AFAD</span>
+        <div class="lp-latest-btns">
+          <a class="btn btn-primary btn-sm" href="deprem.html?v=liste"><span class="ic" data-icon="list" data-icon-size="15"></span> Canlı listeyi aç</a>
+          <a class="btn btn-ghost btn-sm" href="deprem.html?v=harita"><span class="ic" data-icon="map" data-icon-size="15"></span> Haritada gör</a>
+        </div>
+      </div>
+    </div>
+  </section>
 
-      <div class="cat-grid" id="catGrid">
-        <a class="cat-card cat-weather reveal-scale" href="hava.html">
-          <div class="cat-icon"><img class="icon-3d" src="img/3d/sun-cloud.png" alt="" draggable="false" /></div>
+  <section class="section" id="paneller">
+    <div class="container">
+      <div class="section-head">
+        <span class="pill-label">Üç panel · tek uygulama</span>
+        <h2>Neyi takip etmek <span class="accent-text">istiyorsun?</span></h2>
+        <p>Her panel kendi canlı kaynağından beslenir; aşağıdaki değerler şu anki verilerdir.</p>
+      </div>
+      <div class="lp-panels">
+        <a class="lp-panel" href="hava.html" style="--c: var(--c-weather)">
+          <span class="ic-box"><span class="ic" data-icon="cloud-sun" data-icon-size="22"></span></span>
           <h3>Hava Durumu</h3>
-          <p>Anlık sıcaklık, nem, rüzgâr, saatlik &amp; 7 günlük tahmin ve 81 illik canlı harita.</p>
-          <span class="cat-link">İncele <span class="arrow ic" data-icon="arrow-right" data-icon-size="15"></span></span>
+          <p>81 il ve 973 ilçe için anlık durum, saatlik ve 16 günlük tahmin, il sınırlı renk haritası ve 6 modelin karşılaştırması.</p>
+          <div class="lp-panel-live"><span>Ankara şu an</span><b id="pnWx">—</b></div>
+          <span class="lp-panel-link">Hava durumuna git <span class="ic" data-icon="arrow-right" data-icon-size="15"></span></span>
         </a>
-
-        <a class="cat-card cat-quake reveal-scale" href="deprem.html">
-          <div class="cat-icon"><img class="icon-3d" src="img/3d/globe.png" alt="" draggable="false" /></div>
+        <a class="lp-panel" href="deprem.html" style="--c: var(--c-quake)">
+          <span class="ic-box"><span class="ic" data-icon="wave" data-icon-size="22"></span></span>
           <h3>Depremler</h3>
-          <p>AFAD kaynaklı canlı deprem verisi (il/ilçe/mahalle detaylı), büyüklüğe göre renklendirilmiş harita ve anlık liste.</p>
-          <span class="cat-link">İncele <span class="arrow ic" data-icon="arrow-right" data-icon-size="15"></span></span>
+          <p>AFAD canlı verisi; büyüklüğe göre renklenen harita, zaman tüneli, 30 günlük istatistik ve en aktif iller.</p>
+          <div class="lp-panel-live"><span>Son deprem</span><b id="pnQuake">—</b></div>
+          <span class="lp-panel-link">Depremlere git <span class="ic" data-icon="arrow-right" data-icon-size="15"></span></span>
         </a>
-
-        <a class="cat-card cat-fire reveal-scale" href="yangin.html">
-          <div class="cat-icon"><img class="icon-3d" src="img/3d/fire.png" alt="" draggable="false" /></div>
+        <a class="lp-panel" href="yangin.html" style="--c: var(--c-fire)">
+          <span class="ic-box"><span class="ic" data-icon="flame" data-icon-size="22"></span></span>
           <h3>Yangınlar</h3>
-          <p>NASA FIRMS uydu verisiyle aktif ateş tespiti, yoğunluğa göre renklendirilmiş canlı harita.</p>
-          <span class="cat-link">İncele <span class="arrow ic" data-icon="arrow-right" data-icon-size="15"></span></span>
+          <p>NASA uydularının son 24 saatte tespit ettiği ısı noktaları; il il dağılım, yangın riski endeksi ve harita.</p>
+          <div class="lp-panel-live"><span>Son 24 saat</span><b id="pnFire">—</b></div>
+          <span class="lp-panel-link">Yangınlara git <span class="ic" data-icon="arrow-right" data-icon-size="15"></span></span>
         </a>
       </div>
-
     </div>
   </section>
 
-  <section class="section why-section">
+  <section class="section" id="ozellikler">
     <div class="container">
-      <div class="section-head reveal">
-        <span class="eyebrow">NEDEN BU PANEL</span>
-        <h2>Dağınık kaynaklar yerine tek, canlı, görsel panel</h2>
+      <div class="section-head">
+        <span class="pill-label">Öne çıkan özellikler</span>
+        <h2>Afet ve hava için ihtiyacın olan her şey <span class="accent-text">tek yerde</span></h2>
+        <p>Hesap açmadan, ücretsiz ve reklamsız. Telefonuna uygulama olarak ekleyip internet yokken bile son verilere bakabilirsin.</p>
       </div>
-      <div class="why-grid">
-        <div class="why-card reveal">
-          <div class="why-num">01</div>
-          <span class="why-ic ic" data-icon="clock-countdown" data-icon-size="20"></span><h3>Gerçek zamanlı</h3>
-          <p>Sayfalar açık kaldıkça veriler otomatik olarak periyodik şekilde yenilenir, elle yenilemene gerek kalmaz.</p>
+      <div class="lp-features">
+        <div class="lp-feature" style="--c: var(--tone-green)"><span class="ic-box"><span class="ic" data-icon="shield-check" data-icon-size="20"></span></span><h3>Resmî ve açık veri</h3><p>Depremler AFAD'dan (yedek: EMSC), yangınlar NASA FIRMS'ten, hava Open-Meteo'dan gelir. Kurgusal veri yok.</p></div>
+        <div class="lp-feature" style="--c: var(--tone-red)"><span class="ic-box"><span class="ic" data-icon="bell" data-icon-size="20"></span></span><h3>Anlık deprem bildirimi</h3><p>Seçtiğin büyüklüğün üzerindeki her deprem için telefonuna bildirim gelir; uygulama kapalıyken bile.</p></div>
+        <div class="lp-feature" style="--c: var(--tone-blue)"><span class="ic-box"><span class="ic" data-icon="map-pin" data-icon-size="20"></span></span><h3>Konumuna göre mesafe</h3><p>Her depremin sana kuş uçuşu uzaklığı hesaplanır; bildirimleri yalnızca yakınındaki depremlerle sınırlayabilirsin.</p></div>
+        <div class="lp-feature" style="--c: var(--tone-cyan)"><span class="ic-box"><span class="ic" data-icon="map" data-icon-size="20"></span></span><h3>İl il renk haritası</h3><p>81 ilin sıcaklık, nem, rüzgâr ve bulut durumu sınırlarıyla renkli haritada; en sıcak ve en soğuk il bir bakışta.</p></div>
+        <div class="lp-feature" style="--c: var(--tone-violet)"><span class="ic-box"><span class="ic" data-icon="layers" data-icon-size="20"></span></span><h3>6 tahmin modeli</h3><p>ECMWF, GFS, ICON, ARPEGE, GEM ve UKMO yan yana: modeller anlaşıyorsa tahmin daha güvenilir.</p></div>
+        <div class="lp-feature" style="--c: var(--tone-amber)"><span class="ic-box"><span class="ic" data-icon="satellite" data-icon-size="20"></span></span><h3>Uydudan yangın tespiti</h3><p>Uyduların gördüğü ısı noktaları il il listelenir; günlük yangın riski endeksiyle birlikte.</p></div>
+        <div class="lp-feature" style="--c: var(--status-critical)"><span class="ic-box"><span class="ic" data-icon="siren" data-icon-size="20"></span></span><h3>Acil durum modu</h3><p>112'yi tek dokunuşla ara, siren çal, ekranla ışık sinyali ver, yakınlarına “Güvendeyim” mesajı gönder.</p></div>
+        <div class="lp-feature" style="--c: var(--tone-teal)"><span class="ic-box"><span class="ic" data-icon="backpack" data-icon-size="20"></span></span><h3>Deprem çantası listesi</h3><p>Hazırlık listesini işaretle; eksiklerini gör. Liste yalnızca senin cihazında saklanır.</p></div>
+        <div class="lp-feature" style="--c: var(--accent)"><span class="ic-box"><span class="ic" data-icon="smartphone" data-icon-size="20"></span></span><h3>Uygulama gibi çalışır</h3><p>Ana ekrana ekle; tam ekran açılır, internet yokken son verileri gösterir, hesap gerektirmez.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section lp-spot" id="acil">
+    <div class="container lp-spot-grid">
+      <div class="lp-spot-copy">
+        <span class="pill-label pill-danger">Hayat kurtaran tasarım</span>
+        <h2>Acil durumda <span class="text-danger">tek dokunuş</span> yeterli</h2>
+        <p>Her sayfanın köşesindeki <b>ACİL</b> düğmesi, deprem anında ve sonrasında işine yarayacak araçları tek ekranda toplar.</p>
+        <ul class="lp-checks">
+          <li><span class="ic" data-icon="phone" data-icon-size="17"></span><span><b>112'ye tek dokunuş</b> — AFAD ihbar hattı 122 de aynı ekranda.</span></li>
+          <li><span class="ic" data-icon="siren" data-icon-size="17"></span><span><b>Siren ve ışık sinyali</b> — enkaz altında yerini belli etmek için yüksek sesli düdük ve yanıp sönen ekran.</span></li>
+          <li><span class="ic" data-icon="check-circle" data-icon-size="17"></span><span><b>“Güvendeyim” mesajı</b> — konumunla birlikte yakınlarına tek dokunuşla gönder.</span></li>
+        </ul>
+        <button type="button" class="btn btn-danger" data-open-emergency><span class="ic" data-icon="siren" data-icon-size="17"></span> Acil durum ekranını aç</button>
+      </div>
+      <div class="lp-spot-visual" aria-hidden="true">
+        <div class="phone phone-sm">
+          <div class="phone-notch"></div>
+          <div class="phone-screen ph-sos">
+            <div class="ph-sos-title"><span class="ic" data-icon="siren" data-icon-size="16"></span> Acil Durum</div>
+            <div class="ph-sos-112">112<small>Acil Çağrı</small></div>
+            <div class="ph-sos-row"><span><span class="ic" data-icon="siren" data-icon-size="16"></span> Siren</span><span><span class="ic" data-icon="sun" data-icon-size="16"></span> Işık</span></div>
+            <div class="ph-sos-safe"><span class="ic" data-icon="check-circle" data-icon-size="16"></span> Güvendeyim</div>
+          </div>
         </div>
-        <div class="why-card reveal">
-          <div class="why-num">02</div>
-          <span class="why-ic ic" data-icon="map" data-icon-size="20"></span><h3>Harita odaklı</h3>
-          <p>Sayılar yerine, Türkiye haritası üzerinde konuma göre renklendirilmiş canlı işaretler görürsün.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="kurulum">
+    <div class="container">
+      <div class="section-head">
+        <span class="pill-label">3 adımda kurulum</span>
+        <h2>Deprem bildirimi için kurulum <span class="accent-text">bir dakika</span></h2>
+        <p>Uygulama mağazası gerekmez, hesap açmak gerekmez.</p>
+      </div>
+      <div class="lp-steps">
+        <div class="lp-step"><span class="lp-step-n">01</span><span class="ic-box"><span class="ic" data-icon="download" data-icon-size="20"></span></span><h3>Ana ekrana ekle</h3><p>“Uygulamayı yükle”ye dokun. iPhone'da Paylaş → Ana Ekrana Ekle.</p></div>
+        <div class="lp-step"><span class="lp-step-n">02</span><span class="ic-box"><span class="ic" data-icon="bell" data-icon-size="20"></span></span><h3>Bildirimleri aç</h3><p>Ayarlar → Bildirimler'den büyüklük eşiğini ve istersen yakınlık sınırını seç.</p></div>
+        <div class="lp-step"><span class="lp-step-n">03</span><span class="ic-box"><span class="ic" data-icon="check-circle" data-icon-size="20"></span></span><h3>Rahat ol</h3><p>Yeni bir deprem olduğunda telefonun kilitliyken bile haber verir.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="uygulama">
+    <div class="container">
+      <div class="lp-app">
+        <div class="lp-app-copy">
+          <span class="pill-label"><span class="ic" data-icon="download" data-icon-size="14"></span> Ücretsiz · hesap gerekmez</span>
+          <h2>Bir sonraki depremde <span class="accent-text">yanında</span> olalım.</h2>
+          <p>Telefonuna ekle; tam ekran açılır, bildirim gönderir, internet yokken bile son verileri gösterir.</p>
+          <div class="lp-app-btns">
+            <button type="button" class="btn btn-primary btn-lg" data-install><span class="ic" data-icon="download" data-icon-size="18"></span> Uygulamayı yükle</button>
+            <a class="btn btn-ghost btn-lg" href="ayarlar.html#bildirimler"><span class="ic" data-icon="bell" data-icon-size="18"></span> Bildirimleri aç</a>
+          </div>
+          <ul class="lp-app-tags">
+            <li><span class="ic" data-icon="check" data-icon-size="14"></span> Çevrimdışı çalışır</li>
+            <li><span class="ic" data-icon="check" data-icon-size="14"></span> Reklam yok</li>
+            <li><span class="ic" data-icon="check" data-icon-size="14"></span> Konum cihazında kalır</li>
+          </ul>
         </div>
-        <div class="why-card reveal">
-          <div class="why-num">03</div>
-          <span class="why-ic ic" data-icon="check-circle" data-icon-size="20"></span><h3>Gerçek kaynaklar</h3>
-          <p>Open-Meteo, AFAD ve NASA FIRMS uydu verisi kullanılır — kurgusal veri yok.</p>
-        </div>
-        <div class="why-card reveal">
-          <div class="why-num">04</div>
-          <span class="why-ic ic" data-icon="sparkle" data-icon-size="20"></span><h3>Tamamen ücretsiz</h3>
-          <p>Hiçbir kategori için ücretli abonelik gerekmez; yalnızca yangın verisi için ücretsiz bir NASA anahtarı gerekir.</p>
-        </div>
+        <img class="lp-app-icon" src="/img/app/icon-512.png" alt="" width="200" height="200" loading="lazy" />
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="sss">
+    <div class="container lp-faq-wrap">
+      <div class="section-head">
+        <span class="pill-label">Sık sorulan sorular</span>
+        <h2>Merak <span class="accent-text">edilenler</span></h2>
+      </div>
+      <div class="lp-faq">
+        <details><summary>Veriler nereden geliyor?</summary><p>Depremler AFAD'ın canlı servisinden gelir; AFAD'a ulaşılamazsa EMSC yedek olarak kullanılır. Yangın tespitleri NASA FIRMS uydu verisidir. Hava durumu ve tahminler Open-Meteo üzerinden ECMWF, GFS, ICON gibi ulusal hava servislerinin modellerinden alınır.</p></details>
+        <details><summary>TürkiyeCanlı resmî bir uyarı sistemi mi?</summary><p>Hayır. TürkiyeCanlı bağımsız bir projedir ve resmî açık verileri gösterir. Afet ve acil durumlarda AFAD'ın, 112'nin ve yetkili kurumların duyurularını esas al.</p></details>
+        <details><summary>Deprem bildirimleri nasıl çalışıyor?</summary><p>Sunucumuz AFAD verisini 2 dakikada bir kontrol eder. Seçtiğin büyüklüğün (ve istersen konumuna olan uzaklığın) üzerindeki yeni bir deprem olduğunda telefonuna bildirim gönderir. Bildirimleri Ayarlar → Bildirimler'den açıp kapatabilirsin.</p></details>
+        <details><summary>iPhone'da bildirim alabilir miyim?</summary><p>Evet, iOS 16.4 ve sonrasında. Önce siteyi Safari'de açıp Paylaş → Ana Ekrana Ekle ile uygulama olarak ekle, sonra uygulamanın içinden bildirimleri aç.</p></details>
+        <details><summary>Neden üyelik yok?</summary><p>Çünkü gerekmiyor. Tercihlerin yalnızca cihazında saklanır; adını, e-postanı veya şifreni istemiyoruz. Bildirimler de hesapsız çalışır.</p></details>
+        <details><summary>Ücretli mi?</summary><p>Hayır, tamamen ücretsiz ve reklamsız.</p></details>
+        <details><summary>AFAD ile Kandilli neden farklı büyüklük verebiliyor?</summary><p>İki kurum farklı istasyon ağları ve hesaplama yöntemleri kullanır; ilk dakikalarda büyüklük ve konum farklı çıkabilir, sonradan güncellenebilir. Bu panel AFAD verisini esas alır.</p></details>
       </div>
     </div>
   </section>
@@ -188,6 +283,7 @@
 
 <script src="js/cities.js"></script>
 <script src="js/main.js"></script>
+<script src="js/weather-icons.js"></script>
 <script src="js/home.js"></script>
 </body>
 </html>

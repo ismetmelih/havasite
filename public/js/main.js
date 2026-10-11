@@ -5,7 +5,7 @@
   // ---------------- ortak harita zemini ----------------
   // CARTO'nun ucretsiz dark_all zemini artik anahtar istiyor ("API KEY REQUIRED"
   // filigrani). Esri'nin "Dark Gray Canvas" servisi anahtarsiz, ucretsiz ve koyu;
-  // navy temaya yaklastirmak icin hafif bir CSS filtresiyle karartiliyor
+  // koyu temaya yaklastirmak icin hafif bir CSS filtresiyle karartiliyor
   // (bkz. base.css .hava-basemap).
   const BASEMAPS = {
     dark: ["Canvas/World_Dark_Gray_Base", "Canvas/World_Dark_Gray_Reference"],
@@ -205,36 +205,62 @@
     });
   }
 
+  const ua = navigator.userAgent;
+  const IS_IOS = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const IS_IOS_SAFARI = IS_IOS && /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua);
+
+  // sayfadaki "Uygulamayi yukle" dugmeleri bunu cagirir
+  let deferredInstall = null;
+  window.HavaInstall = {
+    async prompt() {
+      if (isStandalone()) { window.showToast("Uygulama zaten yüklü; ana ekranından açabilirsin."); return; }
+      if (deferredInstall) {
+        const d = deferredInstall;
+        d.prompt();
+        const choice = await d.userChoice.catch(() => null);
+        if (choice && choice.outcome === "accepted") deferredInstall = null;
+        return;
+      }
+      if (IS_IOS) {
+        if (!IS_IOS_SAFARI) { window.showToast("iPhone'da yüklemek için siteyi Safari'de aç.", { duration: 6000 }); return; }
+        showInstallCard({ ios: true });
+        return;
+      }
+      window.showToast("Tarayıcı menüsünden “Uygulamayı yükle” veya “Ana ekrana ekle”yi seç.", { duration: 6000 });
+    },
+  };
+
   function setupPWA() {
     if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
       navigator.serviceWorker.register("/sw.js").catch(() => {});
     }
-    if (isStandalone() || installSnoozed()) return;
-
-    // Android / Chrome / Edge: tarayicinin kendi yukleme penceresi
+    // Android / Chrome / Edge: tarayicinin kendi yukleme penceresi (dugmeler icin her zaman saklanir)
     window.addEventListener("beforeinstallprompt", (e) => {
       e.preventDefault();
-      const deferred = e;
+      deferredInstall = e;
+      if (isStandalone() || installSnoozed()) return;
       setTimeout(() => showInstallCard({
         ios: false,
         onInstall: async () => {
-          deferred.prompt();
-          const choice = await deferred.userChoice.catch(() => null);
-          return !!choice && choice.outcome === "accepted";
+          if (!deferredInstall) return false;
+          const d = deferredInstall;
+          d.prompt();
+          const choice = await d.userChoice.catch(() => null);
+          const ok = !!choice && choice.outcome === "accepted";
+          if (ok) deferredInstall = null;
+          return ok;
         },
       }), 2500);
     });
     window.addEventListener("appinstalled", () => {
+      deferredInstall = null;
       const card = document.getElementById("installCard");
       if (card) card.remove();
       document.body.classList.remove("has-install-card");
     });
 
     // iPhone/iPad Safari: otomatik yukleme penceresi yok, adimlari goster
-    const ua = navigator.userAgent;
-    const isIOS = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-    const isSafari = /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua);
-    if (isIOS && isSafari) setTimeout(() => showInstallCard({ ios: true }), 2500);
+    if (IS_IOS_SAFARI && !isStandalone() && !installSnoozed()) setTimeout(() => showInstallCard({ ios: true }), 2500);
   }
 
   // ---------------- kurumsal alt bilgi (tum sayfalarda ayni) + canli sistem durumu ----------------
@@ -332,6 +358,15 @@
           <h2>${window.HavaIcon("alert-triangle", { size: 22 })} Acil Durum Modu</h2>
           <button class="emergency-close" id="emergencyClose" type="button" aria-label="Kapat">${window.HavaIcon("x", { size: 18 })}</button>
         </div>
+        <div class="em-numbers">
+          <a class="em-number" href="tel:112"><div class="num">112</div><div class="lbl">Acil Çağrı Merkezi</div></a>
+          <a class="em-number" href="tel:122"><div class="num">122</div><div class="lbl">AFAD İhbar Hattı</div></a>
+        </div>
+        <div class="em-tools">
+          <button class="em-tool" id="emSiren" type="button" aria-pressed="false">${window.HavaIcon("siren", { size: 22 })}<b>Siren</b><small>Yüksek sesli düdük</small></button>
+          <button class="em-tool" id="emLight" type="button" aria-pressed="false">${window.HavaIcon("sun", { size: 22 })}<b>Işık sinyali</b><small>Ekran SOS yanıp söner</small></button>
+          <button class="em-tool em-safe" id="emSafe" type="button">${window.HavaIcon("check-circle", { size: 22 })}<b>Güvendeyim</b><small>Yakınlarına gönder</small></button>
+        </div>
         <div class="em-grid">
           <div class="em-card">
             <span class="em-label">Son Deprem</span>
@@ -343,10 +378,6 @@
             <div class="em-value" id="emFire">Yükleniyor…</div>
             <div class="em-sub" id="emFireSub">son 24 saat</div>
           </div>
-        </div>
-        <div class="em-numbers">
-          <a class="em-number" href="tel:112"><div class="num">112</div><div class="lbl">Acil Çağrı Merkezi</div></a>
-          <a class="em-number" href="tel:122"><div class="num">122</div><div class="lbl">AFAD İhbar Hattı</div></a>
         </div>
         <p class="em-note">
           Bu ekran AFAD ve NASA'nın açık verilerinden hızlı bir özet sunar.
@@ -362,9 +393,102 @@
     }
     function close() {
       overlay.hidden = true;
+      stopSiren();
+    }
+
+    // --- siren: yuksek perdeli, inip cikan duduk sesi (Web Audio) + titresim ---
+    let siren = null;
+    function startSiren() {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) { window.showToast("Bu tarayıcı ses üretemiyor."); return; }
+      const ctx = new AC();
+      const osc = ctx.createOscillator(), lfo = ctx.createOscillator(), lfoGain = ctx.createGain(), gain = ctx.createGain();
+      osc.type = "square";
+      osc.frequency.value = 3000;
+      lfo.frequency.value = 2.2;
+      lfoGain.gain.value = 800;
+      gain.gain.value = 0.55;
+      lfo.connect(lfoGain).connect(osc.frequency);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(); lfo.start();
+      const vib = navigator.vibrate ? setInterval(() => navigator.vibrate([400, 200, 400]), 1200) : null;
+      siren = { ctx, vib };
+      setPressed("emSiren", true);
+    }
+    function stopSiren() {
+      if (!siren) return;
+      siren.ctx.close().catch(() => {});
+      if (siren.vib) { clearInterval(siren.vib); navigator.vibrate && navigator.vibrate(0); }
+      siren = null;
+      setPressed("emSiren", false);
+    }
+    function setPressed(id, on) {
+      const b = document.getElementById(id);
+      if (b) { b.setAttribute("aria-pressed", String(on)); b.classList.toggle("on", on); }
+    }
+
+    // --- isik sinyali: tam ekran beyaz/siyah SOS (... --- ...); Android'de mumkunse flas da yanar ---
+    async function startLight() {
+      const fl = document.createElement("div");
+      fl.className = "em-flash";
+      fl.innerHTML = `<div class="em-flash-ui"><b>SOS ışık sinyali</b><span>Durdurmak için dokun</span></div>`;
+      document.body.appendChild(fl);
+      let wake = null, torch = null, stop = false;
+      try { wake = await navigator.wakeLock.request("screen"); } catch {}
+      if (/Android/i.test(navigator.userAgent) && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+          const track = stream.getVideoTracks()[0];
+          if (track.getCapabilities && track.getCapabilities().torch) torch = track; else track.stop();
+        } catch {}
+      }
+      const set = async (on) => {
+        fl.classList.toggle("lit", on);
+        if (torch) { try { await torch.applyConstraints({ advanced: [{ torch: on }] }); } catch {} }
+      };
+      const U = 220; // bir "nokta" suresi (ms)
+      const seq = [];
+      [1, 1, 1, 3, 3, 3, 1, 1, 1].forEach((d, i) => { seq.push([true, d * U]); seq.push([false, (i === 2 || i === 5) ? 3 * U : U]); });
+      seq[seq.length - 1][1] = 7 * U;
+      (async () => {
+        while (!stop) for (const [on, ms] of seq) { if (stop) break; await set(on); await new Promise((r) => setTimeout(r, ms)); }
+      })();
+      fl.addEventListener("click", async () => {
+        stop = true;
+        await set(false);
+        if (torch) torch.stop();
+        if (wake) wake.release().catch(() => {});
+        fl.remove();
+        setPressed("emLight", false);
+      });
+      setPressed("emLight", true);
+    }
+
+    // --- Guvendeyim: paylasim menusu (WhatsApp, SMS...) ile konumlu mesaj ---
+    async function sendSafe() {
+      const btn = document.getElementById("emSafe");
+      btn.disabled = true;
+      let loc = "";
+      try {
+        const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, { timeout: 6000, maximumAge: 300000 }));
+        loc = ` Konumum: https://maps.google.com/?q=${pos.coords.latitude.toFixed(5)},${pos.coords.longitude.toFixed(5)}`;
+      } catch {}
+      btn.disabled = false;
+      const text = `Güvendeyim, iyiyim.${loc}`;
+      if (navigator.share) {
+        try { await navigator.share({ text }); } catch {}
+      } else if (/Android|iPhone|iPad/i.test(navigator.userAgent)) {
+        location.href = `sms:?&body=${encodeURIComponent(text)}`;
+      } else {
+        try { await navigator.clipboard.writeText(text); window.showToast("Mesaj panoya kopyalandı; dilediğin uygulamaya yapıştırıp gönderebilirsin."); }
+        catch { window.showToast(text, { duration: 8000 }); }
+      }
     }
 
     fab.addEventListener("click", open);
+    document.getElementById("emSiren").addEventListener("click", () => (siren ? stopSiren() : startSiren()));
+    document.getElementById("emLight").addEventListener("click", startLight);
+    document.getElementById("emSafe").addEventListener("click", sendSafe);
     document.getElementById("emergencyClose").addEventListener("click", close);
     overlay.addEventListener("click", (e) => {
       if (e.target === overlay) close();
@@ -421,7 +545,7 @@
     document.documentElement.setAttribute("data-theme", theme);
     // telefonun durum cubugu / tarayici cubugu temaya uysun
     const themeMeta = document.querySelector('meta[name="theme-color"]');
-    if (themeMeta) themeMeta.setAttribute("content", theme === "light" ? "#eef2f8" : "#0a1224");
+    if (themeMeta) themeMeta.setAttribute("content", theme === "light" ? "#f4f5f7" : "#0d0f13");
     if (persist) {
       try { localStorage.setItem(THEME_KEY, theme); } catch {}
     }

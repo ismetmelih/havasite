@@ -10,24 +10,24 @@
 @font-face { font-family: "Satoshi"; src: url("../fonts/satoshi-500.woff2") format("woff2"); font-weight: 500; font-display: swap; }
 @font-face { font-family: "Satoshi"; src: url("../fonts/satoshi-700.woff2") format("woff2"); font-weight: 700; font-display: swap; }
 
-/* ---------------- koyu lacivert tema (varsayilan) — panel / tahmin yazilimi gorunumu ---------------- */
+/* ---------------- koyu tema (varsayilan): notr, hafif soguk antrasit + camgobegi vurgu ---------------- */
 :root {
   color-scheme: dark;
 
-  /* zeminler — derin lacivert, kartlar bir ton acik ve ince mavimsi kenarli */
-  --bg: #0a1224;
-  --bg-alt: #070d1b;
-  --surface: #0f1a31;
-  --surface-2: #14213d;
-  --surface-hover: #1a2a4b;
-  --border: rgba(104, 145, 222, 0.16);
-  --border-strong: rgba(104, 145, 222, 0.30);
-  --chart-grid: rgba(120, 155, 225, 0.10);
+  /* zeminler — notr antrasit, kartlar bir ton acik, ince beyaz kenar */
+  --bg: #0d0f13;
+  --bg-alt: #0a0c0f;
+  --surface: #15181d;
+  --surface-2: #1b1f25;
+  --surface-hover: #232830;
+  --border: rgba(255, 255, 255, 0.075);
+  --border-strong: rgba(255, 255, 255, 0.15);
+  --chart-grid: rgba(255, 255, 255, 0.06);
 
   /* metin */
-  --text-primary: #e7eef9;
-  --text-secondary: #a2b3cd;
-  --text-muted: #8194b3;
+  --text-primary: #f2f4f7;
+  --text-secondary: #a9b0bb;
+  --text-muted: #828a96;
 
   /* marka vurgusu — camgobegi */
   --accent: #22d3ee;
@@ -64,30 +64,30 @@
   --radius-lg: 18px;
   --shadow-soft: 0 12px 34px -16px rgba(0, 0, 0, 0.7);
   --font: "Satoshi", "Segoe UI", system-ui, -apple-system, sans-serif;
-  --font-display: "Satoshi", "Segoe UI", system-ui, sans-serif;
+  --font-display: "Cabinet Grotesk", "Satoshi", "Segoe UI", system-ui, sans-serif;
   --font-mono: "Satoshi", "Segoe UI", system-ui, sans-serif;
 
-  --ambient-weather: #0c1a2e;
-  --ambient-quake: #17140f;
-  --ambient-fire: #1a1016;
+  --ambient-weather: #0f1920;
+  --ambient-quake: #19150f;
+  --ambient-fire: #1b1114;
 }
 
 /* ---------------- acik tema (isteğe bagli) ---------------- */
 :root[data-theme="light"] {
   color-scheme: light;
 
-  --bg: #eef2f8;
-  --bg-alt: #e2e8f2;
+  --bg: #f4f5f7;
+  --bg-alt: #e9ebef;
   --surface: #ffffff;
-  --surface-2: #f2f5fa;
-  --surface-hover: #e7edf6;
-  --border: rgba(30, 60, 120, 0.12);
-  --border-strong: rgba(30, 60, 120, 0.22);
-  --chart-grid: rgba(30, 60, 120, 0.08);
+  --surface-2: #f3f4f6;
+  --surface-hover: #eaecf0;
+  --border: rgba(16, 24, 40, 0.10);
+  --border-strong: rgba(16, 24, 40, 0.18);
+  --chart-grid: rgba(16, 24, 40, 0.07);
 
-  --text-primary: #0f1b33;
-  --text-secondary: #4a5a78;
-  --text-muted: #5f6c85;
+  --text-primary: #12161c;
+  --text-secondary: #4a5260;
+  --text-muted: #5f6774;
 
   --accent: #0e7490;
   --accent-2: #155e75;
@@ -112,9 +112,9 @@
 
   --shadow-soft: 0 10px 30px -14px rgba(15, 27, 51, 0.18);
 
-  --ambient-weather: #dde9f7;
-  --ambient-quake: #f3eadc;
-  --ambient-fire: #f5e1e1;
+  --ambient-weather: #e3edf5;
+  --ambient-quake: #f4ece0;
+  --ambient-fire: #f5e5e5;
 }
 
 * {
@@ -1463,7 +1463,7 @@ select.filter-select:active {
 /* ---------------- leaflet marker/popup ortak gorunum ---------------- */
 .leaflet-container { background: var(--surface-2) !important; font-family: var(--font); }
 
-/* Esri "Dark Gray" zeminini navy temaya yaklastirmak icin karart; harita
+/* Esri "Dark Gray" zeminini koyu temaya yaklastirmak icin karart; harita
    (hero gibi) her iki temada da koyu kalir. Etiket katmani ayri filtreyle
    okunur tutulur. */
 :root:not([data-theme="light"]) .hava-basemap { filter: brightness(0.6) saturate(0.8) contrast(1.06); }
@@ -1800,7 +1800,7 @@ body { padding-top: var(--safe-top); }
 .leaflet-container img.leaflet-tile { mix-blend-mode: normal; width: 257px !important; height: 257px !important; }
 
 /* =========================================================================
-   PANEL GORUNUMU (tahmin yazilimi tarzi): lacivert zemin, ince kenarli kartlar,
+   PANEL GORUNUMU (tahmin yazilimi tarzi): koyu zemin, ince kenarli kartlar,
    renkli buyuk degerler, tonlu grafik kartlari
    ========================================================================= */
 body {
@@ -2037,3 +2037,38 @@ h3:has(> .h-icon) { display: flex; align-items: center; }
 /* baslik karti alttaki kartlarla ayni hizada dursun (telefonda kenara yapismasin) */
 .page-head-row.container { max-width: calc(min(1240px, 100%) - 48px); }
 @media (max-width: 560px) { .page-head-row.container { max-width: calc(100% - 32px); } }
+
+/* ===== tasarim dili: buyuk, kalin basliklar (Cabinet Grotesk), govde ve kart basliklari Satoshi ===== */
+h1, h2 { font-weight: 800; letter-spacing: -0.03em; }
+h3, h4 { font-family: var(--font); letter-spacing: -0.01em; }
+.page-head h1 { font-size: clamp(1.9rem, 3.4vw, 2.6rem); }
+.brand { font-family: var(--font-display); font-weight: 800; letter-spacing: -0.02em; }
+
+/* ---- acil durum araclari: siren, isik sinyali, guvendeyim ---- */
+.emergency-panel { max-height: calc(100dvh - 40px); overflow-y: auto; }
+.em-tools { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+.em-tool {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 16px 8px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+.em-tool:active { transform: scale(0.97); }
+.em-tool b { font-size: 0.95rem; margin-top: 4px; }
+.em-tool small { font-size: 0.72rem; opacity: 0.7; text-align: center; }
+.em-tool.on { background: #f59e0b; border-color: #f59e0b; color: #1b1203; animation: em-tool-blink 0.8s ease-in-out infinite; }
+@keyframes em-tool-blink { 50% { filter: brightness(1.25); } }
+.em-safe { background: rgba(22, 163, 74, 0.2); border-color: rgba(22, 163, 74, 0.5); }
+.em-safe:hover { background: rgba(22, 163, 74, 0.32); }
+.em-flash { position: fixed; inset: 0; z-index: 2000; background: #000; display: grid; place-items: end center; cursor: pointer; }
+.em-flash.lit { background: #fff; }
+.em-flash-ui { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-bottom: calc(40px + env(safe-area-inset-bottom, 0px)); padding: 12px 20px; border-radius: 16px; background: rgba(120, 120, 120, 0.55); color: #fff; font-size: 0.9rem; }
+@media (max-width: 560px) { .em-tool { padding: 14px 4px; } .em-tool small { display: none; } }
