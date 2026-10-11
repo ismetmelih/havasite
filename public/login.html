@@ -17,7 +17,6 @@
 <meta name="apple-mobile-web-app-title" content="TürkiyeCanlı" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <link rel="preload" href="/fonts/satoshi-400.woff2" as="font" type="font/woff2" crossorigin />
-<link rel="preload" href="/fonts/cabinet-grotesk-800.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="stylesheet" href="css/base.css" />
 <link rel="stylesheet" href="css/login.css" />
 </head>
@@ -51,7 +50,7 @@
     </div>
     <span class="badge badge-live"><span class="live-blip"></span> CANLI PANEL</span>
     <h1>Hesabınla kişisel<br />takip panelini kur</h1>
-    <p>Giriş yaptığında favori şehirlerini, izlediğin bölgeleri ve tercih ettiğin uyarı eşiklerini bu tarayıcıda saklarız.</p>
+    <p>Giriş yaptığında favori şehrin ve deprem uyarı eşiğin hesabına kaydedilir; telefonda da bilgisayarda da aynı ayarlarla devam edersin.</p>
     <ul class="auth-feature-list">
       <li><span class="fi fi-weather" data-icon="sun" data-icon-size="17"></span> Favori şehirler için hızlı hava durumu erişimi</li>
       <li><span class="fi fi-quake" data-icon="activity" data-icon-size="17"></span> Belirlediğin büyüklük üzerindeki depremler için vurgulama</li>
@@ -75,17 +74,32 @@
         </label>
         <label class="field">
           <span>Şifre</span>
-          <input type="password" name="password" placeholder="••••••••" autocomplete="current-password" required minlength="6" />
+          <input type="password" name="password" placeholder="••••••••" autocomplete="current-password" required />
           <small class="field-error"></small>
         </label>
         <div class="field-row">
           <label class="checkbox"><input type="checkbox" name="remember" checked /> Beni hatırla</label>
-          <a class="link-muted" href="#" id="forgotLink">Şifremi unuttum</a>
+          <button class="link-muted link-btn" type="button" id="forgotLink">Şifremi unuttum</button>
         </div>
         <button class="btn btn-primary btn-block" type="submit">
           <span class="btn-label">Giriş Yap</span>
           <span class="btn-spin" hidden><span class="spinner"></span></span>
         </button>
+      </form>
+
+      <form id="forgotForm" class="auth-form" novalidate hidden>
+        <p class="auth-hint">Hesabına kayıtlı e-posta adresini yaz, şifreni sıfırlaman için bir bağlantı gönderelim.</p>
+        <label class="field">
+          <span>E-posta</span>
+          <input type="email" name="email" placeholder="ornek@eposta.com" autocomplete="email" required />
+          <small class="field-error"></small>
+        </label>
+        <button class="btn btn-primary btn-block" type="submit">
+          <span class="btn-label">Sıfırlama bağlantısı gönder</span>
+          <span class="btn-spin" hidden><span class="spinner"></span></span>
+        </button>
+        <p class="auth-hint auth-hint-result" id="forgotResult" role="status" hidden></p>
+        <button class="btn btn-ghost btn-block" type="button" id="forgotBack">Girişe dön</button>
       </form>
 
       <form id="registerForm" class="auth-form" novalidate hidden>
@@ -101,14 +115,15 @@
         </label>
         <label class="field">
           <span>Şifre</span>
-          <input type="password" name="password" placeholder="En az 6 karakter" autocomplete="new-password" required minlength="6" />
+          <input type="password" name="password" placeholder="En az 8 karakter" autocomplete="new-password" required minlength="8" />
           <small class="field-error"></small>
         </label>
         <label class="field">
           <span>Şifre (tekrar)</span>
-          <input type="password" name="password2" placeholder="••••••••" autocomplete="new-password" required minlength="6" />
+          <input type="password" name="password2" placeholder="••••••••" autocomplete="new-password" required minlength="8" />
           <small class="field-error"></small>
         </label>
+        <p class="auth-consent">Hesap oluşturarak <a href="gizlilik.html">Gizlilik ve KVKK Aydınlatma Metni</a>'ni okuduğunu kabul edersin.</p>
         <button class="btn btn-primary btn-block" type="submit">
           <span class="btn-label">Hesap Oluştur</span>
           <span class="btn-spin" hidden><span class="spinner"></span></span>
@@ -124,9 +139,8 @@
       </div>
 
       <p class="auth-note">
-        Hesabın sunucu tarafında, şifreler geri döndürülemez biçimde (hash'lenerek) saklanır.
-        Bu site bağımsız bir projedir; hassas bilgiler için gerçek hesap bilgilerini
-        kullanmak yerine ayrı bir e-posta/şifre tercih etmen önerilir.
+        Şifreler geri döndürülemez biçimde (hash'lenerek) saklanır. Hangi verilerin neden
+        tutulduğunu <a href="gizlilik.html">Gizlilik ve KVKK</a> sayfasında bulabilirsin.
       </p>
     </div>
   </section>

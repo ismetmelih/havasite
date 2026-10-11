@@ -6,7 +6,7 @@
 // - Gorseller, yazi tipleri ve surumlu CDN kutuphaneleri: once onbellek (hizli), arka planda tazele.
 // - /api/quakes ve /api/fires: once ag; baglanti yoksa son bilinen veri gosterilir.
 // - Giris/admin API'leri ve harita karolari hic onbelleklenmez.
-const VERSION = "v6";
+const VERSION = "v7";
 const SHELL_CACHE = `tc-shell-${VERSION}`;
 const RUNTIME_CACHE = `tc-runtime-${VERSION}`;
 
@@ -19,6 +19,7 @@ const SHELL = [
   "/login.html",
   "/ayarlar.html",
   "/offline.html",
+  "/gizlilik.html",
   "/css/base.css",
   "/css/home.css",
   "/css/dash.css",
@@ -39,7 +40,6 @@ const SHELL = [
   "/fonts/satoshi-400.woff2",
   "/fonts/satoshi-500.woff2",
   "/fonts/satoshi-700.woff2",
-  "/fonts/cabinet-grotesk-800.woff2",
   "/img/app/icon-192.png",
   "/manifest.webmanifest",
 ];

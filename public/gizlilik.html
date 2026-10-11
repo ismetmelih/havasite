@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<script src="/js/theme-init.js"></script>
+<title>Gizlilik ve KVKK Aydınlatma Metni — TürkiyeCanlı</title>
+<meta name="description" content="TürkiyeCanlı'nın hangi kişisel verileri, hangi amaçla ve ne kadar süre işlediği; KVKK kapsamındaki hakların ve başvuru yolu." />
+<link rel="canonical" href="{{ORIGIN}}/gizlilik.html" />
+<link rel="icon" href="/favicon.ico" sizes="32x32" />
+<link rel="icon" type="image/svg+xml" href="img/logo.svg" />
+<link rel="manifest" href="/manifest.webmanifest" />
+<meta name="theme-color" content="#0a1224" />
+<link rel="apple-touch-icon" href="/img/app/apple-touch-icon.png" />
+<link rel="preload" href="/fonts/satoshi-400.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="stylesheet" href="css/base.css" />
+<link rel="stylesheet" href="css/legal.css" />
+</head>
+<body>
+
+<nav class="site-nav">
+  <a class="brand" href="index.html"><img src="img/logo.svg" class="brand-logo" alt="" /> Türkiye<span class="text-quake">Canlı</span></a>
+  <button class="hamburger" aria-label="Menü"><span></span><span></span><span></span></button>
+  <div class="nav-links">
+    <a href="index.html" data-page="index.html">Ana Sayfa</a>
+    <a href="hava.html" data-page="hava.html">Hava Durumu</a>
+    <a href="deprem.html" data-page="deprem.html">Depremler</a>
+    <a href="yangin.html" data-page="yangin.html">Yangınlar</a>
+  </div>
+  <div class="nav-account">
+    <div class="nav-actions">
+      <button class="icon-btn" id="themeToggle" type="button" aria-label="Açık/Koyu tema" title="Açık/Koyu tema"><span data-theme-icon></span></button>
+    </div>
+    <div class="nav-user" id="navUser"></div>
+  </div>
+</nav>
+
+<main class="container legal">
+  <article class="card legal-card">
+    <span class="eyebrow">GİZLİLİK · KVKK</span>
+    <h1>Gizlilik ve KVKK Aydınlatma Metni</h1>
+    <p class="legal-updated">Son güncelleme: 11 Ekim 2026</p>
+
+    <p>
+      Bu metin, 6698 sayılı Kişisel Verilerin Korunması Kanunu ("KVKK") kapsamında, TürkiyeCanlı'yı
+      kullanırken hangi kişisel verilerinin işlendiğini, neden işlendiğini ve hakların neler olduğunu
+      anlatır. Kısaca: yalnızca hesabın için gereken en az bilgiyi tutuyoruz, verilerini satmıyor ve
+      reklam amacıyla kullanmıyoruz.
+    </p>
+
+    <h2>1. Veri sorumlusu</h2>
+    <p>
+      TürkiyeCanlı bağımsız, bireysel bir projedir ve herhangi bir kamu kurumuyla bağlantısı yoktur.
+      Veri sorumlusuna şu adresten ulaşabilirsin: <strong>{{CONTACT_EMAIL}}</strong>
+    </p>
+
+    <h2>2. Hangi verileri işliyoruz?</h2>
+    <h3>Hesap oluşturursan</h3>
+    <ul>
+      <li><strong>Ad soyad ve e-posta adresi:</strong> hesabını tanımak ve sana sitede adınla hitap etmek için.</li>
+      <li><strong>Şifre:</strong> şifrenin kendisi değil, yalnızca geri döndürülemez özeti (hash) saklanır. Kimse, biz dahil, şifreni göremez.</li>
+      <li><strong>Hesap oluşturma tarihi.</strong></li>
+      <li><strong>Site tercihlerin:</strong> favori şehrin ve deprem uyarı eşiğin. Bunları hesabında tutuyoruz ki her cihazda aynı ayarlarla devam edebilesin.</li>
+      <li><strong>Şifre sıfırlama:</strong> şifreni sıfırlamak istersen tek kullanımlık bir bağlantı oluşturulur. Bağlantının kendisi değil yalnızca özeti saklanır ve en geç 24 saatte geçersiz olur.</li>
+    </ul>
+    <h3>Herkes için</h3>
+    <ul>
+      <li>
+        <strong>IP adresi:</strong> şifre deneme saldırılarını engellemek için giriş/kayıt isteklerinde
+        en fazla yaklaşık 1 saat sunucu belleğinde tutulur, kalıcı olarak kaydedilmez. Barındırma sağlayıcımız
+        (Amazon Web Services) altyapısı gereği standart erişim kayıtları tutabilir.
+      </li>
+      <li>
+        <strong>Konum:</strong> yalnızca "Konumum" veya "Konumumu kullan" düğmesine bastığında, tarayıcının
+        izin penceresini onaylarsan kullanılır. Hava durumu için koordinatlar tarayıcından doğrudan
+        Open-Meteo'ya gönderilir; deprem uzaklıkları cihazında hesaplanır. Konumun <strong>sunucumuza
+        gönderilmez ve bizde saklanmaz.</strong>
+      </li>
+    </ul>
+
+    <h3>Cihazında saklananlar (çerez ve yerel depolama)</h3>
+    <ul>
+      <li><strong>Oturum çerezi</strong> (zorunlu): giriş yaptığını hatırlamak için. "Beni hatırla" işaretliyse 30 gün, değilse tarayıcı kapanana kadar geçerlidir.</li>
+      <li><strong>Yerel depolama:</strong> tema tercihin, son baktığın şehir, misafir günlük görüntüleme sayacı, deprem çantası listen ve "Konumumu kullan" ile verdiğin konum. Bunlar yalnızca cihazında durur.</li>
+      <li><strong>Uygulama önbelleği:</strong> site internetsiz de açılabilsin diye sayfalar ve son deprem/yangın verisi cihazında önbelleğe alınır.</li>
+    </ul>
+    <p>Reklam, izleme veya üçüncü taraf analiz çerezi <strong>kullanmıyoruz.</strong></p>
+
+    <h2>3. Amaçlar ve hukuki sebepler</h2>
+    <ul>
+      <li>Hesabının oluşturulması, girişin ve tercihlerinin saklanması: KVKK m.5/2-c (bir sözleşmenin kurulması veya ifasıyla doğrudan ilgili olması).</li>
+      <li>Kötüye kullanımın ve şifre deneme saldırılarının önlenmesi: KVKK m.5/2-f (temel hak ve özgürlüklerine zarar vermemek kaydıyla meşru menfaat).</li>
+    </ul>
+
+    <h2>4. Veriler kimlerle ve nerede paylaşılıyor?</h2>
+    <p>Verilerin satılmaz ve reklam amacıyla paylaşılmaz. Siteyi çalıştırmak için şu hizmet sağlayıcılardan yararlanıyoruz:</p>
+    <ul>
+      <li><strong>Amazon Web Services (AWS Amplify):</strong> sitenin barındırılması. Sunucular Avrupa'da (Frankfurt).</li>
+      <li><strong>Supabase:</strong> hesap veritabanı. Sunucular Avrupa'da (Frankfurt).</li>
+      <li><strong>Resend:</strong> yalnızca e-postayla şifre sıfırlama açıksa, sıfırlama e-postasının gönderilmesi.</li>
+    </ul>
+    <p>
+      Bu sağlayıcıların sunucuları Türkiye dışında bulunduğundan hesap verilerin yurt dışında saklanır
+      (KVKK m.9). Hava, deprem ve yangın verilerini aldığımız Open-Meteo, AFAD ve NASA FIRMS'e hesap
+      bilgilerin gönderilmez.
+    </p>
+
+    <h2>5. Ne kadar süre saklıyoruz?</h2>
+    <ul>
+      <li>Hesap bilgilerin ve tercihlerin, hesabın açık olduğu sürece saklanır.</li>
+      <li>
+        <strong>Hesabını istediğin an kendin silebilirsin:</strong> Ayarlar → Profil → "Hesabı sil".
+        Silme anında ad, e-posta, şifre özeti, tercihler ve sıfırlama kayıtların kalıcı olarak silinir.
+      </li>
+      <li>IP adresleri en fazla yaklaşık 1 saat bellekte tutulur; şifre sıfırlama bağlantıları en geç 24 saatte geçersiz olur.</li>
+    </ul>
+
+    <h2>6. KVKK kapsamındaki hakların (m.11)</h2>
+    <p>Bize başvurarak şunları talep edebilirsin:</p>
+    <ul>
+      <li>Kişisel verilerinin işlenip işlenmediğini öğrenmek ve işlendiyse bilgi istemek,</li>
+      <li>İşlenme amacını ve amacına uygun kullanılıp kullanılmadığını öğrenmek,</li>
+      <li>Yurt içinde veya yurt dışında aktarıldığı üçüncü kişileri bilmek,</li>
+      <li>Eksik veya yanlış işlenmişse düzeltilmesini istemek,</li>
+      <li>Silinmesini veya yok edilmesini istemek ve bu işlemlerin aktarılan üçüncü kişilere bildirilmesini istemek,</li>
+      <li>Münhasıran otomatik sistemlerle analiz edilmesi sonucu aleyhine bir sonuç çıkmasına itiraz etmek,</li>
+      <li>Kanuna aykırı işlenmesi sebebiyle zarara uğradıysan zararın giderilmesini talep etmek.</li>
+    </ul>
+    <p>
+      Başvurunu <strong>{{CONTACT_EMAIL}}</strong> adresine, hesabına kayıtlı e-posta adresinden
+      yazabilirsin. Başvurular en geç 30 gün içinde ücretsiz olarak yanıtlanır.
+    </p>
+
+    <h2>7. Kullanım koşulları</h2>
+    <ul>
+      <li>
+        Sitedeki hava durumu, deprem ve yangın verileri Open-Meteo, AFAD ve NASA FIRMS'in herkese açık
+        servislerinden otomatik olarak alınır. Gecikmeli, eksik veya hatalı olabilir.
+      </li>
+      <li>
+        TürkiyeCanlı <strong>resmî bir uyarı veya erken uyarı sistemi değildir.</strong> Afet ve acil durumlarda
+        AFAD, 112 ve yetkili kurumların duyurularını esas al.
+      </li>
+      <li>Site "olduğu gibi" sunulur; kesintisiz veya hatasız çalışacağı garanti edilmez.</li>
+    </ul>
+
+    <p class="legal-foot"><a href="index.html">Ana sayfaya dön</a></p>
+  </article>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div>© <span id="year"></span> TürkiyeCanlı</div>
+    <div class="sources"><a href="hava.html">Hava</a><a href="deprem.html">Deprem</a><a href="yangin.html">Yangın</a><a href="gizlilik.html">Gizlilik ve KVKK</a></div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>

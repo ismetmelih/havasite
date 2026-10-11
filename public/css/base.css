@@ -1935,3 +1935,10 @@ body {
   white-space: nowrap;
   border: 0;
 }
+.btn-danger {
+  border: 1px solid color-mix(in srgb, var(--status-critical) 55%, transparent);
+  background: color-mix(in srgb, var(--status-critical) 16%, transparent);
+  color: var(--text-primary);
+}
+.btn-danger:hover { background: var(--status-critical); color: #fff; }
+.btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }

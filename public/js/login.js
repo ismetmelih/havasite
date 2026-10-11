@@ -19,14 +19,57 @@
     setupTabs();
     setupForms();
 
-    const forgot = document.getElementById("forgotLink");
-    if (forgot) {
-      forgot.addEventListener("click", (e) => {
-        e.preventDefault();
-        window.showToast && window.showToast("Demo modunda şifre sıfırlama devre dışı.");
-      });
-    }
+    setupForgot();
   });
+
+  // ---- sifremi unuttum: e-posta ile sifirlama baglantisi iste ----
+  function setupForgot() {
+    const link = document.getElementById("forgotLink");
+    const loginForm = document.getElementById("loginForm");
+    const form = document.getElementById("forgotForm");
+    const result = document.getElementById("forgotResult");
+    const tabs = document.querySelector(".auth-tabs");
+    if (!link || !form) return;
+
+    const show = (forgot) => {
+      loginForm.hidden = forgot;
+      form.hidden = !forgot;
+      if (tabs) tabs.hidden = forgot;
+      result.hidden = true;
+      if (forgot) {
+        form.email.value = loginForm.email.value;
+        form.email.focus();
+      }
+    };
+    link.addEventListener("click", (e) => { e.preventDefault(); show(true); });
+    document.getElementById("forgotBack").addEventListener("click", () => show(false));
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = form.email.value.trim();
+      if (!isEmail(email)) return setFieldError(form.email, "Geçerli bir e-posta gir.");
+      setFieldError(form.email, "");
+      const btn = form.querySelector("button[type=submit]");
+      btn.disabled = true;
+      try {
+        const r = await fetch("/api/auth/forgot", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        });
+        const data = await r.json();
+        result.textContent = data.message || "İstek alındı.";
+        result.classList.toggle("is-error", !data.ok);
+        result.hidden = false;
+      } catch {
+        result.textContent = "Bağlantı hatası. Lütfen tekrar dene.";
+        result.classList.add("is-error");
+        result.hidden = false;
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  }
 
   function setupTabs() {
     const tabs = document.querySelectorAll(".auth-tab");
@@ -79,8 +122,8 @@
         ok = false;
       } else setFieldError(email, "");
 
-      if (password.value.length < 6) {
-        setFieldError(password, "Şifre en az 6 karakter olmalı.");
+      if (!password.value) {
+        setFieldError(password, "Şifreni gir.");
         ok = false;
       } else setFieldError(password, "");
 
@@ -111,8 +154,8 @@
         ok = false;
       } else setFieldError(email, "");
 
-      if (password.value.length < 6) {
-        setFieldError(password, "Şifre en az 6 karakter olmalı.");
+      if (password.value.length < 8) {
+        setFieldError(password, "Şifre en az 8 karakter olmalı.");
         ok = false;
       } else setFieldError(password, "");
 

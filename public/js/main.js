@@ -214,6 +214,8 @@
   }
 
   document.addEventListener("DOMContentLoaded", () => {
+    const yearEl = document.getElementById("year");
+    if (yearEl && !yearEl.textContent) yearEl.textContent = new Date().getFullYear();
     hydrateIcons();
     setupNav();
     setupReveal();
@@ -443,12 +445,42 @@
       return { ...DEFAULT_PREFS };
     }
   }
-  function setPrefs(p) {
+  function saveLocalPrefs(p) {
     try {
       localStorage.setItem(PREFS_KEY, JSON.stringify(p));
     } catch (err) {
       console.warn("Tercihler kaydedilemedi:", err);
     }
+  }
+  // Giris yapilmissa tercihler hesaba da kaydedilir (her cihazda ayni); tarayicidaki kopya onbellektir.
+  async function setPrefs(p) {
+    const merged = { ...getPrefs(), ...p };
+    saveLocalPrefs(merged);
+    if (!sessionUser) return true;
+    try {
+      const r = await fetch("/api/auth/prefs", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify(merged),
+      });
+      const data = await r.json();
+      if (data.ok && data.user) sessionUser = data.user;
+      return !!data.ok;
+    } catch {
+      return false;
+    }
+  }
+  // Oturum acilinca: hesapta tercih varsa onu kullan; yoksa bu tarayicidakini hesaba tasi.
+  function syncPrefs(user) {
+    const server = (user && user.prefs) || {};
+    if (Object.keys(server).length) {
+      saveLocalPrefs({ ...DEFAULT_PREFS, ...server });
+    } else {
+      const local = getPrefs();
+      if (local.favoriteCity || local.quakeAlertMag !== DEFAULT_PREFS.quakeAlertMag) setPrefs(local);
+    }
+    document.dispatchEvent(new CustomEvent("havaprefs:sync"));
   }
   window.HavaPrefs = { get: getPrefs, set: setPrefs };
 
@@ -508,6 +540,7 @@
       .then((r) => r.json())
       .then((data) => {
         sessionUser = data.ok ? data.user : null;
+        if (sessionUser) syncPrefs(sessionUser);
         return sessionUser;
       })
       .catch(() => {

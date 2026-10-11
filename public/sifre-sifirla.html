@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="robots" content="noindex" />
+<meta name="referrer" content="no-referrer" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<script src="/js/theme-init.js"></script>
+<title>Şifre sıfırla — TürkiyeCanlı</title>
+<meta name="description" content="TürkiyeCanlı hesabın için yeni şifre belirle." />
+<link rel="icon" href="/favicon.ico" sizes="32x32" />
+<link rel="icon" type="image/svg+xml" href="img/logo.svg" />
+<link rel="manifest" href="/manifest.webmanifest" />
+<meta name="theme-color" content="#0a1224" />
+<link rel="apple-touch-icon" href="/img/app/apple-touch-icon.png" />
+<link rel="preload" href="/fonts/satoshi-400.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="stylesheet" href="css/base.css" />
+<link rel="stylesheet" href="css/login.css" />
+</head>
+<body class="login-body">
+
+<nav class="site-nav">
+  <a class="brand" href="index.html"><img src="img/logo.svg" class="brand-logo" alt="" /> Türkiye<span class="text-quake">Canlı</span></a>
+  <button class="hamburger" aria-label="Menü"><span></span><span></span><span></span></button>
+  <div class="nav-links">
+    <a href="index.html" data-page="index.html">Ana Sayfa</a>
+    <a href="hava.html" data-page="hava.html">Hava Durumu</a>
+    <a href="deprem.html" data-page="deprem.html">Depremler</a>
+    <a href="yangin.html" data-page="yangin.html">Yangınlar</a>
+  </div>
+  <div class="nav-account">
+    <div class="nav-actions">
+      <button class="icon-btn" id="themeToggle" type="button" aria-label="Açık/Koyu tema" title="Açık/Koyu tema"><span data-theme-icon></span></button>
+    </div>
+    <div class="nav-user" id="navUser"></div>
+  </div>
+</nav>
+
+<main class="auth-shell auth-shell-single">
+  <div class="auth-grid" aria-hidden="true"></div>
+  <section class="auth-card-wrap reveal in-view">
+    <div class="auth-card glass">
+      <h1 class="auth-title">Yeni şifre belirle</h1>
+
+      <form id="resetForm" class="auth-form" novalidate>
+        <label class="field">
+          <span>Yeni şifre</span>
+          <input type="password" name="password" placeholder="En az 8 karakter" autocomplete="new-password" required minlength="8" />
+          <small class="field-error"></small>
+        </label>
+        <label class="field">
+          <span>Yeni şifre (tekrar)</span>
+          <input type="password" name="password2" placeholder="••••••••" autocomplete="new-password" required minlength="8" />
+          <small class="field-error"></small>
+        </label>
+        <button class="btn btn-primary btn-block" type="submit">Şifremi güncelle</button>
+      </form>
+
+      <p class="auth-hint auth-hint-result" id="resetResult" role="status" hidden></p>
+      <p class="auth-note"><a href="login.html">Girişe dön</a></p>
+    </div>
+  </section>
+</main>
+
+<script src="js/main.js"></script>
+<script src="js/reset.js"></script>
+</body>
+</html>

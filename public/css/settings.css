@@ -250,3 +250,14 @@
   .profile-card { padding: 22px; }
   .checklist-items { grid-template-columns: 1fr; }
 }
+
+/* ---- guvenlik bolumleri ---- */
+.settings-section {
+  margin-top: 28px;
+  padding-top: 22px;
+  border-top: 1px solid var(--border);
+}
+.settings-section h3 { display: flex; align-items: center; margin: 0 0 14px; font-size: 1.05rem; }
+.settings-section .h-icon { color: var(--accent); }
+.danger-zone h3, .danger-zone .h-icon { color: var(--status-critical); }
+.danger-zone .field-hint { margin: 0 0 14px; display: block; }

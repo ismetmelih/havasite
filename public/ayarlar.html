@@ -17,7 +17,6 @@
 <meta name="apple-mobile-web-app-title" content="TürkiyeCanlı" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <link rel="preload" href="/fonts/satoshi-400.woff2" as="font" type="font/woff2" crossorigin />
-<link rel="preload" href="/fonts/cabinet-grotesk-800.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="stylesheet" href="css/base.css" />
 <link rel="stylesheet" href="css/settings.css" />
 </head>
@@ -48,7 +47,7 @@
       <div>
         <span class="eyebrow">AYARLAR</span>
         <h1>Profilini ve görünümünü özelleştir</h1>
-        <p class="page-sub">Tercihlerin yalnızca bu tarayıcıda saklanır.</p>
+        <p class="page-sub">Giriş yaptıysan tercihlerin hesabına kaydedilir ve her cihazda geçerli olur.</p>
       </div>
     </div>
   </div>
@@ -85,7 +84,7 @@
             <label class="field">
               <span>E-posta</span>
               <input type="email" id="fEmail" disabled />
-              <span class="field-hint">E-posta demo hesabında değiştirilemez.</span>
+              <span class="field-hint">E-posta adresi değiştirilemez.</span>
             </label>
 
             <label class="field">
@@ -97,11 +96,48 @@
             <label class="field">
               <span>Deprem bildirim eşiği: <strong id="fMagVal">3.5</strong>+</span>
               <input type="range" id="fMag" min="2.5" max="6" step="0.5" value="3.5" />
-              <span class="field-hint">Deprem sayfasında bu büyüklük ve üzerindeki yeni depremlerde bildirim gösterilir.</span>
+              <span class="field-hint">Deprem sayfası açıkken bu büyüklük ve üzerindeki yeni depremler için uyarı gösterilir. Tercihlerin hesabına kaydedilir.</span>
             </label>
 
             <button class="btn btn-primary btn-block" type="submit">Kaydet</button>
           </form>
+
+          <div class="settings-section">
+            <h3><span class="h-icon ic" data-icon="key" data-icon-size="18"></span>Şifre değiştir</h3>
+            <form id="passwordForm" class="auth-form" novalidate>
+              <label class="field">
+                <span>Mevcut şifre</span>
+                <input type="password" name="current" autocomplete="current-password" required />
+                <small class="field-error"></small>
+              </label>
+              <label class="field">
+                <span>Yeni şifre</span>
+                <input type="password" name="next" placeholder="En az 8 karakter" autocomplete="new-password" required minlength="8" />
+                <small class="field-error"></small>
+              </label>
+              <label class="field">
+                <span>Yeni şifre (tekrar)</span>
+                <input type="password" name="next2" autocomplete="new-password" required minlength="8" />
+                <small class="field-error"></small>
+              </label>
+              <button class="btn btn-primary btn-block" type="submit">Şifreyi güncelle</button>
+              <span class="field-hint">Şifreni değiştirince diğer cihazlardaki oturumların kapanır.</span>
+            </form>
+          </div>
+
+          <div class="settings-section danger-zone">
+            <h3><span class="h-icon ic" data-icon="alert-triangle" data-icon-size="18"></span>Hesabı sil</h3>
+            <p class="field-hint">Hesabın ve kayıtlı tüm bilgilerin (ad, e-posta, tercihler) kalıcı olarak silinir. Bu işlem geri alınamaz.</p>
+            <form id="deleteForm" class="auth-form" novalidate>
+              <label class="field">
+                <span>Onay için şifren</span>
+                <input type="password" name="password" autocomplete="current-password" required />
+                <small class="field-error"></small>
+              </label>
+              <label class="checkbox"><input type="checkbox" name="confirm" /> Hesabımın kalıcı olarak silineceğini anlıyorum</label>
+              <button class="btn btn-danger btn-block" type="submit">Hesabımı kalıcı olarak sil</button>
+            </form>
+          </div>
         </div>
 
         <div id="profileGuest" class="profile-guest" hidden>
@@ -109,7 +145,7 @@
           <h3>Profilini özelleştirmek için giriş yap</h3>
           <p style="color:var(--text-secondary);max-width:420px;margin:0 auto 20px">
             Görünen adını ve avatarını ayarlamak için hesabına giriş yapmalısın.
-            Favori şehir ve deprem uyarı eşiğini giriş yapmadan da aşağıdan ayarlayabilirsin.
+            Favori şehir ve deprem uyarı eşiğini giriş yapmadan da aşağıdan ayarlayabilirsin (yalnızca bu tarayıcıda saklanır).
           </p>
           <a class="btn btn-primary" href="login.html">Giriş Yap <span class="ic" data-icon="arrow-right" data-icon-size="15"></span></a>
 
@@ -203,7 +239,7 @@
 <footer class="site-footer">
   <div class="container">
     <div>© <span id="year"></span> TürkiyeCanlı</div>
-    <div class="sources"><a href="hava.html">Hava</a><a href="deprem.html">Deprem</a><a href="yangin.html">Yangın</a></div>
+    <div class="sources"><a href="hava.html">Hava</a><a href="deprem.html">Deprem</a><a href="yangin.html">Yangın</a><a href="gizlilik.html">Gizlilik ve KVKK</a></div>
   </div>
 </footer>
 

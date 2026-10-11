@@ -52,6 +52,15 @@
       const fav = window.HavaPrefs.get().favoriteCity;
       const c = fav && (window.TR_CITIES || []).find((x) => x.name === fav);
       if (c) state.loc = { name: c.name, lat: c.lat, lon: c.lon };
+      // yeni bir cihazda hesaptaki favori sehir oturum gelince ogrenilir
+      document.addEventListener("havaprefs:sync", () => {
+        const fav2 = window.HavaPrefs.get().favoriteCity;
+        const c2 = fav2 && (window.TR_CITIES || []).find((x) => x.name === fav2);
+        if (c2 && (!state.loc || state.loc.name !== c2.name) && !safeJson("havasite_last_city")) {
+          state.loc = { name: c2.name, lat: c2.lat, lon: c2.lon };
+          loadWeather();
+        }
+      }, { once: true });
     }
 
     const wantView = (new URLSearchParams(location.search).get("v") || location.hash.slice(1) || "").toLowerCase();

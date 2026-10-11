@@ -106,14 +106,17 @@
           window.showToast("Sunucuya ulaşılamadı.", { accent: "var(--status-critical)" });
           return;
         }
-        window.HavaPrefs.set({
+        const saved = await window.HavaPrefs.set({
           favoriteCity: document.getElementById("fCity").value,
           quakeAlertMag: parseFloat(document.getElementById("fMag").value),
         });
         document.getElementById("profileAvatar").textContent = name.slice(0, 1).toUpperCase();
         document.getElementById("profileNameDisplay").textContent = name;
-        window.showToast("Profil kaydedildi", { accent: "var(--status-good)" });
+        if (saved) window.showToast("Profil ve tercihler kaydedildi", { accent: "var(--status-good)" });
+        else window.showToast("Profil kaydedildi; tercihler yalnızca bu cihaza kaydedilebildi.", { accent: "var(--status-warning)" });
       });
+
+      setupSecurity();
     } else {
       document.getElementById("profileLoggedIn").hidden = true;
       document.getElementById("profileGuest").hidden = false;
@@ -136,6 +139,79 @@
         window.showToast("Tercihler kaydedildi", { accent: "var(--status-good)" });
       });
     }
+  }
+
+  // ---------------- sifre degistirme + hesap silme ----------------
+  function fieldError(input, msg) {
+    const small = input.closest(".field").querySelector(".field-error");
+    input.classList.toggle("invalid", !!msg);
+    if (small) small.textContent = msg || "";
+  }
+
+  async function postJson(url, method, body) {
+    const r = await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify(body),
+    });
+    return r.json();
+  }
+
+  function setupSecurity() {
+    const pf = document.getElementById("passwordForm");
+    pf.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      let ok = true;
+      if (!pf.current.value) { fieldError(pf.current, "Mevcut şifreni gir."); ok = false; } else fieldError(pf.current, "");
+      if (pf.next.value.length < 8) { fieldError(pf.next, "Yeni şifre en az 8 karakter olmalı."); ok = false; } else fieldError(pf.next, "");
+      if (pf.next2.value !== pf.next.value) { fieldError(pf.next2, "Şifreler eşleşmiyor."); ok = false; } else fieldError(pf.next2, "");
+      if (!ok) return;
+      const btn = pf.querySelector("button[type=submit]");
+      btn.disabled = true;
+      try {
+        const data = await postJson("/api/auth/password", "POST", { currentPassword: pf.current.value, newPassword: pf.next.value });
+        if (!data.ok) {
+          if (data.reason === "wrong_password") fieldError(pf.current, data.message);
+          window.showToast(data.message || "Şifre güncellenemedi.", { accent: "var(--status-critical)" });
+          return;
+        }
+        pf.reset();
+        window.showToast(data.message, { accent: "var(--status-good)" });
+      } catch {
+        window.showToast("Sunucuya ulaşılamadı.", { accent: "var(--status-critical)" });
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    const df = document.getElementById("deleteForm");
+    df.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (!df.password.value) return fieldError(df.password, "Onay için şifreni gir.");
+      fieldError(df.password, "");
+      if (!df.confirm.checked) {
+        window.showToast("Silmek için onay kutusunu işaretle.", { accent: "var(--status-warning)" });
+        return;
+      }
+      const btn = df.querySelector("button[type=submit]");
+      btn.disabled = true;
+      try {
+        const data = await postJson("/api/auth/me", "DELETE", { password: df.password.value });
+        if (!data.ok) {
+          if (data.reason === "wrong_password") fieldError(df.password, data.message);
+          window.showToast(data.message || "Hesap silinemedi.", { accent: "var(--status-critical)" });
+          btn.disabled = false;
+          return;
+        }
+        try { localStorage.removeItem("havasite_prefs"); } catch {}
+        window.showToast(data.message, { accent: "var(--status-good)" });
+        setTimeout(() => { location.href = "index.html"; }, 1500);
+      } catch {
+        window.showToast("Sunucuya ulaşılamadı.", { accent: "var(--status-critical)" });
+        btn.disabled = false;
+      }
+    });
   }
 
   // ---------------- deprem cantasi checklist + rozet ----------------
