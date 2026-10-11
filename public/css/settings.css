@@ -279,3 +279,8 @@
 .notify-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .notify-ios { margin-top: 14px; }
 @media (max-width: 420px) { .notify-actions { grid-template-columns: 1fr; } }
+/* dar ekranda sekmeler tasmasin: kaydirilabilir */
+.settings-tabs { max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+.settings-tabs::-webkit-scrollbar { display: none; }
+.settings-tab { white-space: nowrap; flex-shrink: 0; }
+@media (max-width: 560px) { .settings-tab { padding: 10px 13px; font-size: 0.84rem; } }
