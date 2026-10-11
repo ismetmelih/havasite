@@ -144,6 +144,15 @@ Yazı tipleri: Satoshi (metin/rakamlar) ve Cabinet Grotesk, [Fontshare](https://
 Bu proje bağımsızdır ve kamuya açık verileri kullanır; resmî afet/acil durum kararları için ilgili
 resmî kurumların (AFAD, Kandilli, OGM vb.) duyurularını esas al.
 
+## Alan adı
+
+Site **https://turkiyecanli.com** adresinde yayınlanır. Alan adı Natro'da kayıtlı; DNS yönetimi
+AWS Route 53'te (nameserver'lar Natro panelinden Route 53'e yönlendirilir). Amplify → Hosting →
+Custom domains'te `turkiyecanli.com` ve `www` bağlıdır; SSL sertifikasını Amplify yönetir.
+Natro'nun varsayılan e-posta kayıtları (MX, SPF, autodiscover) Route 53'e kopyalanmıştır.
+`SITE_URL=https://turkiyecanli.com` tanımlıyken `www.` ve `*.amplifyapp.com` adreslerine gelen sayfa
+istekleri kalıcı (301) olarak ana adrese yönlendirilir.
+
 ## AWS Amplify'da canlıya alma
 
 Site [AWS Amplify Hosting](https://aws.amazon.com/amplify/hosting/) üzerinde çalışır;

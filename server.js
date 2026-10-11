@@ -966,11 +966,26 @@ function sendFile(req, res, filePath) {
   });
 }
 
+// SITE_URL tanimliysa sayfa istekleri tek adrese toplanir: www.alanadi ve *.amplifyapp.com
+// -> https://alanadi (301). API ve statik dosyalar etkilenmez; yerelde devre disi.
+function canonicalRedirect(req, res, pathname, search) {
+  if (!process.env.SITE_URL || (req.method !== "GET" && req.method !== "HEAD")) return false;
+  if (pathname.startsWith("/api/")) return false;
+  let target;
+  try { target = new URL(process.env.SITE_URL); } catch { return false; }
+  const host = String(req.headers["x-forwarded-host"] || req.headers.host || "").split(",")[0].trim().toLowerCase();
+  if (!host || host === target.host || /^(localhost|127\.)/.test(host)) return false;
+  const location = `${target.origin}${pathname}${search}`;
+  HttpLib.send(req, res, 301, { ...HttpLib.securityHeaders(false), Location: location, "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "public, max-age=3600" }, `Taşındı: ${location}`);
+  return true;
+}
+
 function route(req, res) {
   const parsed = new URL(req.url, "http://localhost");
   const pathname = parsed.pathname;
   const query = Object.fromEntries(parsed.searchParams);
   const method = req.method;
+  if (canonicalRedirect(req, res, pathname, parsed.search)) return;
 
   if (pathname === "/api/quakes") return handleQuakes(req, res, query);
   if (pathname === "/api/quakes/history") return handleQuakeHistory(req, res, query);
