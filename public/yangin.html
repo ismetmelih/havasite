@@ -39,10 +39,10 @@
   <a class="brand" href="index.html"><img src="img/logo.svg" class="brand-logo" alt="" /> Türkiye<span class="text-quake">Canlı</span></a>
   <button class="hamburger" aria-label="Menü"><span></span><span></span><span></span></button>
   <div class="nav-links">
-    <a href="index.html" data-page="index.html">Ana Sayfa</a>
-    <a href="hava.html" data-page="hava.html">Hava Durumu</a>
-    <a href="deprem.html" data-page="deprem.html">Depremler</a>
-    <a href="yangin.html" data-page="yangin.html" class="active">Yangınlar</a>
+    <a href="index.html" data-page="index.html"><span class="ic nav-ic" data-icon="home" data-icon-size="16"></span>Ana Sayfa</a>
+    <a href="hava.html" data-page="hava.html"><span class="ic nav-ic" data-icon="cloud-sun" data-icon-size="16"></span>Hava Durumu</a>
+    <a href="deprem.html" data-page="deprem.html"><span class="ic nav-ic" data-icon="wave" data-icon-size="16"></span>Depremler</a>
+    <a href="yangin.html" data-page="yangin.html" class="active"><span class="ic nav-ic" data-icon="flame" data-icon-size="16"></span>Yangınlar</a>
   </div>
   <div class="nav-account">
     <div class="nav-actions">
@@ -126,7 +126,7 @@
 
   <div id="setupPanel" class="setup-panel" hidden>
     <span class="setup-icon" data-icon="satellite" data-icon-size="30"></span>
-    <h3>Canlı yangın verisi için ücretsiz bir NASA FIRMS anahtarı gerekiyor</h3>
+    <h3><span class="h-icon ic" data-icon="key" data-icon-size="17"></span>Canlı yangın verisi için ücretsiz bir NASA FIRMS anahtarı gerekiyor</h3>
     <p>Bu panel, NASA'nın uydu tabanlı FIRMS servisinden gerçek zamanlı aktif ateş/yangın tespiti çeker. Ücretsiz anahtarı birkaç dakikada alabilirsin:</p>
     <ol>
       <li><a href="https://firms.modaps.eosdis.nasa.gov/api/map_key/" target="_blank" rel="noopener">firms.modaps.eosdis.nasa.gov/api/map_key</a> adresine git ve e-posta adresinle ücretsiz bir anahtar iste.</li>
@@ -187,13 +187,13 @@
     </div>
 
     <section class="dash-card">
-      <div class="dash-head"><div><h3>Günlük ısı tespiti</h3><p class="field-hint" id="fDailyHint">Seçili gün aralığındaki günlük tespit sayısı</p></div></div>
+      <div class="dash-head"><div><h3><span class="h-icon ic" data-icon="chart-up" data-icon-size="17"></span>Günlük ısı tespiti</h3><p class="field-hint" id="fDailyHint">Seçili gün aralığındaki günlük tespit sayısı</p></div></div>
       <div id="fDailyChart"></div>
     </section>
 
     <div class="dash-2col">
       <section class="dash-card" style="margin:0">
-        <div class="map-head"><h3>Tespit edilen noktalar</h3><span class="badge badge-live" id="sideCount"><span class="live-blip"></span> —</span></div>
+        <div class="map-head"><h3><span class="h-icon ic" data-icon="crosshair" data-icon-size="17"></span>Tespit edilen noktalar</h3><span class="badge badge-live" id="sideCount"><span class="live-blip"></span> —</span></div>
         <div class="side-list" id="fireListMini" style="max-height:420px;overflow-y:auto"></div>
       </section>
       <section class="dash-card" style="margin:0">
@@ -232,7 +232,7 @@
   <section class="dash-view" id="view-risk">
     <div class="dash-2col">
       <section class="dash-card" style="margin:0">
-        <h3>Bölgesel yangın riski</h3>
+        <h3><span class="h-icon ic" data-icon="shield-warning" data-icon-size="17"></span>Bölgesel yangın riski</h3>
         <div class="dash-donut-body" style="justify-content:center;flex-direction:column">
           <div id="fRiskGauge"></div>
           <div id="fRiskLevelBig" style="font-size:1.3rem;font-weight:700;margin-top:4px">—</div>
@@ -240,7 +240,7 @@
         <p class="field-hint" id="fRiskExplain" style="margin-top:10px">—</p>
       </section>
       <section class="dash-card" style="margin:0">
-        <h3>Yöntem</h3>
+        <h3><span class="h-icon ic" data-icon="info" data-icon-size="17"></span>Yöntem</h3>
         <p style="color:var(--text-secondary);font-size:0.9rem;line-height:1.6">
           Her il için Open-Meteo'dan anlık <strong>sıcaklık</strong>, <strong>bağıl nem</strong> ve <strong>rüzgâr hızı</strong> alınır.
           Risk puanı = sıcaklık payı (%40) + düşük nem payı (%40) + rüzgâr payı (%20) formülüyle 0–100 arası hesaplanır.
@@ -250,7 +250,7 @@
       </section>
     </div>
     <section class="dash-card">
-      <h3>İl bazında risk</h3>
+      <h3><span class="h-icon ic" data-icon="map-pin" data-icon-size="17"></span>İl bazında risk</h3>
       <div class="f-risk-grid" id="fRiskCities">
         <div class="skeleton" style="height:200px;width:100%;border-radius:14px"></div>
       </div>
@@ -262,26 +262,26 @@
     <p class="field-hint" style="margin:0 0 14px">Seçili gün aralığı ve filtrelere göre — kaynak: NASA FIRMS.</p>
     <div class="dash-2col">
       <section class="dash-card" style="margin:0">
-        <h3>Isı gücü (FRP) dağılımı</h3>
+        <h3><span class="h-icon ic" data-icon="thermometer-hot" data-icon-size="17"></span>Isı gücü (FRP) dağılımı</h3>
         <div id="fFrpHist"></div>
       </section>
       <section class="dash-card" style="margin:0">
-        <h3>Güven seviyesi</h3>
+        <h3><span class="h-icon ic" data-icon="check-circle" data-icon-size="17"></span>Güven seviyesi</h3>
         <div id="fConfDonut"></div>
       </section>
     </div>
     <div class="dash-2col">
       <section class="dash-card" style="margin:0">
-        <h3>Gündüz / gece tespiti</h3>
+        <h3><span class="h-icon ic" data-icon="moon-star" data-icon-size="17"></span>Gündüz / gece tespiti</h3>
         <div id="fDayNightDonut"></div>
       </section>
       <section class="dash-card" style="margin:0">
-        <h3>En çok tespit alan iller</h3>
+        <h3><span class="h-icon ic" data-icon="map" data-icon-size="17"></span>En çok tespit alan iller</h3>
         <div id="fProvFull"></div>
       </section>
     </div>
     <section class="dash-card">
-      <h3>En yüksek ısı gücüne sahip tespitler</h3>
+      <h3><span class="h-icon ic" data-icon="table" data-icon-size="17"></span>En yüksek ısı gücüne sahip tespitler</h3>
       <div style="overflow-x:auto"><table class="dash-table" id="fBigTable"></table></div>
     </section>
   </section>

@@ -37,10 +37,10 @@
   <a class="brand" href="index.html"><img src="img/logo.svg" class="brand-logo" alt="" /> Türkiye<span class="text-quake">Canlı</span></a>
   <button class="hamburger" aria-label="Menü"><span></span><span></span><span></span></button>
   <div class="nav-links">
-    <a href="index.html" data-page="index.html" class="active">Ana Sayfa</a>
-    <a href="hava.html" data-page="hava.html">Hava Durumu</a>
-    <a href="deprem.html" data-page="deprem.html">Depremler</a>
-    <a href="yangin.html" data-page="yangin.html">Yangınlar</a>
+    <a href="index.html" data-page="index.html" class="active"><span class="ic nav-ic" data-icon="home" data-icon-size="16"></span>Ana Sayfa</a>
+    <a href="hava.html" data-page="hava.html"><span class="ic nav-ic" data-icon="cloud-sun" data-icon-size="16"></span>Hava Durumu</a>
+    <a href="deprem.html" data-page="deprem.html"><span class="ic nav-ic" data-icon="wave" data-icon-size="16"></span>Depremler</a>
+    <a href="yangin.html" data-page="yangin.html"><span class="ic nav-ic" data-icon="flame" data-icon-size="16"></span>Yangınlar</a>
   </div>
   <div class="nav-account">
     <div class="nav-actions">
@@ -99,6 +99,15 @@
 </header>
 
 <main>
+  <section class="trust-band" aria-label="Rakamlarla TürkiyeCanlı">
+    <div class="container trust-grid">
+      <div class="trust-item"><span class="ic" data-icon="map" data-icon-size="20"></span><b>81 il · 973 ilçe</b><span>il ve ilçe bazında hava durumu</span></div>
+      <div class="trust-item"><span class="ic" data-icon="layers" data-icon-size="20"></span><b>6 tahmin modeli</b><span>ECMWF, GFS, ICON, ARPEGE, GEM, UKMO</span></div>
+      <div class="trust-item"><span class="ic" data-icon="clock-countdown" data-icon-size="20"></span><b>2 dakikada bir</b><span>yeni deprem kontrolü ve bildirim</span></div>
+      <div class="trust-item"><span class="ic" data-icon="check-circle" data-icon-size="20"></span><b>3 açık veri kaynağı</b><span>AFAD · NASA FIRMS · Open-Meteo</span></div>
+    </div>
+  </section>
+
   <section class="section" id="kategoriler">
     <div class="container">
       <div class="section-head reveal">
@@ -142,22 +151,22 @@
       <div class="why-grid">
         <div class="why-card reveal">
           <div class="why-num">01</div>
-          <h3>Gerçek zamanlı</h3>
+          <span class="why-ic ic" data-icon="clock-countdown" data-icon-size="20"></span><h3>Gerçek zamanlı</h3>
           <p>Sayfalar açık kaldıkça veriler otomatik olarak periyodik şekilde yenilenir, elle yenilemene gerek kalmaz.</p>
         </div>
         <div class="why-card reveal">
           <div class="why-num">02</div>
-          <h3>Harita odaklı</h3>
+          <span class="why-ic ic" data-icon="map" data-icon-size="20"></span><h3>Harita odaklı</h3>
           <p>Sayılar yerine, Türkiye haritası üzerinde konuma göre renklendirilmiş canlı işaretler görürsün.</p>
         </div>
         <div class="why-card reveal">
           <div class="why-num">03</div>
-          <h3>Gerçek kaynaklar</h3>
+          <span class="why-ic ic" data-icon="check-circle" data-icon-size="20"></span><h3>Gerçek kaynaklar</h3>
           <p>Open-Meteo, AFAD ve NASA FIRMS uydu verisi kullanılır — kurgusal veri yok.</p>
         </div>
         <div class="why-card reveal">
           <div class="why-num">04</div>
-          <h3>Tamamen ücretsiz</h3>
+          <span class="why-ic ic" data-icon="sparkle" data-icon-size="20"></span><h3>Tamamen ücretsiz</h3>
           <p>Hiçbir kategori için ücretli abonelik gerekmez; yalnızca yangın verisi için ücretsiz bir NASA anahtarı gerekir.</p>
         </div>
       </div>

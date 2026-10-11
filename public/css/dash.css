@@ -197,3 +197,6 @@
   box-shadow: var(--shadow-soft);
 }
 :root[data-theme="light"] .fire-body .dash-tab.active { color: #fff; }
+/* 24 saat kadrani: kartin icini doldursun ve ortalansin */
+#qClock { display: flex; align-items: center; justify-content: center; min-height: 300px; }
+.dash-clock { width: 100%; max-width: 320px; height: auto; }

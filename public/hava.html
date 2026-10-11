@@ -38,10 +38,10 @@
   <a class="brand" href="index.html"><img src="img/logo.svg" class="brand-logo" alt="" /> Türkiye<span class="text-quake">Canlı</span></a>
   <button class="hamburger" aria-label="Menü"><span></span><span></span><span></span></button>
   <div class="nav-links">
-    <a href="index.html" data-page="index.html">Ana Sayfa</a>
-    <a href="hava.html" data-page="hava.html" class="active">Hava Durumu</a>
-    <a href="deprem.html" data-page="deprem.html">Depremler</a>
-    <a href="yangin.html" data-page="yangin.html">Yangınlar</a>
+    <a href="index.html" data-page="index.html"><span class="ic nav-ic" data-icon="home" data-icon-size="16"></span>Ana Sayfa</a>
+    <a href="hava.html" data-page="hava.html" class="active"><span class="ic nav-ic" data-icon="cloud-sun" data-icon-size="16"></span>Hava Durumu</a>
+    <a href="deprem.html" data-page="deprem.html"><span class="ic nav-ic" data-icon="wave" data-icon-size="16"></span>Depremler</a>
+    <a href="yangin.html" data-page="yangin.html"><span class="ic nav-ic" data-icon="flame" data-icon-size="16"></span>Yangınlar</a>
   </div>
   <div class="nav-account">
     <div class="nav-actions">
@@ -87,7 +87,7 @@
     <dialog class="loc-picker" id="locPicker" aria-labelledby="locPickerTitle">
       <div class="lp-card">
         <div class="lp-head">
-          <h3 id="locPickerTitle">İl ve ilçe seç</h3>
+          <h3 id="locPickerTitle"><span class="h-icon ic" data-icon="map-pin" data-icon-size="17"></span>İl ve ilçe seç</h3>
           <button class="lp-close" id="lpClose" type="button" aria-label="Kapat"><span class="ic" data-icon="x" data-icon-size="16"></span></button>
         </div>
         <label class="field">
@@ -163,7 +163,7 @@
     </section>
 
     <section class="wx-days card">
-      <h3>10 günlük tahmin</h3>
+      <h3><span class="h-icon ic" data-icon="calendar" data-icon-size="17"></span>10 günlük tahmin</h3>
       <div class="daily-list" id="dailyGrid">
         <div class="skeleton" style="height:320px;width:100%;border-radius:14px"></div>
       </div>
@@ -175,7 +175,7 @@
     <div class="wx-metric-chips" id="wxMetricChips"></div>
     <section class="wx-chartcard card">
       <div class="wx-chart-head">
-        <div><h3 id="wxHourlyTitle">Sıcaklık</h3><p class="field-hint">Önümüzdeki 48 saat</p></div>
+        <div><h3><span class="h-icon ic" data-icon="chart-up" data-icon-size="17"></span><span id="wxHourlyTitle">Sıcaklık</span></h3><p class="field-hint">Önümüzdeki 48 saat</p></div>
       </div>
       <div class="wx-gchart wx-gchart-tall" id="wxHourlyChart"></div>
     </section>
@@ -263,7 +263,7 @@
     </div>
     <section class="wx-band card">
       <div class="wx-chart-head">
-        <div><h3>Son 12 ay — günlük yüksek / düşük</h3><p class="field-hint" id="wxBandHint">Kırmızı: günlük en yüksek · Mavi: günlük en düşük · Noktalı: 30 günlük ortalama</p></div>
+        <div><h3><span class="h-icon ic" data-icon="chart-up" data-icon-size="17"></span>Son 12 ay — günlük yüksek / düşük</h3><p class="field-hint" id="wxBandHint">Kırmızı: günlük en yüksek · Mavi: günlük en düşük · Noktalı: 30 günlük ortalama</p></div>
       </div>
       <div class="wx-bandchart" id="wxBandChart">
         <div class="skeleton" style="height:300px;width:100%;border-radius:12px"></div>

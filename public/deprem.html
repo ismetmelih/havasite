@@ -39,10 +39,10 @@
   <a class="brand" href="index.html"><img src="img/logo.svg" class="brand-logo" alt="" /> Türkiye<span class="text-quake">Canlı</span></a>
   <button class="hamburger" aria-label="Menü"><span></span><span></span><span></span></button>
   <div class="nav-links">
-    <a href="index.html" data-page="index.html">Ana Sayfa</a>
-    <a href="hava.html" data-page="hava.html">Hava Durumu</a>
-    <a href="deprem.html" data-page="deprem.html" class="active">Depremler</a>
-    <a href="yangin.html" data-page="yangin.html">Yangınlar</a>
+    <a href="index.html" data-page="index.html"><span class="ic nav-ic" data-icon="home" data-icon-size="16"></span>Ana Sayfa</a>
+    <a href="hava.html" data-page="hava.html"><span class="ic nav-ic" data-icon="cloud-sun" data-icon-size="16"></span>Hava Durumu</a>
+    <a href="deprem.html" data-page="deprem.html" class="active"><span class="ic nav-ic" data-icon="wave" data-icon-size="16"></span>Depremler</a>
+    <a href="yangin.html" data-page="yangin.html"><span class="ic nav-ic" data-icon="flame" data-icon-size="16"></span>Yangınlar</a>
   </div>
   <div class="nav-account">
     <div class="nav-actions">
@@ -151,14 +151,14 @@
 
     <section class="dash-card">
       <div class="dash-head">
-        <div><h3>Sismik aktivite — son 24 saat</h3><p class="field-hint">Saat başına kaydedilen deprem sayısı</p></div>
+        <div><h3><span class="h-icon ic" data-icon="wave" data-icon-size="17"></span>Sismik aktivite — son 24 saat</h3><p class="field-hint">Saat başına kaydedilen deprem sayısı</p></div>
       </div>
       <div id="qActivityChart"></div>
     </section>
 
     <div class="dash-2col">
       <section class="dash-card" style="margin:0">
-        <h3>Son depremler</h3>
+        <h3><span class="h-icon ic" data-icon="list" data-icon-size="17"></span>Son depremler</h3>
         <div class="side-list" id="quakeListMini" style="max-height:420px"></div>
       </section>
       <section class="dash-card" style="margin:0">
@@ -215,30 +215,30 @@
     <p class="field-hint" style="margin:0 0 14px">Aşağıdaki grafikler AFAD arşivinden <strong>son 30 günün</strong> Türkiye depremlerini özetler.</p>
     <div class="dash-2col">
       <section class="dash-card" style="margin:0">
-        <h3>Büyüklük dağılımı</h3>
+        <h3><span class="h-icon ic" data-icon="bar-chart" data-icon-size="17"></span>Büyüklük dağılımı</h3>
         <div id="qMagHist"></div>
       </section>
       <section class="dash-card" style="margin:0">
-        <h3>Derinlik dağılımı</h3>
+        <h3><span class="h-icon ic" data-icon="ruler" data-icon-size="17"></span>Derinlik dağılımı</h3>
         <div id="qDepthHist"></div>
       </section>
     </div>
     <section class="dash-card">
-      <div class="dash-head"><div><h3>Günlük deprem sayısı — 30 gün</h3><p class="field-hint" id="qDailyHint">Noktalı çizgi: dönem ortalaması</p></div></div>
+      <div class="dash-head"><div><h3><span class="h-icon ic" data-icon="calendar" data-icon-size="17"></span>Günlük deprem sayısı — 30 gün</h3><p class="field-hint" id="qDailyHint">Noktalı çizgi: dönem ortalaması</p></div></div>
       <div id="qDailyChart"></div>
     </section>
     <div class="dash-2col">
       <section class="dash-card" style="margin:0">
-        <h3>Günün saatine göre</h3>
+        <h3><span class="h-icon ic" data-icon="clock" data-icon-size="17"></span>Günün saatine göre</h3>
         <div class="dash-donut-body" style="justify-content:center"><div id="qClock"></div></div>
       </section>
       <section class="dash-card" style="margin:0">
-        <h3>En aktif iller — 30 gün</h3>
+        <h3><span class="h-icon ic" data-icon="map-pin" data-icon-size="17"></span>En aktif iller — 30 gün</h3>
         <div id="qProv30"></div>
       </section>
     </div>
     <section class="dash-card">
-      <h3>Son 30 günün en büyük depremleri</h3>
+      <h3><span class="h-icon ic" data-icon="table" data-icon-size="17"></span>Son 30 günün en büyük depremleri</h3>
       <div style="overflow-x:auto"><table class="dash-table" id="qBigTable"></table></div>
     </section>
   </section>

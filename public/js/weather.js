@@ -912,7 +912,7 @@
     const avgHi = avg(a.temperature_2m_max.slice(-30));
     const avgLo = avg(a.temperature_2m_min.slice(-30));
     $("wxDonut").innerHTML = `
-      <h3>Son 30 gün</h3>
+      <h3><span class="h-icon">${window.HavaIcon("pie", { size: 17 })}</span>Son 30 gün</h3>
       <div class="wx-donut-body">
         ${donutSvg(clearC, wetC)}
         <ul class="wx-donut-legend">
@@ -945,7 +945,7 @@
     });
     const mn = (k) => AY[+k.slice(5, 7) - 1];
     $("wxClimate").innerHTML = `
-      <h3>İklim bilgileri (son 12 ay)</h3>
+      <h3><span class="h-icon">${window.HavaIcon("mountains", { size: 17 })}</span>İklim bilgileri (son 12 ay)</h3>
       <div class="wx-clim-grid">
         <div class="wx-clim-row"><span class="wcr-ic">${window.HavaIcon("thermometer", { size: 15 })}</span><span>En sıcak ay</span><strong>${mn(hottest.k)} (${round(hottest.v)}°)</strong></div>
         <div class="wx-clim-row"><span class="wcr-ic">${window.HavaIcon("thermometer", { size: 15 })}</span><span>En soğuk ay</span><strong>${mn(coldest.k)} (${round(coldest.v)}°)</strong></div>
@@ -962,7 +962,7 @@
     ];
     $("wxTables").innerHTML = `
       <div class="card wx-table-card">
-        <h3>Günlük özet (son 12 ay)</h3>
+        <h3><span class="h-icon">${window.HavaIcon("table", { size: 17 })}</span>Günlük özet (son 12 ay)</h3>
         <table class="wx-table">
           <thead><tr><th></th><th>Maks.</th><th>Ort.</th><th>Min.</th></tr></thead>
           <tbody>${summary.map(([lbl, arr]) => {

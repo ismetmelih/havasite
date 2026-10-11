@@ -2,7 +2,7 @@
   "use strict";
 
   document.addEventListener("DOMContentLoaded", () => {
-    document.getElementById("year").textContent = new Date().getFullYear();
+    const y = document.getElementById("year"); if (y) y.textContent = new Date().getFullYear();
 
     tickClock();
     setInterval(tickClock, 1000);

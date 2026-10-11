@@ -764,6 +764,24 @@ async function handleResetPassword(req, res) {
   }
 }
 
+// ---------- sistem durumu (alt bilgideki canli gosterge) ----------
+// Dis servislere ek sorgu yapmaz: deprem verisi zaten 25 sn onbellekte, yangin icin son
+// onbellek kaydina bakilir. Boylece her sayfa acilisi AFAD/NASA'ya fazladan istek atmaz.
+async function handleStatus(req, res) {
+  const quakes = await getLatestQuakes(150).catch(() => ({ ok: false }));
+  const firesKey = !!(CONFIG.FIRMS_MAP_KEY && CONFIG.FIRMS_MAP_KEY !== "BURAYA_KENDI_ANAHTARINI_YAZ");
+  const firesCached = [...cache.keys()].some((k) => k.startsWith("fires:") && getCache(k));
+  sendJson(res, 200, {
+    ok: true,
+    services: {
+      deprem: quakes.ok ? { state: "ok", source: quakes.source === "emsc" ? "EMSC (yedek)" : "AFAD" } : { state: "down", source: "AFAD" },
+      yangin: !firesKey ? { state: "off", source: "NASA FIRMS" } : { state: firesCached ? "ok" : "idle", source: "NASA FIRMS" },
+      bildirim: { state: Push.pushConfigured() ? "ok" : "off", source: "Web Push" },
+    },
+    time: new Date().toISOString(),
+  }, { "Cache-Control": "public, max-age=30" });
+}
+
 // ---------- deprem bildirimleri (Web Push) ----------
 // Sunucu bu adreslere istek atacagi icin yalnizca bilinen tarayici bildirim servisleri kabul edilir
 // (aksi halde biri sunucuyu istedigi adrese istek atmaya zorlayabilirdi — SSRF).
@@ -1162,6 +1180,7 @@ function route(req, res) {
   const resetMatch = pathname.match(/^\/api\/admin\/users\/(\d+)\/reset-link$/);
   if (resetMatch && method === "POST") return handleAdminResetLink(req, res, resetMatch[1]);
 
+  if (pathname === "/api/status" && method === "GET") return handleStatus(req, res);
   if (pathname === "/api/push/key" && method === "GET") return handlePushKey(req, res);
   if (pathname === "/api/push/subscribe" && method === "POST") return handlePushSubscribe(req, res);
   if (pathname === "/api/push/unsubscribe" && method === "POST") return handlePushUnsubscribe(req, res);
