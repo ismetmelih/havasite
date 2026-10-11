@@ -6,7 +6,7 @@
 // - Gorseller, yazi tipleri ve surumlu CDN kutuphaneleri: once onbellek (hizli), arka planda tazele.
 // - /api/quakes ve /api/fires: once ag; baglanti yoksa son bilinen veri gosterilir.
 // - Giris/admin API'leri ve harita karolari hic onbelleklenmez.
-const VERSION = "v8";
+const VERSION = "v9";
 const SHELL_CACHE = `tc-shell-${VERSION}`;
 const RUNTIME_CACHE = `tc-runtime-${VERSION}`;
 
@@ -34,6 +34,7 @@ const SHELL = [
   "/js/weather.js",
   "/js/quake.js",
   "/js/fire.js",
+  "/js/notify.js",
   "/js/charts.js",
   "/js/vendor/chart.umd.min.js",
   "/img/logo.svg",
@@ -123,4 +124,47 @@ self.addEventListener("fetch", (event) => {
   if (CDN_HOSTS.includes(url.hostname)) {
     event.respondWith(staleWhileRevalidate(request));
   }
+});
+
+// ---------- deprem bildirimleri (Web Push) ----------
+self.addEventListener("push", (event) => {
+  let data = {};
+  try { data = event.data ? event.data.json() : {}; } catch { data = { title: "TürkiyeCanlı", body: event.data && event.data.text() }; }
+  event.waitUntil(
+    self.registration.showNotification(data.title || "TürkiyeCanlı", {
+      body: data.body || "",
+      icon: "/img/app/icon-192.png",
+      badge: "/img/app/icon-192.png",
+      tag: data.tag || undefined,
+      renotify: !!data.tag,
+      data: { url: data.url || "/deprem.html" },
+    })
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const target = new URL((event.notification.data && event.notification.data.url) || "/", self.location.origin).href;
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
+      const open = list.find((c) => c.url.startsWith(self.location.origin));
+      if (open) { open.navigate(target).catch(() => {}); return open.focus(); }
+      return self.clients.openWindow(target);
+    })
+  );
+});
+
+// tarayici aboneligi yenilerse sunucudaki kaydi yeni adrese tasi (tercihler korunur)
+self.addEventListener("pushsubscriptionchange", (event) => {
+  const old = event.oldSubscription;
+  event.waitUntil((async () => {
+    const opts = old && old.options ? { userVisibleOnly: true, applicationServerKey: old.options.applicationServerKey } : null;
+    const sub = event.newSubscription || (opts ? await self.registration.pushManager.subscribe(opts) : null);
+    if (!sub || !old) return;
+    await fetch("/api/push/resubscribe", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ oldEndpoint: old.endpoint, subscription: sub.toJSON() }),
+    });
+  })().catch(() => {}));
 });

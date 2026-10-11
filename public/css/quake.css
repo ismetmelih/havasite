@@ -156,3 +156,4 @@
 @media (max-width: 560px) {
   .qs-wave { bottom: 2%; opacity: 0.6; }
 }
+.head-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }

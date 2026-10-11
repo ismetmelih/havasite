@@ -63,6 +63,20 @@
       <li><strong>Site tercihlerin:</strong> favori şehrin ve deprem uyarı eşiğin. Bunları hesabında tutuyoruz ki her cihazda aynı ayarlarla devam edebilesin.</li>
       <li><strong>Şifre sıfırlama:</strong> şifreni sıfırlamak istersen tek kullanımlık bir bağlantı oluşturulur. Bağlantının kendisi değil yalnızca özeti saklanır ve en geç 24 saatte geçersiz olur.</li>
     </ul>
+    <h3>Deprem bildirimlerini açarsan</h3>
+    <ul>
+      <li>
+        <strong>Bildirim aboneliği:</strong> tarayıcının/telefonunun bildirim servisinin (Google, Apple veya Mozilla)
+        cihazına özel verdiği anonim bir adres ve şifreleme anahtarları. Adın veya e-postan bu kayda bağlı değildir
+        (hesabınla açarsan hesabınla ilişkilendirilir).
+      </li>
+      <li><strong>Bildirim tercihlerin:</strong> büyüklük eşiği ve seçtiysen kapsam (ör. "konumuma 250 km").</li>
+      <li>
+        <strong>Yaklaşık konum:</strong> yalnızca "konumuma … km içinde" seçeneğini seçersen, yaklaşık 1 km'ye
+        yuvarlanmış koordinat saklanır; depremin sana uzaklığını hesaplamak için kullanılır.
+      </li>
+    </ul>
+
     <h3>Herkes için</h3>
     <ul>
       <li>
@@ -90,6 +104,7 @@
     <ul>
       <li>Hesabının oluşturulması, girişin ve tercihlerinin saklanması: KVKK m.5/2-c (bir sözleşmenin kurulması veya ifasıyla doğrudan ilgili olması).</li>
       <li>Kötüye kullanımın ve şifre deneme saldırılarının önlenmesi: KVKK m.5/2-f (temel hak ve özgürlüklerine zarar vermemek kaydıyla meşru menfaat).</li>
+      <li>Senin açtığın deprem bildirimlerinin gönderilmesi: KVKK m.5/2-c; konumun yalnızca bu seçeneği kendin seçersen ve bu amaçla işlenir.</li>
     </ul>
 
     <h2>4. Veriler kimlerle ve nerede paylaşılıyor?</h2>
@@ -98,6 +113,7 @@
       <li><strong>Amazon Web Services (AWS Amplify):</strong> sitenin barındırılması. Sunucular Avrupa'da (Frankfurt).</li>
       <li><strong>Supabase:</strong> hesap veritabanı. Sunucular Avrupa'da (Frankfurt).</li>
       <li><strong>Resend:</strong> yalnızca e-postayla şifre sıfırlama açıksa, sıfırlama e-postasının gönderilmesi.</li>
+      <li><strong>Tarayıcı bildirim servisleri</strong> (Google Firebase Cloud Messaging, Apple Push, Mozilla Push): yalnızca deprem bildirimlerini açtıysan, bildirimin cihazına iletilmesi. Bildirim içeriği bu servislere şifreli gider.</li>
     </ul>
     <p>
       Bu sağlayıcıların sunucuları Türkiye dışında bulunduğundan hesap verilerin yurt dışında saklanır
@@ -113,6 +129,7 @@
         Silme anında ad, e-posta, şifre özeti, tercihler ve sıfırlama kayıtların kalıcı olarak silinir.
       </li>
       <li>IP adresleri en fazla yaklaşık 1 saat bellekte tutulur; şifre sıfırlama bağlantıları en geç 24 saatte geçersiz olur.</li>
+      <li>Bildirim aboneliğin, Ayarlar → Bildirimler'den kapatana, tarayıcıdan bildirim iznini kaldırana veya uygulamayı silene kadar saklanır; geçersiz hale gelen abonelikler otomatik silinir.</li>
     </ul>
 
     <h2>6. KVKK kapsamındaki hakların (m.11)</h2>

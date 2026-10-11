@@ -261,3 +261,21 @@
 .settings-section .h-icon { color: var(--accent); }
 .danger-zone h3, .danger-zone .h-icon { color: var(--status-critical); }
 .danger-zone .field-hint { margin: 0 0 14px; display: block; }
+
+/* ---- bildirimler ---- */
+.notify-card h3 { display: flex; align-items: center; }
+.notify-card .h-icon { color: var(--status-critical); }
+.notify-status {
+  margin: 4px 0 18px;
+  padding: 11px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+.notify-status.ok { color: var(--status-good); border-color: color-mix(in srgb, var(--status-good) 40%, transparent); background: color-mix(in srgb, var(--status-good) 10%, transparent); }
+.notify-status.warn { color: var(--status-warning); border-color: color-mix(in srgb, var(--status-warning) 40%, transparent); background: color-mix(in srgb, var(--status-warning) 10%, transparent); }
+.notify-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.notify-ios { margin-top: 14px; }
+@media (max-width: 420px) { .notify-actions { grid-template-columns: 1fr; } }

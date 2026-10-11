@@ -12,6 +12,7 @@ const { getPool, ensureSchema } = require("./lib/db");
 const AuthLib = require("./lib/auth");
 const HttpLib = require("./lib/http");
 const Mail = require("./lib/mail");
+const Push = require("./lib/push");
 
 // Varsa .env dosyasindaki ortam degiskenlerini yukle (yerel gelistirme ve AWS Amplify:
 // Amplify ortam degiskenleri calisma aninda sunucuya ulasmadigi icin build sirasinda .env'e yazilir).
@@ -109,6 +110,8 @@ const limiters = {
   forgotIp: HttpLib.createRateLimiter({ windowMs: 60 * 60 * 1000, max: 6 }),
   forgotEmail: HttpLib.createRateLimiter({ windowMs: 60 * 60 * 1000, max: 3 }),
   reset: HttpLib.createRateLimiter({ windowMs: 15 * 60 * 1000, max: 10 }),
+  pushSub: HttpLib.createRateLimiter({ windowMs: 60 * 60 * 1000, max: 30 }),
+  pushTest: HttpLib.createRateLimiter({ windowMs: 15 * 60 * 1000, max: 5 }),
 };
 
 // sinir asildiysa 429 yazar ve false doner
@@ -277,9 +280,16 @@ async function fetchEmscQuakes(extra) {
 
 async function handleQuakes(req, res, query) {
   const limit = Math.min(parseInt(query.limit, 10) || 150, 500);
+  const payload = await getLatestQuakes(limit);
+  sendJson(res, 200, payload);
+}
+
+// Son depremler (AFAD canli tablo -> AFAD API -> EMSC sirasiyla); 25 sn onbellekli.
+// Hem /api/quakes hem de deprem bildirimleri (/api/push/run) kullanir.
+async function getLatestQuakes(limit) {
   const cacheKey = `quakes:${limit}`;
   const cached = getCache(cacheKey);
-  if (cached) return sendJson(res, 200, cached);
+  if (cached) return cached;
 
   let result;
   let source;
@@ -304,14 +314,14 @@ async function handleQuakes(req, res, query) {
         result = await fetchEmscQuakes(`&limit=${limit}`);
         source = "emsc";
       } catch (err3) {
-        return sendJson(res, 200, { ok: false, reason: "fetch_failed", detail: String(err3.message || err3), data: [] });
+        return { ok: false, reason: "fetch_failed", detail: String(err3.message || err3), data: [] };
       }
     }
   }
 
   const payload = { ok: true, updated: new Date().toISOString(), count: result.length, source, data: result };
   setCache(cacheKey, payload, 25000); // 25 sn
-  sendJson(res, 200, payload);
+  return payload;
 }
 
 // ---------- /api/quakes/history ----------
@@ -747,6 +757,114 @@ async function handleResetPassword(req, res) {
   }
 }
 
+// ---------- deprem bildirimleri (Web Push) ----------
+function validSubscription(sub) {
+  if (!sub || typeof sub !== "object") return null;
+  const endpoint = String(sub.endpoint || "");
+  const keys = sub.keys || {};
+  if (!/^https:\/\/[^\s]{10,}$/.test(endpoint) || endpoint.length > 1000) return null;
+  const p256dh = String(keys.p256dh || ""), auth = String(keys.auth || "");
+  if (!/^[A-Za-z0-9_-]{40,200}$/.test(p256dh) || !/^[A-Za-z0-9_-]{10,60}$/.test(auth)) return null;
+  return { endpoint, p256dh, auth };
+}
+
+function handlePushKey(req, res) {
+  sendJson(res, 200, { ok: true, enabled: Push.pushConfigured(), publicKey: process.env.VAPID_PUBLIC_KEY || null });
+}
+
+async function handlePushSubscribe(req, res) {
+  if (!Push.pushConfigured()) return sendJson(res, 200, { ok: false, reason: "not_configured", message: "Bildirimler henüz etkin değil." });
+  if (!checkLimit(res, limiters.pushSub, HttpLib.clientIp(req))) return;
+  if (!(await requireDb(res))) return;
+  let body;
+  try { body = await readJsonBody(req, 8 * 1024); } catch { return sendJson(res, 400, { ok: false, reason: "bad_request", message: "Geçersiz istek." }); }
+  const sub = validSubscription(body.subscription);
+  if (!sub) return sendJson(res, 400, { ok: false, reason: "bad_subscription", message: "Bildirim aboneliği geçersiz." });
+  const minMag = Math.min(7, Math.max(3, Math.round((Number(body.minMag) || 4) * 2) / 2));
+  // konum gizlilik icin ~1 km'ye yuvarlanir; yaricap yalnizca konum varsa anlamli
+  const hasLoc = Number.isFinite(Number(body.lat)) && Number.isFinite(Number(body.lon));
+  const lat = hasLoc ? Math.round(Number(body.lat) * 100) / 100 : null;
+  const lon = hasLoc ? Math.round(Number(body.lon) * 100) / 100 : null;
+  const radius = hasLoc && [50, 100, 250, 500].includes(Number(body.radiusKm)) ? Number(body.radiusKm) : null;
+  const user = await currentUser(req);
+  try {
+    await getPool().query(
+      `INSERT INTO push_subscriptions (endpoint, p256dh, auth, user_id, min_mag, lat, lon, radius_km)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+       ON CONFLICT (endpoint) DO UPDATE SET p256dh = EXCLUDED.p256dh, auth = EXCLUDED.auth,
+         user_id = COALESCE(EXCLUDED.user_id, push_subscriptions.user_id), min_mag = EXCLUDED.min_mag,
+         lat = EXCLUDED.lat, lon = EXCLUDED.lon, radius_km = EXCLUDED.radius_km`,
+      [sub.endpoint, sub.p256dh, sub.auth, user ? user.id : null, minMag, lat, lon, radius]
+    );
+    sendJson(res, 200, { ok: true, minMag, radiusKm: radius });
+  } catch (err) {
+    console.error("[push] abonelik:", err.message);
+    sendJson(res, 500, { ok: false, reason: "server_error", message: "Abonelik kaydedilemedi." });
+  }
+}
+
+// Tarayici aboneligi kendiliginden yenilerse (pushsubscriptionchange) service worker
+// eski adresle birlikte yenisini gonderir; tercihler korunarak adres guncellenir.
+async function handlePushResubscribe(req, res) {
+  if (!checkLimit(res, limiters.pushSub, HttpLib.clientIp(req))) return;
+  if (!(await requireDb(res))) return;
+  let body;
+  try { body = await readJsonBody(req, 8 * 1024); } catch { return sendJson(res, 400, { ok: false, reason: "bad_request" }); }
+  const sub = validSubscription(body.subscription);
+  const oldEndpoint = String(body.oldEndpoint || "");
+  if (!sub || !oldEndpoint) return sendJson(res, 400, { ok: false, reason: "bad_subscription" });
+  const r = await getPool().query(
+    "UPDATE push_subscriptions SET endpoint = $1, p256dh = $2, auth = $3 WHERE endpoint = $4",
+    [sub.endpoint, sub.p256dh, sub.auth, oldEndpoint]
+  ).catch(() => ({ rowCount: 0 }));
+  sendJson(res, 200, { ok: r.rowCount > 0 });
+}
+
+async function handlePushUnsubscribe(req, res) {
+  if (!(await requireDb(res))) return;
+  let body;
+  try { body = await readJsonBody(req, 4 * 1024); } catch { return sendJson(res, 400, { ok: false, reason: "bad_request", message: "Geçersiz istek." }); }
+  const endpoint = String(body.endpoint || "");
+  if (endpoint) await getPool().query("DELETE FROM push_subscriptions WHERE endpoint = $1", [endpoint]).catch(() => {});
+  sendJson(res, 200, { ok: true });
+}
+
+async function handlePushTest(req, res) {
+  if (!Push.pushConfigured()) return sendJson(res, 200, { ok: false, reason: "not_configured", message: "Bildirimler henüz etkin değil." });
+  if (!(await requireDb(res))) return;
+  let body;
+  try { body = await readJsonBody(req, 4 * 1024); } catch { return sendJson(res, 400, { ok: false, reason: "bad_request", message: "Geçersiz istek." }); }
+  const endpoint = String(body.endpoint || "");
+  if (!checkLimit(res, limiters.pushTest, endpoint || HttpLib.clientIp(req))) return;
+  const r = await getPool().query("SELECT * FROM push_subscriptions WHERE endpoint = $1", [endpoint]);
+  if (!r.rows[0]) return sendJson(res, 404, { ok: false, reason: "not_found", message: "Önce bildirimleri aç." });
+  try {
+    await Push.sendOne(r.rows[0], { title: "TürkiyeCanlı bildirimleri açık", body: `M${r.rows[0].min_mag.toFixed(1)} ve üzeri depremlerde haber vereceğiz.`, url: "/deprem.html", tag: "test" });
+    sendJson(res, 200, { ok: true });
+  } catch (err) {
+    sendJson(res, 502, { ok: false, reason: "push_failed", message: "Test bildirimi gönderilemedi." });
+  }
+}
+
+// EventBridge zamanlayicisi cagirir; gizli anahtarsiz cagri reddedilir.
+async function handlePushRun(req, res) {
+  const secret = process.env.PUSH_CRON_SECRET || "";
+  if (!secret || !AuthLib.timingSafeEqualStr(String(req.headers["x-cron-secret"] || ""), secret)) {
+    return sendJson(res, 401, { ok: false, reason: "unauthorized" });
+  }
+  if (!(await requireDb(res))) return;
+  const latest = await getLatestQuakes(150);
+  if (!latest.ok) return sendJson(res, 200, { ok: false, reason: "quakes_unavailable" });
+  try {
+    const result = await Push.runQuakePush(getPool(), latest.data);
+    if (result.sent || result.removed || result.failed) console.log("[push] calisma:", JSON.stringify(result));
+    sendJson(res, 200, result);
+  } catch (err) {
+    console.error("[push] calisma hatasi:", err.message);
+    sendJson(res, 500, { ok: false, reason: "server_error" });
+  }
+}
+
 // ---------- admin ----------
 // Admin, normal kullanici hesaplarindan tamamen bagimsizdir: musteri kayit/giris
 // sistemiyle hicbir iliskisi yoktur. Site sahibi AWS Amplify'da (veya yerelde .env icinde)
@@ -1011,6 +1129,13 @@ function route(req, res) {
   if (userMatch && method === "DELETE") return handleAdminUserDelete(req, res, userMatch[1]);
   const resetMatch = pathname.match(/^\/api\/admin\/users\/(\d+)\/reset-link$/);
   if (resetMatch && method === "POST") return handleAdminResetLink(req, res, resetMatch[1]);
+
+  if (pathname === "/api/push/key" && method === "GET") return handlePushKey(req, res);
+  if (pathname === "/api/push/subscribe" && method === "POST") return handlePushSubscribe(req, res);
+  if (pathname === "/api/push/unsubscribe" && method === "POST") return handlePushUnsubscribe(req, res);
+  if (pathname === "/api/push/resubscribe" && method === "POST") return handlePushResubscribe(req, res);
+  if (pathname === "/api/push/test" && method === "POST") return handlePushTest(req, res);
+  if (pathname === "/api/push/run" && method === "POST") return handlePushRun(req, res);
 
   if (pathname === "/robots.txt" && (method === "GET" || method === "HEAD")) return handleRobots(req, res);
   if (pathname === "/sitemap.xml" && (method === "GET" || method === "HEAD")) return handleSitemap(req, res);

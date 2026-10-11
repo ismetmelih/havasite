@@ -32,6 +32,10 @@
       });
     });
 
+    // adresle dogrudan sekme acma (orn. ayarlar.html#bildirimler)
+    const fromHash = document.querySelector(`.settings-tab[data-tab="${location.hash.slice(1)}"]`);
+    if (fromHash) fromHash.click();
+
     // ilk konum + pencere yeniden boyutlaninca hizala
     requestAnimationFrame(() => moveIndicator(document.querySelector(".settings-tab.active")));
     window.addEventListener("resize", () => moveIndicator(document.querySelector(".settings-tab.active")));

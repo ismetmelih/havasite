@@ -27,7 +27,7 @@ for key in DATABASE_URL SESSION_SECRET ADMIN_EMAIL ADMIN_PASSWORD FIRMS_MAP_KEY;
   fi
 done
 # istege bagli: site adresi, KVKK iletisim e-postasi, e-postayla sifre sifirlama (Resend)
-for key in SITE_URL CONTACT_EMAIL RESEND_API_KEY MAIL_FROM; do
+for key in SITE_URL CONTACT_EMAIL RESEND_API_KEY MAIL_FROM VAPID_PUBLIC_KEY VAPID_PRIVATE_KEY VAPID_SUBJECT PUSH_CRON_SECRET; do
   if [ -n "${!key:-}" ]; then
     printf '%s=%s\n' "$key" "${!key}" >> "$ENV_OUT"
   fi

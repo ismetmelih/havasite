@@ -59,6 +59,7 @@
 
     <div class="settings-tabs">
       <button class="settings-tab active" data-tab="profil" type="button"><span class="ic" data-icon="user" data-icon-size="15"></span> Profil</button>
+      <button class="settings-tab" data-tab="bildirimler" type="button"><span class="ic" data-icon="bell" data-icon-size="15"></span> Bildirimler</button>
       <button class="settings-tab" data-tab="gorunum" type="button"><span class="ic" data-icon="palette" data-icon-size="15"></span> Görünüm</button>
       <button class="settings-tab" data-tab="hazirlik" type="button"><span class="ic" data-icon="shield-check" data-icon-size="15"></span> Hazırlık</button>
     </div>
@@ -165,6 +166,48 @@
       </div>
     </section>
 
+    <section class="settings-panel" id="panel-bildirimler">
+      <div class="card profile-card notify-card">
+        <h3 style="margin-top:0"><span class="h-icon ic" data-icon="siren" data-icon-size="18"></span>Deprem bildirimleri</h3>
+        <p class="field-hint" style="margin-top:-6px">
+          Seçtiğin büyüklük ve üzerindeki yeni bir deprem AFAD'a düştüğünde, site kapalıyken ve telefon kilitliyken bile
+          bildirim gönderelim. Hesap gerekmez.
+        </p>
+
+        <div class="notify-status" id="nfStatus" role="status">Kontrol ediliyor…</div>
+
+        <form id="nfForm" class="auth-form" novalidate>
+          <label class="field">
+            <span>Bildirim eşiği: <strong id="nfMagVal">4.0</strong> ve üzeri</span>
+            <input type="range" id="nfMag" min="3" max="7" step="0.5" value="4" />
+            <span class="field-hint">Türkiye'de M3+ depremler günde onlarca olabilir; M4 ve üzeri önerilir.</span>
+          </label>
+          <label class="field">
+            <span>Kapsam</span>
+            <select id="nfRadius">
+              <option value="">Tüm Türkiye</option>
+              <option value="50">Konumuma 50 km içinde</option>
+              <option value="100">Konumuma 100 km içinde</option>
+              <option value="250">Konumuma 250 km içinde</option>
+              <option value="500">Konumuma 500 km içinde</option>
+            </select>
+            <span class="field-hint" id="nfRadiusHint">Konum seçersen bildirimde depreme uzaklığın da yazar. Konumun yaklaşık 1 km'ye yuvarlanarak saklanır.</span>
+          </label>
+          <button class="btn btn-primary btn-block" type="submit" id="nfSave">Bildirimleri aç</button>
+          <div class="notify-actions" id="nfActions" hidden>
+            <button class="btn btn-ghost" type="button" id="nfTest">Test bildirimi gönder</button>
+            <button class="btn btn-danger" type="button" id="nfOff">Bildirimleri kapat</button>
+          </div>
+        </form>
+
+        <p class="field-hint notify-ios" id="nfIos" hidden>
+          iPhone'da bildirim alabilmek için önce siteyi ana ekrana eklemelisin: Safari'de Paylaş → <b>Ana Ekrana Ekle</b>,
+          sonra uygulamayı ana ekrandan açıp bu sayfaya gel (iOS 16.4 ve üzeri).
+        </p>
+        <p class="field-hint">Bildirimler bilgi amaçlıdır, resmî erken uyarı değildir. Acil durumda AFAD ve 112'yi esas al.</p>
+      </div>
+    </section>
+
     <section class="settings-panel" id="panel-gorunum">
       <div class="card profile-card">
         <h3 style="margin-top:0">Tema</h3>
@@ -246,5 +289,6 @@
 <script src="js/cities.js"></script>
 <script src="js/main.js"></script>
 <script src="js/settings.js"></script>
+<script src="js/notify.js"></script>
 </body>
 </html>
