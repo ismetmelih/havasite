@@ -68,6 +68,7 @@
 
     setupTabs();
     setupSearch();
+    setupPicker();
     setupMetricChips();
     setupMonthNav();
     setupMapLayers();
@@ -88,7 +89,7 @@
   /* ---------------- veri yükleme ---------------- */
   async function loadWeather(silent) {
     if (!silent) $("lastUpdated").textContent = "Yükleniyor…";
-    $("wcCity").textContent = state.loc.name;
+    $("wcCity").textContent = state.loc.region ? `${state.loc.name}, ${state.loc.region}` : state.loc.name;
 
     const fp = new URLSearchParams({
       latitude: state.loc.lat, longitude: state.loc.lon,
@@ -1038,38 +1039,131 @@
 
   /* ---------------- arama + konum ---------------- */
   let searchTimer = null;
+  /* ============================================================
+     IL / ILCE: 81 il + 973 ilce (data/iller.json — TurkiyeAPI MIT,
+     koordinatlar GeoNames CC BY 4.0 / © OpenStreetMap katkicilari ODbL)
+     ============================================================ */
+  let placesPromise = null;
+  function loadPlaces() {
+    if (!placesPromise) {
+      placesPromise = fetch("/data/iller.json").then((r) => r.json()).catch(() => { placesPromise = null; return []; });
+    }
+    return placesPromise;
+  }
+  const foldTR = (str) => String(str || "").replace(/İ/g, "i").replace(/I/g, "ı").toLowerCase()
+    .replace(/ı/g, "i").replace(/ğ/g, "g").replace(/ü/g, "u").replace(/ş/g, "s").replace(/ö/g, "o").replace(/ç/g, "c").replace(/[âî]/g, (m) => (m === "â" ? "a" : "i"));
+
+  function selectPlace(loc) {
+    state.loc = loc;
+    saveJson("havasite_last_city", state.loc);
+    state.archive = null;
+    loadWeather();
+  }
+
+  // yerel il/ilce eslesmeleri: tam ad > ad basi > icinde gecer; il merkezleri once
+  function localMatches(places, q) {
+    const fq = foldTR(q);
+    const out = [];
+    places.forEach((il) => {
+      const fi = foldTR(il.n);
+      if (fi.includes(fq)) out.push({ score: fi === fq ? 0 : fi.startsWith(fq) ? 1 : 3, label: il.n, sub: "il merkezi", loc: { name: il.n, lat: il.la, lon: il.lo } });
+      il.d.forEach(([name, lat, lon, pop]) => {
+        if (name === "Merkez") return;
+        const fn = foldTR(name);
+        if (fn.includes(fq)) out.push({ score: (fn === fq ? 0 : fn.startsWith(fq) ? 1 : 3) + 0.5, pop, label: name, sub: il.n, loc: { name, region: il.n, lat, lon } });
+      });
+    });
+    return out.sort((x, y) => x.score - y.score || (y.pop || 0) - (x.pop || 0)).slice(0, 8);
+  }
+
   function setupSearch() {
     const input = $("citySearch"), results = $("searchResults");
     if (!input) return;
+    input.addEventListener("focus", loadPlaces, { once: true });
     input.addEventListener("input", () => {
       clearTimeout(searchTimer);
       const q = input.value.trim();
       if (q.length < 2) { results.hidden = true; return; }
-      searchTimer = setTimeout(() => run(q), 300);
+      runLocal(q);
+      searchTimer = setTimeout(() => runRemote(q), 350);
+    });
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") { const first = results.querySelector(".sr-item"); if (first) first.click(); }
+      if (e.key === "Escape") results.hidden = true;
     });
     document.addEventListener("click", (e) => { if (!e.target.closest(".search-box")) results.hidden = true; });
-    async function run(q) {
-      try {
-        const r = await fetch(`${GEOCODE_URL}?name=${encodeURIComponent(q)}&count=8&language=tr&format=json`);
-        const data = await r.json();
-        const items = (data.results || []).filter((c) => c.country_code === "TR");
-        render(items.length ? items : (data.results || []).slice(0, 6));
-      } catch { render([]); }
+
+    let localItems = [];
+    async function runLocal(q) {
+      localItems = localMatches(await loadPlaces(), q);
+      render(localItems, false);
     }
-    function render(items) {
-      if (!items.length) { results.innerHTML = `<div class="sr-empty">Sonuç yok.</div>`; results.hidden = false; return; }
-      results.innerHTML = items.map((c, i) => `<div class="sr-item" data-i="${i}">${window.escapeHtml(c.name)}${c.admin1 ? ", " + window.escapeHtml(c.admin1) : ""}</div>`).join("");
+    // il/ilce disindaki yerler (koy, mahalle, yurt disi) icin Open-Meteo aramasi
+    async function runRemote(q) {
+      try {
+        const r = await fetch(`${GEOCODE_URL}?name=${encodeURIComponent(q)}&count=10&language=tr&format=json`);
+        const data = await r.json();
+        if (input.value.trim() !== q) return;
+        const seen = new Set(localItems.map((x) => foldTR(x.label)));
+        const extra = (data.results || [])
+          .filter((c) => c.country_code === "TR" && !seen.has(foldTR(c.name)))
+          .slice(0, Math.max(0, 10 - localItems.length))
+          .map((c) => ({ label: c.name, sub: [c.admin2 && c.admin2.replace(/ İlçesi$/, ""), c.admin1 && c.admin1.replace(/ İli$/, "")].filter(Boolean).join(", "), loc: { name: c.name, region: c.admin1 ? c.admin1.replace(/ İli$/, "") : "", lat: c.latitude, lon: c.longitude } }));
+        render(localItems.concat(extra), true);
+      } catch { render(localItems, true); }
+    }
+    function render(items, final) {
+      if (!items.length) {
+        if (final) { results.innerHTML = `<div class="sr-empty">Sonuç yok.</div>`; results.hidden = false; }
+        return;
+      }
+      results.innerHTML = items.map((c, i) => `<div class="sr-item" role="option" data-i="${i}"><strong>${window.escapeHtml(c.label)}</strong>${c.sub ? `<span class="sr-sub">${window.escapeHtml(c.sub)}</span>` : ""}</div>`).join("");
       results.hidden = false;
       results.querySelectorAll(".sr-item").forEach((el, i) => el.addEventListener("click", () => {
-        const c = items[i];
-        state.loc = { name: c.name, lat: c.latitude, lon: c.longitude };
-        saveJson("havasite_last_city", state.loc);
-        state.archive = null;
         results.hidden = true; input.value = "";
-        loadWeather();
+        selectPlace(items[i].loc);
       }));
     }
   }
+
+  function setupPicker() {
+    const dlg = $("locPicker"), ilSel = $("lpIl"), ilceSel = $("lpIlce");
+    if (!dlg || !$("pickBtn")) return;
+    let places = [];
+    function fillIlce() {
+      const il = places[ilSel.value];
+      if (!il) return;
+      ilceSel.innerHTML = `<option value="-1">${window.escapeHtml(il.n)} (il merkezi)</option>` +
+        il.d.map((x, i) => (x[0] === "Merkez" ? "" : `<option value="${i}">${window.escapeHtml(x[0])}</option>`)).join("");
+    }
+    $("pickBtn").addEventListener("click", async () => {
+      if (typeof dlg.showModal === "function") dlg.showModal(); else dlg.setAttribute("open", "");
+      places = await loadPlaces();
+      if (!places.length) { ilSel.innerHTML = "<option>Liste yüklenemedi</option>"; return; }
+      ilSel.innerHTML = places.map((x, i) => `<option value="${i}">${window.escapeHtml(x.n)}</option>`).join("");
+      const cur = state.loc && (state.loc.region || state.loc.name);
+      const idx = Math.max(0, places.findIndex((x) => x.n === cur));
+      ilSel.value = String(idx);
+      fillIlce();
+      if (state.loc && state.loc.region) {
+        const j = places[idx].d.findIndex((x) => x[0] === state.loc.name);
+        if (j >= 0) ilceSel.value = String(j);
+      }
+    });
+    ilSel.addEventListener("change", fillIlce);
+    const close = () => (dlg.close ? dlg.close() : dlg.removeAttribute("open"));
+    $("lpClose").addEventListener("click", close);
+    dlg.addEventListener("click", (e) => { if (e.target === dlg) close(); });
+    $("lpGo").addEventListener("click", () => {
+      const il = places[ilSel.value];
+      if (!il) return;
+      const j = Number(ilceSel.value);
+      const x = j >= 0 ? il.d[j] : null;
+      close();
+      selectPlace(x && x[0] !== "Merkez" ? { name: x[0], region: il.n, lat: x[1], lon: x[2] } : { name: il.n, lat: il.la, lon: il.lo });
+    });
+  }
+
   function useGeolocation() {
     if (!navigator.geolocation) { window.showToast("Tarayıcın konum servisini desteklemiyor."); return; }
     window.showToast("Konumun alınıyor…");

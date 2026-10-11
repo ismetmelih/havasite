@@ -76,11 +76,31 @@
     </div>
     <div class="search-wrap">
       <div class="search-box">
-        <input type="text" id="citySearch" aria-label="Şehir ara" placeholder="Şehir ara (ör. Antalya)" autocomplete="off" />
+        <input type="text" id="citySearch" aria-label="İl, ilçe veya yer ara" placeholder="İl, ilçe ara (ör. Kadıköy)" autocomplete="off" />
         <div class="search-results" id="searchResults" hidden></div>
       </div>
+      <button class="btn btn-ghost btn-sm" id="pickBtn" type="button" aria-haspopup="dialog"><span class="ic" data-icon="map" data-icon-size="15"></span> İl / İlçe</button>
       <button class="btn btn-ghost btn-sm" id="geoBtn" type="button"><span class="ic" data-icon="map-pin" data-icon-size="15"></span> Konumum</button>
     </div>
+
+    <dialog class="loc-picker" id="locPicker" aria-labelledby="locPickerTitle">
+      <div class="lp-card">
+        <div class="lp-head">
+          <h3 id="locPickerTitle">İl ve ilçe seç</h3>
+          <button class="lp-close" id="lpClose" type="button" aria-label="Kapat"><span class="ic" data-icon="x" data-icon-size="16"></span></button>
+        </div>
+        <label class="field">
+          <span>İl</span>
+          <select id="lpIl"><option>Yükleniyor…</option></select>
+        </label>
+        <label class="field">
+          <span>İlçe</span>
+          <select id="lpIlce"></select>
+        </label>
+        <button class="btn btn-primary btn-block" id="lpGo" type="button">Hava durumunu göster</button>
+        <p class="field-hint lp-note">81 il ve 973 ilçe. Koordinatlar: TürkiyeAPI, GeoNames ve © OpenStreetMap katkıcıları.</p>
+      </div>
+    </dialog>
   </div>
 </header>
 

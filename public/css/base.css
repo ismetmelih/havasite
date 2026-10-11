@@ -1426,7 +1426,7 @@ select.filter-select:active {
   padding: 13px 15px;
   border-radius: 14px;
   border: 1px solid transparent;
-  background: var(--surface-2);
+  background-color: var(--surface-2);
   color: var(--text-primary);
   font-size: 0.95rem;
   outline: none;
@@ -1942,3 +1942,6 @@ body {
 }
 .btn-danger:hover { background: var(--status-critical); color: #fff; }
 .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+/* acilir listelerde ok isareti icin sagda yer */
+.field select { padding-right: 38px; background-position: right 14px center; }

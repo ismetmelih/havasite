@@ -6,7 +6,7 @@
 // - Gorseller, yazi tipleri ve surumlu CDN kutuphaneleri: once onbellek (hizli), arka planda tazele.
 // - /api/quakes ve /api/fires: once ag; baglanti yoksa son bilinen veri gosterilir.
 // - Giris/admin API'leri ve harita karolari hic onbelleklenmez.
-const VERSION = "v7";
+const VERSION = "v8";
 const SHELL_CACHE = `tc-shell-${VERSION}`;
 const RUNTIME_CACHE = `tc-runtime-${VERSION}`;
 
@@ -42,6 +42,7 @@ const SHELL = [
   "/fonts/satoshi-700.woff2",
   "/img/app/icon-192.png",
   "/manifest.webmanifest",
+  "/data/iller.json",
 ];
 
 const CDN_HOSTS = ["unpkg.com"];
@@ -113,7 +114,7 @@ self.addEventListener("fetch", (event) => {
       event.respondWith(networkFirst(request));
       return;
     }
-    if (/\.(png|svg|webp|jpg|ico|woff2?)$/.test(url.pathname)) {
+    if (/\.(png|svg|webp|jpg|ico|woff2?|json)$/.test(url.pathname)) {
       event.respondWith(staleWhileRevalidate(request));
     }
     return;
