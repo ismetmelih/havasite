@@ -24,7 +24,16 @@ SESSION_SECRET=uzun-rastgele-bir-deger
 ADMIN_EMAIL=admin@ornek.com
 ADMIN_PASSWORD=guclu-bir-sifre
 FIRMS_MAP_KEY=nasa-firms-anahtari
+
+# istege bagli
+SITE_URL=https://ornek.com            # kalici alan adi (paylasim kartlari, sitemap); yoksa istek alan adi
+CONTACT_EMAIL=iletisim@ornek.com      # KVKK sayfasindaki iletisim adresi
+RESEND_API_KEY=re_xxx                 # e-postayla sifre sifirlama (resend.com)
+MAIL_FROM="TürkiyeCanlı <bildirim@ornek.com>"
 ```
+
+AWS Amplify'da aynı değişkenler **Hosting → Environment variables** bölümüne girilir;
+değişiklikten sonra **Redeploy** gerekir.
 
 Sonra tarayıcında **http://localhost:3000** adresini aç. `DATABASE_URL` tanımlamazsan
 site yine açılır (hava/deprem/yangın verisi ve harita CDN'leri için internet bağlantısı
@@ -63,8 +72,19 @@ ayrı, 12 saatlik kısa ömürlü bir oturum cerezi (`havasite_admin_session`) k
 Admin panelinden kayıtlı müşteri hesaplarını görüntüleyip silebilirsin.
 
 İlgili API uç noktaları:
-- Müşteri: `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/logout`, `GET/PATCH /api/auth/me`
-- Admin: `POST /api/admin/login`, `POST /api/admin/logout`, `GET /api/admin/session`, `GET /api/admin/stats`, `GET /api/admin/users`, `DELETE /api/admin/users/:id`
+- Müşteri: `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/logout`, `GET/PATCH/DELETE /api/auth/me`,
+  `POST /api/auth/password` (şifre değiştir), `PUT /api/auth/prefs` (tercihler), `POST /api/auth/forgot`, `POST /api/auth/reset`
+- Admin: `POST /api/admin/login`, `POST /api/admin/logout`, `GET /api/admin/session`, `GET /api/admin/stats`, `GET /api/admin/users`,
+  `DELETE /api/admin/users/:id`, `POST /api/admin/users/:id/reset-link` (24 saatlik şifre sıfırlama bağlantısı)
+
+Hesap güvenliği: giriş/kayıt/admin girişi/şifre sıfırlama istekleri IP ve e-posta başına hız
+sınırlıdır; şifre değişince veya sıfırlanınca diğer cihazlardaki oturumlar kapanır (`token_version`).
+Kullanıcı hesabını Ayarlar'dan kendisi silebilir. Tercihler (`users.prefs`) hesapta saklanır.
+Şifre sıfırlama e-postası için `RESEND_API_KEY` + `MAIL_FROM` gerekir; yoksa yönetici admin
+panelinden sıfırlama bağlantısı oluşturup kullanıcıya iletir.
+
+Güvenlik başlıkları (CSP, HSTS vb.), sıkıştırma ve hız sınırlama `lib/http.js` içindedir. CSP satır içi
+script'e izin vermez; yeni bir dış kaynak (CDN, API) eklenirse oradaki listeye de eklenmelidir.
 
 ## Veritabanı
 
