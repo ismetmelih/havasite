@@ -7,6 +7,8 @@
     setupThemeOptions();
     fillCitySelects();
     setupPrefs();
+    setupContacts();
+    setupAppPanel();
     setupChecklist();
   });
 
@@ -70,17 +72,80 @@
 
   function setupPrefs() {
     const prefs = window.HavaPrefs.get();
-    const city = document.getElementById("fCity"), mag = document.getElementById("fMag"), magVal = document.getElementById("fMagVal");
+    const city = document.getElementById("fCity"), start = document.getElementById("fStart");
+    const mag = document.getElementById("fMag"), magVal = document.getElementById("fMagVal");
     city.value = prefs.favoriteCity || "";
+    start.value = prefs.startPage || "";
     mag.value = prefs.quakeAlertMag;
     magVal.textContent = Number(prefs.quakeAlertMag).toFixed(1);
     window.bindRangeFill && window.bindRangeFill(mag);
     mag.addEventListener("input", () => { magVal.textContent = Number(mag.value).toFixed(1); });
     document.getElementById("prefsForm").addEventListener("submit", (e) => {
       e.preventDefault();
-      window.HavaPrefs.set({ favoriteCity: city.value, quakeAlertMag: parseFloat(mag.value) });
+      window.HavaPrefs.set({ favoriteCity: city.value, startPage: start.value, quakeAlertMag: parseFloat(mag.value) });
       window.showToast("Tercihler kaydedildi", { accent: "var(--status-good)" });
     });
+  }
+
+  // ---------------- acil durum kisileri (Guvendeyim mesaji bunlara gider) ----------------
+  function setupContacts() {
+    const form = document.getElementById("contactsForm");
+    if (!form) return;
+    const data = window.HavaContacts.get();
+    const rows = document.getElementById("contactRows");
+    rows.innerHTML = [0, 1, 2].map((i) => {
+      const c = data.list[i] || {};
+      return `<div class="contact-row">
+        <label class="field"><span>Kişi ${i + 1}</span><input type="text" name="n${i}" maxlength="30" placeholder="Ad (ör. Annem)" value="${window.escapeHtml(c.name || "")}" /></label>
+        <label class="field"><span class="sr-only">Kişi ${i + 1} telefon</span><input type="tel" name="p${i}" maxlength="20" inputmode="tel" placeholder="05xx xxx xx xx" value="${window.escapeHtml(c.phone || "")}" /></label>
+      </div>`;
+    }).join("");
+    document.getElementById("safeMsg").value = data.msg || "";
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const list = [];
+      for (let i = 0; i < 3; i++) {
+        const name = form[`n${i}`].value.trim(), phone = form[`p${i}`].value.replace(/[^\d+]/g, "");
+        if (phone && phone.replace(/\D/g, "").length < 10) { window.showToast(`Kişi ${i + 1}: telefon numarası eksik görünüyor.`, { accent: "var(--status-warning)" }); return; }
+        if (phone) list.push({ name, phone });
+      }
+      window.HavaContacts.set({ list, msg: document.getElementById("safeMsg").value.trim() });
+      window.showToast(list.length ? `${list.length} acil durum kişisi kaydedildi` : "Acil durum kişileri temizlendi", { accent: "var(--status-good)" });
+    });
+  }
+
+  // ---------------- uygulama: onbellek, sifirlama, surum ----------------
+  async function setupAppPanel() {
+    document.querySelectorAll("[data-install]").forEach((b) => b.addEventListener("click", () => window.HavaInstall && window.HavaInstall.prompt()));
+    const info = document.getElementById("cacheInfo");
+    async function cacheSize() {
+      if (!("caches" in window)) { info.textContent = "Bu tarayıcı çevrimdışı kopyayı desteklemiyor."; return; }
+      try {
+        let files = 0;
+        for (const k of await caches.keys()) files += (await (await caches.open(k)).keys()).length;
+        let mb = "";
+        if (navigator.storage && navigator.storage.estimate) { const e = await navigator.storage.estimate(); mb = ` · yaklaşık ${(e.usage / 1048576).toFixed(1)} MB`; }
+        info.textContent = files ? `${files} dosya cihazında saklı${mb}. İnternet kesilince bunlar açılır.` : "Henüz çevrimdışı kopya yok.";
+      } catch { info.textContent = "Hesaplanamadı."; }
+    }
+    cacheSize();
+    document.getElementById("cacheClear").addEventListener("click", async () => {
+      try { for (const k of await caches.keys()) await caches.delete(k); } catch {}
+      try { const reg = await navigator.serviceWorker.getRegistration(); if (reg) await reg.update(); } catch {}
+      window.showToast("Çevrimdışı kopya temizlendi; sayfa yenileniyor…");
+      setTimeout(() => location.reload(), 900);
+    });
+    document.getElementById("prefsReset").addEventListener("click", () => {
+      if (!confirm("Bu cihazdaki tüm TürkiyeCanlı ayarları silinsin mi?")) return;
+      try { Object.keys(localStorage).filter((k) => k.startsWith("havasite_")).forEach((k) => localStorage.removeItem(k)); } catch {}
+      window.showToast("Ayarlar sıfırlandı");
+      setTimeout(() => location.reload(), 700);
+    });
+    try {
+      const sw = await fetch("/sw.js", { cache: "no-store" }).then((r) => r.text());
+      const v = (sw.match(/VERSION = "([^"]+)"/) || [])[1];
+      document.getElementById("appVersion").textContent = v ? `TürkiyeCanlı ${v}` : "—";
+    } catch {}
   }
 
   // ---------------- deprem cantasi checklist + rozet ----------------

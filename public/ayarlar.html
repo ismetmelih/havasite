@@ -48,7 +48,7 @@
       <p class="ph-lead">Favori şehrini seç, deprem bildirimlerini aç, temayı değiştir ve deprem çantanı kontrol et. Tercihlerin yalnızca bu cihazda saklanır.</p>
       <div class="ph-cta">
         <a class="btn btn-primary" href="#bildirimler" data-settings-tab="bildirimler"><span class="ic" data-icon="bell" data-icon-size="16"></span> Bildirimleri aç</a>
-        <a class="btn btn-ghost" href="#hazirlik" data-settings-tab="hazirlik"><span class="ic" data-icon="backpack" data-icon-size="16"></span> Deprem çantası</a>
+        <a class="btn btn-ghost" href="#hazirlik" data-settings-tab="hazirlik"><span class="ic" data-icon="backpack" data-icon-size="16"></span> Afete hazırlık</a>
       </div>
     </div>
     <div class="ph-visual" aria-hidden="true">
@@ -65,33 +65,13 @@
   <div class="settings-shell reveal">
 
     <div class="settings-tabs">
-      <button class="settings-tab active" data-tab="profil" type="button"><span class="ic" data-icon="sparkle" data-icon-size="15"></span> Tercihler</button>
-      <button class="settings-tab" data-tab="bildirimler" type="button"><span class="ic" data-icon="bell" data-icon-size="15"></span> Bildirimler</button>
-      <button class="settings-tab" data-tab="gorunum" type="button"><span class="ic" data-icon="palette" data-icon-size="15"></span> Görünüm</button>
+      <button class="settings-tab active" data-tab="bildirimler" type="button"><span class="ic" data-icon="bell" data-icon-size="15"></span> Bildirimler</button>
+      <button class="settings-tab" data-tab="tercihler" type="button"><span class="ic" data-icon="sparkle" data-icon-size="15"></span> Tercihler</button>
       <button class="settings-tab" data-tab="hazirlik" type="button"><span class="ic" data-icon="shield-check" data-icon-size="15"></span> Hazırlık</button>
+      <button class="settings-tab" data-tab="uygulama" type="button"><span class="ic" data-icon="smartphone" data-icon-size="15"></span> Uygulama</button>
     </div>
 
-    <section class="settings-panel active" id="panel-profil">
-      <div class="card profile-card">
-        <h3 style="margin-top:0"><span class="h-icon ic" data-icon="sparkle" data-icon-size="18"></span>Tercihlerin</h3>
-        <p class="field-hint" style="margin:0 0 18px">Hesap gerekmez; tercihlerin yalnızca bu cihazda saklanır.</p>
-        <form id="prefsForm" class="auth-form" style="max-width:420px">
-          <label class="field">
-            <span>Favori şehir</span>
-            <select id="fCity"><option value="">Seçilmedi</option></select>
-            <span class="field-hint">Hava Durumu sayfası ilk açılışta bu şehri gösterir.</span>
-          </label>
-          <label class="field">
-            <span>Deprem uyarı eşiği: <strong id="fMagVal">3.5</strong>+</span>
-            <input type="range" id="fMag" min="2.5" max="6" step="0.5" value="3.5" />
-            <span class="field-hint">Deprem sayfası açıkken bu büyüklük ve üzerindeki yeni depremler için uyarı gösterilir. Telefon kilitliyken bildirim için “Bildirimler” sekmesini kullan.</span>
-          </label>
-          <button class="btn btn-primary btn-block" type="submit">Kaydet</button>
-        </form>
-      </div>
-    </section>
-
-    <section class="settings-panel" id="panel-bildirimler">
+    <section class="settings-panel active" id="panel-bildirimler">
       <div class="card profile-card notify-card">
         <h3 style="margin-top:0"><span class="h-icon ic" data-icon="siren" data-icon-size="18"></span>Deprem bildirimleri</h3>
         <p class="field-hint" style="margin-top:-6px">
@@ -133,11 +113,37 @@
       </div>
     </section>
 
-    <section class="settings-panel" id="panel-gorunum">
+    <section class="settings-panel" id="panel-tercihler">
+      <div class="card profile-card">
+        <h3 style="margin-top:0"><span class="h-icon ic" data-icon="sparkle" data-icon-size="18"></span>Tercihlerin</h3>
+        <p class="field-hint" style="margin:0 0 18px">Hesap gerekmez; tercihlerin yalnızca bu cihazda saklanır.</p>
+        <form id="prefsForm" class="auth-form" style="max-width:460px">
+          <label class="field">
+            <span>Favori şehir</span>
+            <select id="fCity"><option value="">Seçilmedi</option></select>
+            <span class="field-hint">Hava Durumu sayfası ilk açılışta bu şehri gösterir.</span>
+          </label>
+          <label class="field">
+            <span>Uygulama açılınca</span>
+            <select id="fStart">
+              <option value="">Ana sayfa</option>
+              <option value="hava.html">Hava durumu</option>
+              <option value="deprem.html">Depremler</option>
+              <option value="yangin.html">Yangınlar</option>
+            </select>
+            <span class="field-hint">Ana ekrana eklenen uygulama doğrudan bu sayfayla açılır.</span>
+          </label>
+          <label class="field">
+            <span>Sayfa içi deprem uyarısı: <strong id="fMagVal">3.5</strong>+</span>
+            <input type="range" id="fMag" min="2.5" max="6" step="0.5" value="3.5" />
+            <span class="field-hint">Deprem sayfası açıkken bu büyüklük ve üzerindeki yeni depremler ekranda uyarı olarak çıkar. Telefon kilitliyken bildirim için “Bildirimler” sekmesini kullan.</span>
+          </label>
+          <button class="btn btn-primary btn-block" type="submit">Kaydet</button>
+        </form>
+      </div>
       <div class="card profile-card">
         <h3 style="margin-top:0"><span class="h-icon ic" data-icon="palette" data-icon-size="17"></span>Tema</h3>
-        <p style="color:var(--text-secondary);margin-top:-8px">Sitenin panellerini açık veya koyu görünümde kullan.</p>
-
+        <p class="field-hint" style="margin:-6px 0 14px">Üst menüdeki ay/güneş düğmesiyle de değiştirebilirsin.</p>
         <div class="theme-grid">
           <div class="theme-option" data-theme-radio="dark" id="optDark">
             <div class="mockup mockup-dark">
@@ -194,6 +200,47 @@
         <div id="checklistGroups"></div>
 
         <button class="btn btn-ghost btn-sm" id="checklistReset" type="button" style="margin-top:10px">Listeyi sıfırla</button>
+      </div>
+      <div class="card profile-card">
+        <h3 style="margin-top:0"><span class="h-icon ic" data-icon="users" data-icon-size="17"></span>Acil durum kişileri</h3>
+        <p class="field-hint" style="margin:-6px 0 14px">ACİL ekranındaki “Güvendeyim” düğmesi mesajı doğrudan bu kişilere SMS olarak hazırlar. Numaralar yalnızca bu cihazda saklanır.</p>
+        <form id="contactsForm" class="auth-form" style="max-width:460px" novalidate>
+          <div class="contact-rows" id="contactRows"></div>
+          <label class="field">
+            <span>Mesaj</span>
+            <input type="text" id="safeMsg" maxlength="160" placeholder="Güvendeyim, iyiyim." />
+            <span class="field-hint">Konum izni verirsen mesajın sonuna harita bağlantın eklenir.</span>
+          </label>
+          <button class="btn btn-primary btn-block" type="submit">Kişileri kaydet</button>
+        </form>
+      </div>
+      <div class="card profile-card">
+        <h3 style="margin-top:0"><span class="h-icon ic" data-icon="map-pin" data-icon-size="17"></span>Toplanma alanın</h3>
+        <p class="field-hint" style="margin:-6px 0 14px">Deprem sonrası gideceğin resmî acil toplanma alanını önceden öğren ve ailene söyle.</p>
+        <a class="btn btn-ghost" href="https://www.turkiye.gov.tr/afet-ve-acil-durum-yonetimi-acil-toplanma-alani-sorgulama" target="_blank" rel="noopener"><span class="ic" data-icon="map" data-icon-size="15"></span> e-Devlet'te toplanma alanını sorgula</a>
+      </div>
+    </section>
+
+    <section class="settings-panel" id="panel-uygulama">
+      <div class="card profile-card">
+        <h3 style="margin-top:0"><span class="h-icon ic" data-icon="smartphone" data-icon-size="17"></span>Uygulama</h3>
+        <div class="app-rows">
+          <div class="app-row"><div><b>Telefona yükle</b><span>Tam ekran açılır, bildirim gönderir, internetsiz son verileri gösterir.</span></div><button class="btn btn-primary btn-sm" type="button" data-install><span class="ic" data-icon="download" data-icon-size="15"></span> Yükle</button></div>
+          <div class="app-row"><div><b>Çevrimdışı kopya</b><span id="cacheInfo">Hesaplanıyor…</span></div><button class="btn btn-ghost btn-sm" type="button" id="cacheClear"><span class="ic" data-icon="refresh-cw" data-icon-size="15"></span> Temizle ve yenile</button></div>
+          <div class="app-row"><div><b>Ayarları sıfırla</b><span>Tema, favori şehir, çanta listesi ve acil kişiler bu cihazdan silinir. Bildirim aboneliği etkilenmez.</span></div><button class="btn btn-danger btn-sm" type="button" id="prefsReset">Sıfırla</button></div>
+          <div class="app-row"><div><b>Sürüm</b><span id="appVersion">—</span></div></div>
+        </div>
+      </div>
+      <div class="card profile-card">
+        <h3 style="margin-top:0"><span class="h-icon ic" data-icon="info" data-icon-size="17"></span>Hakkında</h3>
+        <p class="field-hint" style="margin:-6px 0 14px">TürkiyeCanlı bağımsız bir projedir; resmî uyarı sistemi değildir. Afet ve acil durumda AFAD, 112 ve yetkili kurumları esas al.</p>
+        <div class="about-links">
+          <a href="gizlilik.html"><span class="ic" data-icon="lock-key" data-icon-size="15"></span> Gizlilik ve KVKK</a>
+          <a href="https://deprem.afad.gov.tr" target="_blank" rel="noopener"><span class="ic" data-icon="wave" data-icon-size="15"></span> AFAD</a>
+          <a href="https://firms.modaps.eosdis.nasa.gov" target="_blank" rel="noopener"><span class="ic" data-icon="satellite" data-icon-size="15"></span> NASA FIRMS</a>
+          <a href="https://open-meteo.com" target="_blank" rel="noopener"><span class="ic" data-icon="cloud-sun" data-icon-size="15"></span> Open-Meteo</a>
+          <a href="mailto:{{CONTACT_EMAIL}}"><span class="ic" data-icon="mail" data-icon-size="15"></span> İletişim</a>
+        </div>
       </div>
     </section>
 

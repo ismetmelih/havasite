@@ -78,7 +78,6 @@
 
   /* ---------------- renk / boyut ---------------- */
   const magColor = (m) => window.magTone(m);
-  const magSize = (m) => Math.max(10, Math.min(46, 10 + m * 5.4));
   function provinceOf(q) { return (q.closestCity || "").replace(/\s*yakını$/, "").trim() || null; }
 
   /* ---------------- canlı veri ---------------- */
@@ -279,33 +278,55 @@
     D.bars($("provinceBars"), rows);
   }
 
-  /* ---------------- HARİTA ---------------- */
+  /* ---------------- HARİTA: il sinirlari deprem sayisina gore + deprem noktalari ---------------- */
   function initMap() {
-    if (state.mapReady) { setTimeout(() => state.map.invalidateSize(), 60); return; }
+    if (state.mapReady) { state.pm.invalidate(); return; }
     state.mapReady = true;
-    state.map = L.map("quakeMap", { scrollWheelZoom: true, zoomSnap: 0.25 }).setView([39.0, 35.2], 5.8);
-    window.HavaMap.addBaseLayer(state.map);
-    window.HavaMap.fitTurkey(state.map);
-    state.layer = L.layerGroup().addTo(state.map);
+    state.pm = window.HavaProvMap.create({
+      el: "quakeMap", statsEl: "qMapStats", legendEl: "qMapLegend", kind: "quake",
+      unit: "deprem", legendTitle: "Deprem sayısı",
+      stops: [[0, [92, 64, 26]], [0.5, [245, 165, 36]], [1, [239, 68, 68]]],
+    });
+    state.map = state.pm.map;
+    state.layer = state.pm.points;
     renderMap(filtered(), []);
   }
+  const cityCenter = (name) => (window.TR_CITIES || []).find((c) => c.name === name);
   function renderMap(list, newOnes) {
-    if (!state.layer) return;
+    if (!state.pm) return;
     state.layer.clearLayers();
     const newIds = new Set(newOnes.map((q) => q.id));
     const now = Date.now();
     $("mapCount").innerHTML = `<span class="live-blip"></span> ${list.length}`;
+    const counts = new Map(), maxBy = new Map();
     list.forEach((q) => {
-      const size = magSize(q.mag), color = magColor(q.mag);
-      const recent = now - new Date(q.date.replace(" ", "T")).getTime() < 3600000;
-      const html = `<div class="pulse-marker ${newIds.has(q.id) ? "pop" : ""}">
-        ${recent ? `<div class="ring" style="width:${size * 1.8}px;height:${size * 1.8}px;background:${color}22;border:1.5px solid ${color}"></div>` : ""}
-        <div class="dot" style="width:${size}px;height:${size}px;background:${color}"></div></div>`;
-      const m = L.marker([q.lat, q.lon], { icon: L.divIcon({ className: "", html, iconSize: [size, size], iconAnchor: [size / 2, size / 2] }) }).addTo(state.layer);
-      m.bindPopup(`<div class="map-pop"><strong>M${q.mag.toFixed(1)} — ${window.escapeHtml(q.closestCity || q.title)}</strong><br/>${window.escapeHtml(q.title)}<br/>Derinlik: ${q.depth} km · ${window.escapeHtml(q.date)}</div>`);
+      const p = provinceOf(q);
+      if (p) { counts.set(p, (counts.get(p) || 0) + 1); if (!maxBy.has(p) || q.mag > maxBy.get(p).mag) maxBy.set(p, q); }
+    });
+    state.pm.setCounts(counts, new Map([...maxBy].map(([p, q]) => [p, `en büyüğü M${q.mag.toFixed(1)}`])));
+    const newest = list.length ? list.reduce((a, b) => (new Date(b.date.replace(" ", "T")) > new Date(a.date.replace(" ", "T")) ? b : a)) : null;
+    // kucukler once, buyukler ustte kalsin
+    [...list].sort((a, b) => a.mag - b.mag).forEach((q) => {
+      const color = magColor(q.mag);
+      const m = L.circleMarker([q.lat, q.lon], { pane: "points", radius: 3 + q.mag * 2.2, color: "#fff", weight: 1, opacity: 0.7, fillColor: color, fillOpacity: 0.85 }).addTo(state.layer);
+      m.bindPopup(`<div class="map-pop"><strong>M${q.mag.toFixed(1)} — ${window.escapeHtml(q.title)}</strong><br/>Derinlik: ${q.depth} km · ${window.escapeHtml(window.timeAgoTR(q.date.replace(" ", "T")))}<br/>${window.escapeHtml(q.date)}</div>`);
       m._qid = q.id;
+      if (q === newest || now - new Date(q.date.replace(" ", "T")).getTime() < 3600000) {
+        const s = Math.round(10 + q.mag * 5);
+        L.marker([q.lat, q.lon], { pane: "points", interactive: false, keyboard: false, icon: L.divIcon({ className: "", html: `<div class="pulse-marker"><div class="ring" style="width:${s}px;height:${s}px;border:1.5px solid ${color}"></div></div>`, iconSize: [0, 0] }) }).addTo(state.layer);
+      }
       if (newIds.has(q.id)) m.openPopup();
     });
+    // sol ust ozet
+    const top = [...counts].sort((a, b) => b[1] - a[1])[0];
+    const mx = list.length ? list.reduce((a, b) => (b.mag > a.mag ? b : a)) : null;
+    const tc = top && cityCenter(top[0]);
+    state.pm.setStats(list.length ? `
+      ${newest ? `<button type="button" class="ms-item ms-new" data-fly="${newest.lat},${newest.lon}"><span>Son deprem · ${window.escapeHtml(window.timeAgoTR(newest.date.replace(" ", "T")))}</span><b>${window.escapeHtml(provinceOf(newest) || newest.title)} <i style="color:${magColor(newest.mag)}">M${newest.mag.toFixed(1)}</i></b></button>` : ""}
+      ${top ? `<button type="button" class="ms-item"${tc ? ` data-fly="${tc.lat},${tc.lon}"` : ""}><span>En hareketli il</span><b>${window.escapeHtml(top[0])} <i style="color:var(--c-quake)">${top[1]}</i></b></button>` : ""}
+      ${mx ? `<button type="button" class="ms-item" data-fly="${mx.lat},${mx.lon}"><span>En büyük</span><b>${window.escapeHtml(provinceOf(mx) || mx.title)} <i style="color:${magColor(mx.mag)}">M${mx.mag.toFixed(1)}</i></b></button>` : ""}
+      <div class="ms-item"><span>Toplam</span><b>${list.length} deprem</b></div>
+      <div class="ms-live"><i></i>Canlı · AFAD</div>` : `<div class="ms-item"><span>Seçili aralıkta</span><b>deprem yok</b></div>`);
   }
 
   /* ---------------- ZAMAN TÜNELİ ---------------- */

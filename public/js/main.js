@@ -323,6 +323,7 @@
   }
 
   document.addEventListener("DOMContentLoaded", () => {
+    applyStartPage();
     trackNavHeight();
     const yearEl = document.getElementById("year");
     if (yearEl && !yearEl.textContent) yearEl.textContent = new Date().getFullYear();
@@ -474,7 +475,13 @@
         loc = ` Konumum: https://maps.google.com/?q=${pos.coords.latitude.toFixed(5)},${pos.coords.longitude.toFixed(5)}`;
       } catch {}
       btn.disabled = false;
-      const text = `Güvendeyim, iyiyim.${loc}`;
+      const saved = window.HavaContacts.get();
+      const text = `${saved.msg || "Güvendeyim, iyiyim."}${loc}`;
+      const nums = saved.list.map((c) => c.phone).filter(Boolean);
+      if (nums.length && /Android|iPhone|iPad/i.test(navigator.userAgent)) {
+        location.href = IS_IOS ? `sms:/open?addresses=${nums.join(",")}&body=${encodeURIComponent(text)}` : `sms:${nums.join(",")}?body=${encodeURIComponent(text)}`;
+        return;
+      }
       if (navigator.share) {
         try { await navigator.share({ text }); } catch {}
       } else if (/Android|iPhone|iPad/i.test(navigator.userAgent)) {
@@ -578,7 +585,7 @@
 
   // ---------------- kullanici tercihleri (cihazda) ----------------
   const PREFS_KEY = "havasite_prefs";
-  const DEFAULT_PREFS = { favoriteCity: "", quakeAlertMag: 3.5 };
+  const DEFAULT_PREFS = { favoriteCity: "", quakeAlertMag: 3.5, startPage: "" };
 
   function getPrefs() {
     try {
@@ -600,6 +607,22 @@
     return true;
   }
   window.HavaPrefs = { get: getPrefs, set: setPrefs };
+
+  // acil durum kisileri: { list: [{name, phone}], msg }
+  const CONTACTS_KEY = "havasite_contacts";
+  window.HavaContacts = {
+    get() { try { const d = JSON.parse(localStorage.getItem(CONTACTS_KEY) || "{}"); return { list: Array.isArray(d.list) ? d.list : [], msg: d.msg || "" }; } catch { return { list: [], msg: "" }; } },
+    set(d) { try { localStorage.setItem(CONTACTS_KEY, JSON.stringify(d)); } catch {} },
+  };
+
+  // ana ekrandaki uygulama acilinca secilen sayfaya git (oturum basina bir kez)
+  function applyStartPage() {
+    let first = false;
+    try { first = !sessionStorage.getItem("havasite_started"); sessionStorage.setItem("havasite_started", "1"); } catch {}
+    const page = getPrefs().startPage;
+    const onHome = /^\/(index\.html)?$/.test(location.pathname);
+    if (first && page && onHome && isStandalone() && /^(hava|deprem|yangin)\.html$/.test(page)) location.replace(page);
+  }
 
   function setupNav() {
     const nav = document.querySelector(".site-nav");

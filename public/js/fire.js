@@ -79,9 +79,6 @@
   }
 
   /* ---- renk / boyut / güven ---- */
-  const FRP_STOPS = [[0, [224, 193, 132]], [5, [213, 154, 92]], [15, [192, 79, 69]], [45, [138, 47, 39]]];
-  const frpColor = (f) => D.scale(FRP_STOPS, f || 0);
-  const fireSize = (f) => Math.max(10, Math.min(42, 10 + Math.sqrt(Math.max(f, 0)) * 4));
   function confLevel(raw) {
     if (raw == null || raw === "") return 1;
     const n = Number(raw);
@@ -290,29 +287,46 @@
   }
 
   /* ---- HARİTA ---- */
+  // harita: il sinirlari tespit sayisina gore + parlayan isi noktalari (ana sayfadaki gibi)
   function initMap() {
-    if (state.mapReady) { setTimeout(() => state.map.invalidateSize(), 60); return; }
+    if (state.mapReady) { state.pm.invalidate(); return; }
     state.mapReady = true;
-    state.map = L.map("fireMap", { scrollWheelZoom: true, zoomSnap: 0.25 }).setView([39.0, 35.2], 5.8);
-    window.HavaMap.addBaseLayer(state.map);
-    window.HavaMap.fitTurkey(state.map);
-    state.layer = L.layerGroup().addTo(state.map);
+    state.pm = window.HavaProvMap.create({
+      el: "fireMap", statsEl: "fMapStats", legendEl: "fMapLegend", kind: "fire",
+      unit: "tespit", legendTitle: "Isı noktası",
+      stops: [[0, [110, 40, 20]], [0.5, [234, 88, 12]], [1, [251, 191, 36]]],
+    });
+    state.map = state.pm.map;
+    state.layer = state.pm.points;
     renderMap(filtered());
   }
+  const cityCenter = (name) => (window.TR_CITIES || []).find((c) => c.name === name);
   function renderMap(list) {
-    if (!state.layer) return;
+    if (!state.pm) return;
     state.layer.clearLayers();
     $("mapCount").innerHTML = `<span class="live-blip"></span> ${list.length}`;
+    const counts = new Map(), maxBy = new Map();
     list.forEach((f) => {
-      const size = fireSize(f.frp), color = frpColor(f.frp);
-      const html = `<div class="fire-mark">
-        <div class="fmk-ring" style="width:${size * 1.6}px;height:${size * 1.6}px;background:${color}22;border:1.5px solid ${color}"></div>
-        <svg class="fmk-flame" viewBox="0 0 64 64" style="width:${size}px;height:${size}px;color:${color}" aria-hidden="true"><path d="M32 6c4 8-3 11-3 18 0 5 4 7 7 7 5 0 9-4 9-10 6 6 9 14 9 20 0 12-10 21-22 21S10 53 10 41c0-9 5-15 9-20 1 6 5 9 9 9 3 0-3-4 4-24Z" fill="currentColor"/></svg>
-        <span class="fmk-ember e1"></span><span class="fmk-ember e2"></span></div>`;
       const c = cityOf(f);
-      const m = L.marker([f.lat, f.lon], { icon: L.divIcon({ className: "", html, iconSize: [size, size], iconAnchor: [size / 2, size / 2] }) }).addTo(state.layer);
-      m.bindPopup(`<div class="map-pop"><strong>${c ? window.escapeHtml(c) + " yakını" : "Tespit"}</strong><br/>FRP: ${f.frp && f.frp.toFixed ? f.frp.toFixed(1) : f.frp} MW · Güven: ${confLabel(f.confidence)}<br/>${window.escapeHtml(fireTime(f))} (TSİ)</div>`);
+      if (c) { counts.set(c, (counts.get(c) || 0) + 1); if (!maxBy.has(c) || (f.frp || 0) > (maxBy.get(c).frp || 0)) maxBy.set(c, f); }
     });
+    state.pm.setCounts(counts, new Map([...maxBy].map(([c, f]) => [c, f.frp ? `en güçlüsü ${f.frp.toFixed(0)} MW` : ""])));
+    [...list].sort((a, b) => (a.frp || 0) - (b.frp || 0)).forEach((f) => {
+      const frp = f.frp || 0;
+      const m = L.circleMarker([f.lat, f.lon], { pane: "points", radius: frp >= 45 ? 7 : frp >= 15 ? 5.5 : frp >= 5 ? 4 : 3, stroke: false, fillColor: frp >= 15 ? "#ffd166" : "#ff6b3d", fillOpacity: 0.9 }).addTo(state.layer);
+      const c = cityOf(f);
+      m.bindPopup(`<div class="map-pop"><strong>${c ? window.escapeHtml(c) + " yakını" : "Tespit"}</strong><br/>Isı gücü: ${f.frp && f.frp.toFixed ? f.frp.toFixed(1) : "—"} MW · Güven: ${confLabel(f.confidence)}<br/>${window.escapeHtml(fireTime(f))} (TSİ)</div>`);
+    });
+    const top = [...counts].sort((a, b) => b[1] - a[1])[0];
+    const mx = list.length ? list.reduce((a, b) => ((b.frp || 0) > (a.frp || 0) ? b : a)) : null;
+    const tc = top && cityCenter(top[0]);
+    const fresh = $("fireFreshness") ? $("fireFreshness").textContent : "—";
+    state.pm.setStats(list.length ? `
+      <div class="ms-item ms-new"><span>En yeni uydu geçişi</span><b>${window.escapeHtml(fresh)}</b></div>
+      ${top ? `<button type="button" class="ms-item"${tc ? ` data-fly="${tc.lat},${tc.lon}"` : ""}><span>En çok tespit</span><b>${window.escapeHtml(top[0])} <i style="color:var(--c-fire)">${top[1]}</i></b></button>` : ""}
+      ${mx && mx.frp ? `<button type="button" class="ms-item" data-fly="${mx.lat},${mx.lon}"><span>En güçlü ısı</span><b>${window.escapeHtml(cityOf(mx) || "—")} <i style="color:#fbbf24">${mx.frp.toFixed(0)} MW</i></b></button>` : ""}
+      <div class="ms-item"><span>Toplam</span><b>${list.length} ısı noktası</b></div>
+      <div class="ms-live"><i></i>Uydu · NASA FIRMS</div>` : `<div class="ms-item"><span>Seçili filtrede</span><b>tespit yok</b></div>`);
   }
 
   /* ---- RİSK ---- */

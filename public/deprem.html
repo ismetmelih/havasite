@@ -174,8 +174,12 @@
       <h3><span class="h-icon" data-icon="map" data-icon-size="18"></span>Deprem haritası</h3>
       <span class="badge badge-live" id="mapCount"><span class="live-blip"></span> —</span>
     </div>
-    <div id="quakeMap" class="map-box" style="height:640px"></div>
-    <div class="legend quake-legend"><span>Küçük</span><div class="legend-bar quake-bar"></div><span>Büyük</span></div>
+    <div class="wx-mapwrap">
+      <div id="quakeMap" class="map-box" role="region" aria-label="İl bazında deprem haritası"></div>
+      <div class="wx-map-stats" id="qMapStats" aria-live="polite"></div>
+      <div class="wx-map-legend" id="qMapLegend"></div>
+    </div>
+    <p class="wx-map-hint">İller seçili aralıktaki deprem sayısına göre renklenir; bir ile tıklayınca yakınlaşır. Noktaların boyutu ve rengi büyüklüğü gösterir, son 1 saattekiler yanıp söner.</p>
   </section>
 
   <!-- ============ LİSTE ============ -->
@@ -258,6 +262,7 @@
 <script src="js/vendor/chart.umd.min.js"></script>
 <script src="js/charts.js"></script>
 <script src="js/dash.js"></script>
+<script src="js/provmap.js"></script>
 <script src="js/quake.js"></script>
 </body>
 </html>
