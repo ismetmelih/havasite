@@ -456,10 +456,6 @@ function readJsonBody(req, maxBytes = 100 * 1024) {
   });
 }
 
-function publicUser(u) {
-  return { id: u.id, name: u.name, email: u.email, isAdmin: !!u.is_admin, createdAt: u.created_at, prefs: u.prefs || {} };
-}
-
 // ---------- auth ----------
 async function requireDb(res) {
   const ok = await ensureSchema();
@@ -666,12 +662,10 @@ async function handleAdminStats(req, res) {
   if (!(await requireDb(res))) return;
   try {
     const pool = getPool();
-    const totalRes = await pool.query("SELECT COUNT(*)::int AS n FROM users");
     const pushRes = await pool.query("SELECT COUNT(*)::int AS n FROM push_subscriptions");
     sendJson(res, 200, {
       ok: true,
       stats: {
-        totalUsers: totalRes.rows[0].n,
         pushSubscribers: pushRes.rows[0].n,
         firmsKeyConfigured: !!(CONFIG.FIRMS_MAP_KEY && CONFIG.FIRMS_MAP_KEY !== "BURAYA_KENDI_ANAHTARINI_YAZ"),
         nodeVersion: process.version,
@@ -680,30 +674,6 @@ async function handleAdminStats(req, res) {
     });
   } catch (err) {
     sendJson(res, 500, { ok: false, reason: "server_error", message: "İstatistikler alınamadı." });
-  }
-}
-
-async function handleAdminUsersList(req, res) {
-  if (!(await requireAdmin(req, res))) return;
-  if (!(await requireDb(res))) return;
-  try {
-    const pool = getPool();
-    const r = await pool.query("SELECT * FROM users ORDER BY created_at DESC");
-    sendJson(res, 200, { ok: true, users: r.rows.map(publicUser) });
-  } catch (err) {
-    sendJson(res, 500, { ok: false, reason: "server_error", message: "Kullanıcılar alınamadı." });
-  }
-}
-
-async function handleAdminUserDelete(req, res, id) {
-  if (!(await requireAdmin(req, res))) return;
-  if (!(await requireDb(res))) return;
-  try {
-    const r = await getPool().query("DELETE FROM users WHERE id = $1", [id]);
-    if (!r.rowCount) return sendJson(res, 404, { ok: false, reason: "not_found", message: "Kullanıcı bulunamadı." });
-    sendJson(res, 200, { ok: true });
-  } catch (err) {
-    sendJson(res, 500, { ok: false, reason: "server_error", message: "Silme işlemi yapılamadı." });
   }
 }
 
@@ -857,9 +827,6 @@ function route(req, res) {
   if (pathname === "/api/admin/logout" && method === "POST") return handleAdminLogout(req, res);
   if (pathname === "/api/admin/session" && method === "GET") return handleAdminSession(req, res);
   if (pathname === "/api/admin/stats" && method === "GET") return handleAdminStats(req, res);
-  if (pathname === "/api/admin/users" && method === "GET") return handleAdminUsersList(req, res);
-  const userMatch = pathname.match(/^\/api\/admin\/users\/(\d+)$/);
-  if (userMatch && method === "DELETE") return handleAdminUserDelete(req, res, userMatch[1]);
 
   if (pathname === "/api/status" && method === "GET") return handleStatus(req, res);
   if (pathname === "/api/push/key" && method === "GET") return handlePushKey(req, res);

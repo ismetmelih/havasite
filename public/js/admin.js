@@ -13,7 +13,6 @@
     document.getElementById("adminDashboard").hidden = false;
     document.getElementById("adminLogoutWrap").hidden = false;
     loadStats();
-    loadUsers();
   }
 
   function showLogin() {
@@ -120,7 +119,6 @@
         return;
       }
       const s = data.stats;
-      document.getElementById("statTotalUsers").textContent = s.totalUsers;
       document.getElementById("statPush").textContent = s.pushSubscribers;
       document.getElementById("statUptime").textContent = fmtUptime(s.uptimeSeconds);
       document.getElementById("statNode").textContent = s.nodeVersion;
@@ -136,71 +134,4 @@
     }
   }
 
-  async function loadUsers() {
-    const tbody = document.getElementById("userTableBody");
-    try {
-      const r = await fetch("/api/admin/users", { credentials: "same-origin" });
-      const data = await r.json();
-      if (!data.ok) {
-        if (data.reason === "unauthorized") return showLogin();
-        tbody.innerHTML = `<tr><td colspan="4">${window.escapeHtml(data.message || "Kullanıcılar alınamadı.")}</td></tr>`;
-        return;
-      }
-      renderUsers(data.users);
-    } catch {
-      tbody.innerHTML = `<tr><td colspan="4">Bağlantı hatası.</td></tr>`;
-    }
-  }
-
-  function renderUsers(users) {
-    document.getElementById("userCount").innerHTML = `<span class="live-blip"></span> ${users.length}`;
-    const tbody = document.getElementById("userTableBody");
-
-    if (!users.length) {
-      tbody.innerHTML = `<tr><td colspan="4">Eski hesap kalmadı.</td></tr>`;
-      return;
-    }
-
-    tbody.innerHTML = users
-      .map(
-        (u, i) => `
-        <tr data-id="${u.id}" style="--i:${Math.min(i, 14)}">
-          <td>${window.escapeHtml(u.name || "—")}</td>
-          <td>${window.escapeHtml(u.email)}</td>
-          <td>${fmtDate(u.createdAt)}</td>
-          <td>
-            <div class="admin-row-actions">
-              <button type="button" class="danger" data-action="delete">Sil</button>
-            </div>
-          </td>
-        </tr>`
-      )
-      .join("");
-
-    tbody.querySelectorAll("button[data-action='delete']").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const row = btn.closest("tr");
-        deleteUser(row.dataset.id, row);
-      });
-    });
-  }
-
-  async function deleteUser(id, row) {
-    const email = row.children[1].textContent;
-    if (!confirm(`${email} hesabını kalıcı olarak silmek istediğine emin misin?`)) return;
-    try {
-      const r = await fetch(`/api/admin/users/${id}`, { method: "DELETE", credentials: "same-origin" });
-      const data = await r.json();
-      if (!data.ok) {
-        if (data.reason === "unauthorized") return showLogin();
-        window.showToast(data.message || "Silinemedi.", { accent: "var(--status-critical)" });
-        return;
-      }
-      window.showToast("Kullanıcı silindi.", { accent: "var(--status-good)" });
-      loadUsers();
-      loadStats();
-    } catch {
-      window.showToast("Sunucuya ulaşılamadı.", { accent: "var(--status-critical)" });
-    }
-  }
 })();

@@ -32,7 +32,7 @@
 <link rel="stylesheet" href="css/base.css" />
 <link rel="stylesheet" href="css/weather.css" />
 </head>
-<body class="weather-body" data-guest-quota>
+<body class="weather-body">
 
 <nav class="site-nav">
   <a class="brand" href="index.html"><img src="img/logo.svg" class="brand-logo" alt="" /> Türkiye<span class="text-quake">Canlı</span></a>
@@ -52,7 +52,7 @@
   </div>
 </nav>
 
-<header class="page-head weather-theme">
+<header class="page-head weather-theme ph">
   <div class="weather-scene" id="weatherScene" aria-hidden="true" data-cat="clear" data-day="day">
     <div class="ws-stars"></div>
     <div class="ws-moon"></div>
@@ -65,16 +65,12 @@
     <div class="ws-snow"></div>
     <div class="ws-flash"></div>
   </div>
-  <div class="container page-head-row">
-    <div class="page-head-title">
-      <div class="page-icon icon-weather"><img class="icon-3d" src="img/3d/sun-cloud.png" alt="" draggable="false" /></div>
-      <div>
-        <span class="eyebrow text-weather">HAVA DURUMU</span>
-        <h1>Anlık &amp; detaylı hava durumu</h1>
-        <p class="page-sub" id="lastUpdated">Yükleniyor…</p>
-      </div>
-    </div>
-    <div class="search-wrap">
+  <div class="container ph-grid">
+    <div class="ph-copy">
+      <span class="pill-label">Open-Meteo · 81 il · 973 ilçe</span>
+      <h1>Hava durumu, <span class="accent-text">şimdi</span> ve 16 gün sonrası.</h1>
+      <p class="ph-lead">İl, ilçe veya konumunla ara; anlık durum, saatlik ve günlük tahmin, il il renk haritası ve 6 hava modelinin karşılaştırması tek sayfada.</p>
+      <div class="search-wrap">
       <div class="search-box">
         <input type="text" id="citySearch" aria-label="İl, ilçe veya yer ara" placeholder="İl, ilçe ara (ör. Kadıköy)" autocomplete="off" />
         <div class="search-results" id="searchResults" hidden></div>
@@ -82,8 +78,18 @@
       <button class="btn btn-ghost btn-sm" id="pickBtn" type="button" aria-haspopup="dialog"><span class="ic" data-icon="map" data-icon-size="15"></span> İl / İlçe</button>
       <button class="btn btn-ghost btn-sm" id="geoBtn" type="button"><span class="ic" data-icon="map-pin" data-icon-size="15"></span> Konumum</button>
       <a class="btn btn-ghost btn-sm" href="https://www.mgm.gov.tr/meteouyari/turkiye.aspx" target="_blank" rel="noopener" title="Meteoroloji Genel Müdürlüğü'nün resmî uyarıları (yeni sekmede)"><span class="ic" data-icon="alert-triangle" data-icon-size="15"></span> MGM uyarıları</a>
+      </div>
+      <p class="ph-updated"><span class="live-dot"></span><span id="lastUpdated">Yükleniyor…</span></p>
     </div>
-
+    <div class="ph-visual hide-sm" aria-hidden="true">
+      <div class="lp-rings"><span></span><span></span><span></span></div>
+      <div class="ph-icon-big" id="phWxIcon"><img src="img/3d/sun-cloud.png" alt="" draggable="false" /></div>
+      <div class="lp-float ph-f1" id="phC0" hidden></div>
+      <div class="lp-float ph-f2" id="phC1" hidden></div>
+      <div class="lp-float ph-f3" id="phC2" hidden></div>
+    </div>
+  </div>
+  <div class="container">
     <dialog class="loc-picker" id="locPicker" aria-labelledby="locPickerTitle">
       <div class="lp-card">
         <div class="lp-head">

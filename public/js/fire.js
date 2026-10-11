@@ -36,6 +36,10 @@
 
     tabs = D.setupTabs("#fTabs", onSwitch);
     state.view = tabs.initial();
+    document.querySelectorAll("[data-goto-view]").forEach((b) => b.addEventListener("click", () => {
+      tabs.go(b.dataset.gotoView);
+      $("fTabs").scrollIntoView({ behavior: "smooth", block: "start" });
+    }));
 
     setupFilters();
     $("demoBtn").addEventListener("click", () => {
@@ -86,6 +90,14 @@
     return s.startsWith("h") ? 2 : s.startsWith("n") ? 1 : 0;
   }
   const confLabel = (r) => ["Düşük", "Orta", "Yüksek"][confLevel(r)];
+  // FIRMS tarih/saati UTC (acq_date + "HHMM") -> Turkiye saati, orn. "11 Eki 13:30"
+  const TR_FIRE_FMT = new Intl.DateTimeFormat("tr-TR", { timeZone: "Europe/Istanbul", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  function fireTime(f) {
+    if (!f || !f.date) return "—";
+    const hh = String(f.time || "0000").padStart(4, "0");
+    const t = new Date(`${f.date}T${hh.slice(0, 2)}:${hh.slice(2)}:00Z`);
+    return Number.isNaN(t.getTime()) ? "—" : TR_FIRE_FMT.format(t);
+  }
   function cityOf(f) { const n = window.nearestCity ? window.nearestCity(f.lat, f.lon) : null; return n ? n.city.name : null; }
 
   /* ---- veri ---- */
@@ -109,7 +121,8 @@
         return;
       }
       if (!state.demo) $("lastUpdated").textContent = state.lastOk ? "Veri alınamadı, önceki veriler gösteriliyor." : "Veri alınamadı, tekrar denenecek…";
-    } catch {
+    } catch (err) {
+      console.error("[yangin] veri islenemedi:", err);
       if (!state.demo) $("lastUpdated").textContent = "Bağlantı hatası, tekrar denenecek…";
     }
   }
@@ -126,6 +139,7 @@
   function render() {
     const list = filtered();
     renderFreshness();
+    renderHero();
     renderStats(list);
     if (state.view === "genel") { renderDaily(list); renderMiniList(list); renderProvince(list); }
     if (state.view === "harita") renderMap(list);
@@ -152,6 +166,27 @@
       if (t > newest) newest = t;
     });
     el.textContent = state.demo ? "örnek veri" : (newest ? window.timeAgoTR(new Date(newest)) : "—");
+  }
+
+  // sayfa girisi: son 24 saatin ozeti (filtrelerden bagimsiz)
+  const fireTs = (f) => { const hh = String(f.time || "0000").padStart(4, "0"); return new Date(`${f.date}T${hh.slice(0, 2)}:${hh.slice(2)}:00Z`).getTime(); };
+  function renderHero() {
+    if (!$("phFCount")) return;
+    const now = Date.now();
+    const day = state.demo ? state.raw : state.raw.filter((f) => f.date && now - fireTs(f) < 864e5);
+    setStat("phF24", day.length);
+    setStat("phFCount", day.length);
+    const cc = new Map();
+    day.forEach((f) => { const c = cityOf(f); if (c) cc.set(c, (cc.get(c) || 0) + 1); });
+    const top = [...cc.entries()].sort((a, b) => b[1] - a[1]);
+    setStat("phFTop", top.length ? top[0][0] : "—");
+    const max = top.length ? top[0][1] : 1;
+    $("phFBars").innerHTML = top.slice(0, 3).map(([k, v]) => `<div class="ph-bar"><span>${window.escapeHtml(k)}</span><i style="--w:${Math.max(6, (v / max) * 100)}%"></i><b>${v}</b></div>`).join("");
+    const mx = day.reduce((a, b) => ((b.frp || 0) > (a.frp || 0) ? b : a), day[0] || {});
+    $("phFFrp").textContent = mx && mx.frp ? `en güçlü ${mx.frp.toFixed(0)} MW` : "—";
+    const dn = day.length ? Math.round((day.filter((f) => (f.daynight || "").toUpperCase().startsWith("D")).length / day.length) * 100) : 0;
+    $("phFDN").textContent = day.length ? `%${dn} gündüz` : "—";
+    $("phFFresh").textContent = $("fireFreshness") ? $("fireFreshness").textContent : "—";
   }
 
   function renderStats(list) {
@@ -203,15 +238,21 @@
     D.histogram($("fDailyChart"), arr, { height: 230, label: "Tespit" });
   }
 
+  // tespit karti (deprem listesiyle ayni duzen): solda isi gucu karesi
+  const fireTone = (frp) => (frp >= 45 ? "#dc2626" : frp >= 15 ? "#ef4444" : frp >= 5 ? "#f97316" : "#f5a524");
+  const fic = (n) => window.HavaIcon(n, { size: 13 });
   function rowHtml(f, i) {
-    const color = frpColor(f.frp);
     const c = cityOf(f);
-    return `<div class="side-row" style="--i:${Math.min(i, 14)}" data-lat="${f.lat}" data-lon="${f.lon}">
-      <span class="mag-chip" style="background:${color}">${f.frp && f.frp.toFixed ? round(f.frp) : "-"}</span>
-      <div class="row-main">
-        <div class="row-title">${c ? window.escapeHtml(c) + " yakını" : `${f.lat.toFixed(2)}, ${f.lon.toFixed(2)}`}</div>
-        <div class="row-sub">FRP ${f.frp && f.frp.toFixed ? f.frp.toFixed(1) : "—"} MW · Güven: ${confLabel(f.confidence)} · ${window.escapeHtml(fireTime(f))} · ${(f.daynight || "").toUpperCase().startsWith("D") ? "gündüz" : "gece"}</div>
+    const frp = f.frp && f.frp.toFixed ? f.frp : null;
+    const day = (f.daynight || "").toUpperCase().startsWith("D");
+    const [d1, d2] = fireTime(f).split(/ (?=\d{2}:)/);
+    return `<div class="lp-q f-row" role="button" tabindex="0" style="--i:${Math.min(i, 14)}" data-lat="${f.lat}" data-lon="${f.lon}">
+      <span class="mag-sq${frp >= 15 ? " m-strong" : ""}" style="--m:${fireTone(frp || 0)}">${frp != null ? round(frp) : "–"}<small>MW</small></span>
+      <div class="lp-q-main">
+        <b>${c ? window.escapeHtml(c) + " yakını" : `${f.lat.toFixed(2)}, ${f.lon.toFixed(2)}`}</b>
+        <div class="lp-q-meta"><span>${fic("shield-check")} Güven: ${confLabel(f.confidence)}</span><span>${fic(day ? "sun" : "moon")} ${day ? "gündüz" : "gece"}</span><span class="lp-q-coord">${fic("map-pin")} ${f.lat.toFixed(2)}, ${f.lon.toFixed(2)}</span></div>
       </div>
+      <div class="lp-q-time"><b>${window.escapeHtml(d2 || "")}</b><span>${window.escapeHtml(d1 || "")}</span></div>
     </div>`;
   }
   function renderMiniList(list) {
@@ -229,10 +270,14 @@
     bindRows("fireList");
   }
   function bindRows(id) {
-    $(id).querySelectorAll(".side-row").forEach((row) => row.addEventListener("click", () => {
-      tabs.go("harita");
-      setTimeout(() => state.map && state.map.flyTo([+row.dataset.lat, +row.dataset.lon], 9, { duration: 0.8 }), 200);
-    }));
+    $(id).querySelectorAll(".f-row").forEach((row) => {
+      const go = () => {
+        tabs.go("harita");
+        setTimeout(() => state.map && state.map.flyTo([+row.dataset.lat, +row.dataset.lon], 9, { duration: 0.8 }), 200);
+      };
+      row.addEventListener("click", go);
+      row.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
+    });
   }
 
   function renderProvince(list) {
@@ -303,6 +348,7 @@
     el.innerHTML = `<span class="risk-dot"></span>${r.l}`;
     el.className = `risk-level ${r.cls}`;
     window.flashUpdate && window.flashUpdate(el);
+    if ($("phFRisk")) { $("phFRisk").textContent = r.l; $("phFRiskF").textContent = `Risk: ${r.l}`; }
     $("riskDesc").textContent = `Ege ve Akdeniz'deki ${state.risk.cities.length} il için sıcaklık, nem ve rüzgâr ortalamasına göre tahmini risk seviyesi: ${r.l.toLowerCase()}.`;
   }
   function renderRiskView() {

@@ -625,8 +625,20 @@
     });
   }
 
+  // kartlar kaydirinca yumusakca belirsin (ayni satirdakiler hafif gecikmeyle)
+  function tagReveal() {
+    const sel = "main .dash-card, main .stat-tile, main .wx-chartcard, main .wx-hero, main .card, main .lp-feature, main .lp-panel, main .lp-step, main .lp-app, main .lp-faq details, main .section-head, main .lp-head-row, main .risk-banner";
+    document.querySelectorAll(sel).forEach((el) => {
+      if (el.closest(".reveal, .reveal-scale, .reveal-up") || el.closest("[hidden]")) return;
+      const sibs = [...el.parentElement.children].filter((c) => c.matches(sel));
+      el.style.transitionDelay = `${(sibs.indexOf(el) % 4) * 70}ms`;
+      el.classList.add("reveal-up");
+    });
+  }
+
   function setupReveal() {
-    const targets = document.querySelectorAll(".reveal, .reveal-scale");
+    tagReveal();
+    const targets = document.querySelectorAll(".reveal, .reveal-scale, .reveal-up");
     if (!targets.length) return;
     if (!("IntersectionObserver" in window)) {
       targets.forEach((t) => t.classList.add("in-view"));
@@ -662,6 +674,15 @@
     return String(str).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   }
   window.escapeHtml = escapeHtml;
+
+  // deprem buyuklugu rengi (liste, kart ve harita ayni olcek)
+  window.magTone = function magTone(m) {
+    if (m >= 5) return "#ef4444";
+    if (m >= 4) return "#f97316";
+    if (m >= 3) return "#f5a524";
+    if (m >= 2) return "#22c55e";
+    return "#34d399";
+  };
 
   // ---------------- deger guncellemesinde kisa "flash" animasyonu ----------------
   window.flashUpdate = function flashUpdate(el) {

@@ -32,6 +32,13 @@
       });
     });
 
+    // giristeki kisayol dugmeleri
+    document.querySelectorAll("[data-settings-tab]").forEach((a) => a.addEventListener("click", (e) => {
+      e.preventDefault();
+      const t = document.querySelector(`.settings-tab[data-tab="${a.dataset.settingsTab}"]`);
+      if (t) { t.click(); tabsWrap.scrollIntoView({ behavior: "smooth", block: "start" }); history.replaceState(null, "", `#${a.dataset.settingsTab}`); }
+    }));
+
     // adresle dogrudan sekme acma (orn. ayarlar.html#bildirimler)
     const fromHash = document.querySelector(`.settings-tab[data-tab="${location.hash.slice(1)}"]`);
     if (fromHash) fromHash.click();

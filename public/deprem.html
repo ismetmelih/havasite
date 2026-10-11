@@ -33,7 +33,7 @@
 <link rel="stylesheet" href="css/dash.css" />
 <link rel="stylesheet" href="css/quake.css" />
 </head>
-<body class="quake-body" data-guest-quota>
+<body class="quake-body">
 
 <nav class="site-nav">
   <a class="brand" href="index.html"><img src="img/logo.svg" class="brand-logo" alt="" /> Türkiye<span class="text-quake">Canlı</span></a>
@@ -53,25 +53,36 @@
   </div>
 </nav>
 
-<header class="page-head has-scene">
-  <div class="page-scene" aria-hidden="true">
-    <span class="ps-grid"></span>
-    <svg class="qs-wave" viewBox="0 0 800 120" preserveAspectRatio="none">
-      <polyline class="qs-wave-line" points="0,60 60,60 80,60 95,20 110,100 125,30 140,90 155,60 175,60 800,60" />
-    </svg>
-  </div>
-  <div class="container page-head-row">
-    <div class="page-head-title">
-      <div class="page-icon icon-quake-wrap"><img class="icon-3d" src="img/3d/globe.png" alt="" draggable="false" /></div>
-      <div>
-        <span class="eyebrow text-quake">DEPREMLER</span>
-        <h1>Türkiye canlı deprem paneli</h1>
-        <p class="page-sub" id="lastUpdated">Yükleniyor…</p>
+<header class="ph">
+  <div class="container ph-grid">
+    <div class="ph-copy">
+      <span class="pill-label" id="quakeSourceBadge">AFAD · her 25 sn yenilenir</span>
+      <h1>Türkiye'deki son depremler, <span class="accent-text">anında.</span></h1>
+      <p class="ph-lead">AFAD'ın canlı verisiyle son depremleri listede ve haritada izle; büyüklüğe, zamana ve konumuna göre süz. Bildirimleri aç, telefonun kilitliyken bile haber al.</p>
+      <div class="ph-cta">
+        <a class="btn btn-primary" href="ayarlar.html#bildirimler"><span class="ic" data-icon="bell" data-icon-size="16"></span> Bildirim al</a>
+        <button class="btn btn-ghost" type="button" data-goto-view="harita"><span class="ic" data-icon="map" data-icon-size="16"></span> Haritada gör</button>
       </div>
+      <dl class="lp-stats">
+        <div><dt id="phQ24">—</dt><dd>Son 24 saatte deprem</dd></div>
+        <div><dt id="phQMax">—</dt><dd>24 saatin en büyüğü</dd></div>
+        <div><dt id="phQ3">—</dt><dd>M3.0 ve üzeri</dd></div>
+      </dl>
+      <p class="ph-updated"><span class="live-dot"></span><span id="lastUpdated">Yükleniyor…</span></p>
     </div>
-    <div class="head-actions">
-      <span class="badge badge-live" id="quakeSourceBadge"><span class="live-blip"></span> AFAD · her 25 sn yenilenir</span>
-      <a class="btn btn-ghost btn-sm" href="ayarlar.html#bildirimler"><span class="ic" data-icon="bell" data-icon-size="15"></span> Bildirim al</a>
+    <div class="ph-visual" aria-hidden="true">
+      <div class="lp-rings"><span></span><span></span><span></span></div>
+      <div class="ph-card">
+        <div class="ph-card-head"><span><span class="live-dot"></span> Son kaydedilen deprem</span><span id="phQAgo">—</span></div>
+        <div class="ph-card-main">
+          <span class="mag-sq" id="phQMag">—<small>MAG</small></span>
+          <div><b id="phQTitle">Yükleniyor…</b><span id="phQSub">—</span></div>
+        </div>
+        <svg class="ph-seismo" viewBox="0 0 360 54" preserveAspectRatio="none"><polyline points="0,27 40,27 60,27 70,10 80,44 92,4 104,50 116,14 128,38 140,27 170,27 190,27 198,20 206,34 214,27 360,27" /></svg>
+        <div class="ph-chips"><span><span class="ic" data-icon="ruler" data-icon-size="13"></span><span id="phQDepth">—</span></span><span><span class="ic" data-icon="map-pin" data-icon-size="13"></span><span id="phQCoord">—</span></span><span id="phQDistWrap" hidden><span class="ic" data-icon="navigation" data-icon-size="13"></span><span id="phQDist">—</span></span></div>
+      </div>
+      <div class="lp-float ph-f1"><span class="ic-box" style="--c: var(--c-quake)"><span class="ic" data-icon="activity" data-icon-size="17"></span></span><div><b id="phQHour">—</b><small>son 1 saatte</small></div></div>
+      <div class="lp-float ph-f2"><span class="ic-box" style="--c: var(--tone-red)"><span class="ic" data-icon="trending-up" data-icon-size="17"></span></span><div><b id="phQMaxPlace">—</b><small>24 saatin en büyüğü</small></div></div>
     </div>
   </div>
 </header>
@@ -110,17 +121,6 @@
 
   <!-- ============ GENEL ============ -->
   <section class="dash-view is-active" id="view-genel">
-    <section class="quake-featured" id="quakeFeatured" hidden>
-      <div class="qf-mag" id="qfMag">—</div>
-      <div class="qf-body">
-        <span class="qf-eyebrow">EN SON KAYDEDİLEN DEPREM</span>
-        <div class="qf-title" id="qfTitle">—</div>
-        <div class="qf-meta" id="qfMeta">—</div>
-      </div>
-      <div class="qf-side">
-        <div class="qf-dist" id="qfDist" hidden><span class="qf-dist-val" id="qfDistVal">—</span><span class="qf-dist-lbl">sana uzaklık</span></div>
-      </div>
-    </section>
 
     <div class="stat-tiles in-view">
       <div class="stat-tile">

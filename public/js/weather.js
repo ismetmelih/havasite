@@ -198,6 +198,7 @@
     const isDay = c.is_day === 1;
     applyWeatherScene(c.weather_code, isDay);
     $("wcIcon").innerHTML = window.WeatherWMO.svg(c.weather_code, isDay);
+    if ($("phWxIcon")) $("phWxIcon").innerHTML = window.WeatherWMO.svg(c.weather_code, isDay);
     $("wcDesc").textContent = window.WeatherWMO.label(c.weather_code);
     setFlash("wcTemp", round(c.temperature_2m));
     $("wcFeels").textContent = `${round(c.apparent_temperature)}°`;
@@ -258,6 +259,13 @@
           <span class="wx-city-temp">${round(cur.temperature_2m)}°</span>
         </button>`;
       }).join("");
+      // sayfa girisindeki yuzen sehir kartlari (secili sehir haric ilk uc)
+      QUICK_CITIES.map((c, i) => ({ c, cur: arr[i] && arr[i].current })).filter((x) => x.cur && x.c.name !== state.loc.name).slice(0, 3).forEach(({ c, cur }, i) => {
+        const el = $(`phC${i}`);
+        if (!el) return;
+        el.innerHTML = `<span class="ic-box" style="--c: var(--c-weather)">${window.WeatherWMO.svg(cur.weather_code, cur.is_day === 1)}</span><div><b>${round(cur.temperature_2m)}°</b><small>${c.name} · ${window.WeatherWMO.label(cur.weather_code)}</small></div>`;
+        el.hidden = false;
+      });
       wrap.querySelectorAll(".wx-city").forEach((b) => {
         b.addEventListener("click", () => {
           state.loc = { name: b.dataset.name, lat: +b.dataset.lat, lon: +b.dataset.lon };

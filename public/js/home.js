@@ -12,6 +12,8 @@
     loadQuakes();
     loadWeather();
     loadFires();
+    loadPhoneWeather();
+    setInterval(() => showPhoneTab((phTab + 1) % PH_TABS.length), 4800);
     setInterval(loadQuakes, 60000);
     setInterval(loadFires, 5 * 60000);
 
@@ -35,13 +37,7 @@
   }
   const hhmm = (t) => new Date(t).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Istanbul" });
   const dayLabel = (t) => { const d = new Date(new Date(t).toLocaleString("en-US", { timeZone: "Europe/Istanbul" })); return `${d.getDate()} ${AY[d.getMonth()]}`; };
-  function magColor(m) {
-    if (m >= 5) return "#ef4444";
-    if (m >= 4) return "#f97316";
-    if (m >= 3) return "#f5a524";
-    if (m >= 2) return "#22c55e";
-    return "#34d399";
-  }
+  const magColor = (m) => window.magTone(m);
   const magSq = (m) => `<span class="mag-sq${m >= 4 ? " m-strong" : ""}" style="--m:${magColor(m)}">${m.toFixed(1)}<small>MAG</small></span>`;
 
   async function loadQuakes() {
@@ -76,10 +72,8 @@
     }
 
     // telefon onizlemesi: son 6 deprem
-    const ph = $("phList");
-    if (ph) {
-      ph.innerHTML = qs.slice(0, 6).map((q) => `<div class="ph-item">${magSq(q.mag)}<div><b>${esc(q.title)}</b><span class="meta">${Number.isFinite(q.depth) ? `${Math.round(q.depth)} km` : ""} · ${ago(quakeTime(q))}</span></div><em>${hhmm(quakeTime(q))}</em></div>`).join("");
-    }
+    phData.quake = qs.slice(0, 6).map((q) => `<div class="ph-item">${magSq(q.mag)}<div><b>${esc(q.title)}</b><span class="meta">${Number.isFinite(q.depth) ? `${Math.round(q.depth)} km` : ""} · ${ago(quakeTime(q))}</span></div><em>${hhmm(quakeTime(q))}</em></div>`).join("");
+    if (phTab === 0) $("phList").innerHTML = phData.quake;
 
     // yuzen bildirim: son 24 saatin en buyugu
     const day = qs.filter((q) => Date.now() - quakeTime(q) < 24 * 3600 * 1000);
@@ -106,12 +100,44 @@
 
   async function loadFires() {
     const el = $("pnFire");
-    if (!el) return;
     try {
       const d = await fetch("/api/fires?days=1").then((r) => r.json());
-      el.textContent = d.ok ? `${d.count} ısı noktası` : "—";
+      if (el) el.textContent = d.ok ? `${d.count} ısı noktası` : "—";
+      // telefon onizlemesi: en cok tespit olan 6 il
+      if (d.ok && Array.isArray(d.data) && window.nearestCity) {
+        const cc = new Map();
+        d.data.forEach((f) => { const n = window.nearestCity(f.lat, f.lon); if (n) cc.set(n.city.name, (cc.get(n.city.name) || 0) + 1); });
+        phData.fire = [...cc.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6).map(([k, v]) =>
+          `<div class="ph-item"><span class="mag-sq${v >= 20 ? " m-strong" : ""}" style="--m:${v >= 20 ? "#ef4444" : "#f97316"}">${v}<small>NOKTA</small></span><div><b>${esc(k)}</b><span class="meta">son 24 saat · uydu tespiti</span></div><em>NASA</em></div>`).join("");
+      }
     } catch {
-      el.textContent = "—";
+      if (el) el.textContent = "—";
     }
+  }
+
+  // telefon onizlemesi: depremler -> hava -> yangin arasinda doner
+  const PH_TABS = ["quake", "weather", "fire"];
+  const phData = { quake: "", weather: "", fire: "" };
+  let phTab = 0;
+  function showPhoneTab(i) {
+    const list = $("phList");
+    if (!list || !phData[PH_TABS[i]]) return;
+    phTab = i;
+    document.querySelectorAll(".ph-tabs span").forEach((t, j) => t.classList.toggle("on", j === i));
+    list.classList.add("swap");
+    setTimeout(() => { list.innerHTML = phData[PH_TABS[i]]; list.classList.remove("swap"); }, 230);
+  }
+  const PH_CITIES = [["İstanbul", 41.01, 28.95], ["Ankara", 39.92, 32.85], ["İzmir", 38.42, 27.14], ["Antalya", 36.9, 30.71], ["Trabzon", 41.0, 39.72], ["Van", 38.5, 43.38]];
+  async function loadPhoneWeather() {
+    try {
+      const d = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${PH_CITIES.map((c) => c[1]).join(",")}&longitude=${PH_CITIES.map((c) => c[2]).join(",")}&current=temperature_2m,weather_code,is_day,relative_humidity_2m&timezone=Europe%2FIstanbul`).then((r) => r.json());
+      const arr = Array.isArray(d) ? d : [d];
+      phData.weather = arr.map((x, i) => {
+        const c = x.current; if (!c) return "";
+        const icon = window.WeatherWMO ? window.WeatherWMO.svg(c.weather_code, c.is_day === 1) : "";
+        const label = window.WeatherWMO ? window.WeatherWMO.label(c.weather_code) : "";
+        return `<div class="ph-item"><span class="ph-wx">${icon}</span><div><b>${PH_CITIES[i][0]}</b><span class="meta">${esc(label)} · nem %${Math.round(c.relative_humidity_2m)}</span></div><em class="ph-t">${Math.round(c.temperature_2m)}°</em></div>`;
+      }).join("");
+    } catch { /* sessiz */ }
   }
 })();

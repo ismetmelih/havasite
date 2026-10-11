@@ -26,6 +26,10 @@
 
     tabs = D.setupTabs("#qTabs", onSwitch);
     state.view = tabs.initial();
+    document.querySelectorAll("[data-goto-view]").forEach((b) => b.addEventListener("click", () => {
+      tabs.go(b.dataset.gotoView);
+      $("qTabs").scrollIntoView({ behavior: "smooth", block: "start" });
+    }));
 
     setupFilters();
     setupGeo();
@@ -73,8 +77,7 @@
   }
 
   /* ---------------- renk / boyut ---------------- */
-  const MAG_STOPS = [[0, [220, 192, 138]], [2, [215, 160, 102]], [3.5, [192, 127, 58]], [5, [176, 80, 63]], [6.5, [110, 32, 32]]];
-  const magColor = (m) => D.scale(MAG_STOPS, m);
+  const magColor = (m) => window.magTone(m);
   const magSize = (m) => Math.max(10, Math.min(46, 10 + m * 5.4));
   function provinceOf(q) { return (q.closestCity || "").replace(/\s*yakını$/, "").trim() || null; }
 
@@ -98,7 +101,7 @@
 
       $("lastUpdated").textContent = `Son güncelleme: ${window.formatClock(new Date())}`;
       const badge = $("quakeSourceBadge");
-      if (badge) badge.innerHTML = `<span class="live-blip"></span> ${data.source === "emsc" ? "EMSC" : "AFAD"} · her 25 sn yenilenir`;
+      if (badge) badge.textContent = `${data.source === "emsc" ? "EMSC" : "AFAD"} · her 25 sn yenilenir`;
 
       render(newOnes);
       newOnes.forEach((q) => window.showToast(`Yeni deprem: M${q.mag.toFixed(1)} — ${q.closestCity || q.title}`, { accent: "var(--c-quake)" }));
@@ -120,6 +123,7 @@
     if (!state.raw.length) return;
     const list = filtered();
     renderFeatured();
+    renderHero();
     renderStats(list);
     if (state.view === "genel") { renderActivity(); renderMiniList(list); renderProvince(list); }
     if (state.view === "harita") renderMap(list, newOnes);
@@ -135,6 +139,7 @@
 
   function renderFeatured() {
     const el = $("quakeFeatured");
+    if (!el) return;
     const q = [...state.raw].sort((a, b) => new Date(b.date) - new Date(a.date))[0];
     if (!q) return;
     el.hidden = false;
@@ -145,6 +150,35 @@
     $("qfMeta").textContent = `${q.title} · ${q.depth} km derinlik · ${window.timeAgoTR(q.date.replace(" ", "T"))}`;
     const dw = $("qfDist");
     if (state.userPos && q.lat != null) { dw.hidden = false; $("qfDistVal").textContent = `${D.haversineKm(state.userPos, { lat: q.lat, lon: q.lon })} km`; }
+    else dw.hidden = true;
+  }
+
+  // sayfa girisi: son deprem karti + 24 saat ozeti
+  const qTime = (q) => new Date(q.date.replace(" ", "T")).getTime();
+  function renderHero() {
+    const now = Date.now();
+    const day = state.raw.filter((q) => now - qTime(q) < 864e5);
+    const hour = state.raw.filter((q) => now - qTime(q) < 36e5);
+    setStat("phQ24", day.length);
+    setStat("phQ3", day.filter((q) => q.mag >= 3).length);
+    const mx = day.length ? day.reduce((a, b) => (b.mag > a.mag ? b : a)) : null;
+    setStat("phQMax", mx ? `M${mx.mag.toFixed(1)}` : "—");
+    if ($("phQMaxPlace")) $("phQMaxPlace").textContent = mx ? `M${mx.mag.toFixed(1)} · ${provinceOf(mx) || mx.title}` : "—";
+    if ($("phQHour")) $("phQHour").textContent = `${hour.length} deprem`;
+    const q = [...state.raw].sort((a, b) => qTime(b) - qTime(a))[0];
+    if (!q || !$("phQMag")) return;
+    const m = $("phQMag");
+    m.innerHTML = `${q.mag.toFixed(1)}<small>MAG</small>`;
+    m.style.setProperty("--m", magColor(q.mag));
+    m.classList.toggle("m-strong", q.mag >= 4);
+    $("phQTitle").textContent = q.title;
+    $("phQSub").textContent = `Saat ${(q.date.split(" ")[1] || "").slice(0, 5)}${provinceOf(q) ? ` · ${provinceOf(q)}` : ""}`;
+    state.heroDate = q.date.replace(" ", "T");
+    $("phQAgo").textContent = window.timeAgoTR(state.heroDate);
+    $("phQDepth").textContent = `${q.depth} km derinlik`;
+    $("phQCoord").textContent = `${q.lat.toFixed(2)}, ${q.lon.toFixed(2)}`;
+    const dw = $("phQDistWrap");
+    if (state.userPos && q.lat != null) { dw.hidden = false; $("phQDist").textContent = `${D.haversineKm(state.userPos, { lat: q.lat, lon: q.lon })} km uzakta`; }
     else dw.hidden = true;
   }
 
@@ -172,6 +206,7 @@
       if (!lastDate) return;
       const el = $("statLastSub");
       if (el) el.textContent = `${lastCity} · ${window.timeAgoTR(lastDate)}`;
+      if (state.heroDate && $("phQAgo")) $("phQAgo").textContent = window.timeAgoTR(state.heroDate);
     }, 1000);
   }
 
@@ -191,22 +226,33 @@
     D.daySeries($("qActivityChart"), buckets.map((v, i) => ({ v, label: `${labels[i]}:00` })), { height: 230, label: "Deprem" });
   }
 
+  const AY = ["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"];
+  const ic = (n) => window.HavaIcon(n, { size: 13 });
   function rowHtml(q, i, flash) {
-    const color = magColor(q.mag);
-    const dist = state.userPos && q.lat != null ? ` · ${D.haversineKm(state.userPos, { lat: q.lat, lon: q.lon })} km uzakta` : "";
-    return `<div class="side-row${flash ? " flash" : ""}" style="--i:${Math.min(i, 14)}" data-id="${q.id}" data-lat="${q.lat}" data-lon="${q.lon}">
-      <span class="mag-chip" style="background:${color}">${q.mag.toFixed(1)}</span>
-      <div class="row-main">
-        <div class="row-title">${window.escapeHtml(q.closestCity || q.title)}</div>
-        <div class="row-sub">${window.escapeHtml(q.title)} · ${q.depth} km · ${window.timeAgoTR(q.date.replace(" ", "T"))}${dist}</div>
+    const dist = state.userPos && q.lat != null ? `<span>${ic("navigation")} ${D.haversineKm(state.userPos, { lat: q.lat, lon: q.lon })} km uzakta</span>` : "";
+    const [ymd, hms] = q.date.split(" ");
+    const [, mo, d] = ymd.split("-");
+    return `<div class="lp-q q-row${flash ? " flash" : ""}" role="button" tabindex="0" style="--i:${Math.min(i, 14)}" data-id="${q.id}" data-lat="${q.lat}" data-lon="${q.lon}">
+      <span class="mag-sq${q.mag >= 4 ? " m-strong" : ""}" style="--m:${magColor(q.mag)}">${q.mag.toFixed(1)}<small>MAG</small></span>
+      <div class="lp-q-main">
+        <b>${window.escapeHtml(q.title)}</b>
+        <div class="lp-q-meta"><span>${ic("ruler")} ${q.depth} km</span><span>${ic("clock")} ${window.timeAgoTR(q.date.replace(" ", "T"))}</span>${dist}<span class="lp-q-coord">${ic("map-pin")} ${q.lat.toFixed(2)}, ${q.lon.toFixed(2)}</span></div>
       </div>
+      <div class="lp-q-time"><b>${(hms || "").slice(0, 5)}</b><span>${+d} ${AY[+mo - 1]}</span></div>
     </div>`;
+  }
+  function bindRows(wrap) {
+    wrap.querySelectorAll(".q-row").forEach((row) => {
+      const go = () => { tabs.go("harita"); setTimeout(() => flyTo(row), 200); };
+      row.addEventListener("click", go);
+      row.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
+    });
   }
   function renderMiniList(list) {
     $("quakeListMini").innerHTML = list.length
       ? list.slice(0, 40).map((q, i) => rowHtml(q, i)).join("")
       : `<div class="sr-empty" style="padding:20px;color:var(--text-muted);text-align:center">Filtreye uyan deprem yok.</div>`;
-    $("quakeListMini").querySelectorAll(".side-row").forEach((row) => row.addEventListener("click", () => { tabs.go("harita"); setTimeout(() => flyTo(row), 200); }));
+    bindRows($("quakeListMini"));
   }
   function renderList(list, newOnes) {
     const newIds = new Set(newOnes.map((q) => q.id));
@@ -214,7 +260,7 @@
     $("quakeList").innerHTML = list.length
       ? list.slice(0, 250).map((q, i) => rowHtml(q, i, newIds.has(q.id))).join("")
       : `<div class="sr-empty" style="padding:24px;color:var(--text-muted);text-align:center">Filtreye uyan deprem bulunamadı.</div>`;
-    $("quakeList").querySelectorAll(".side-row").forEach((row) => row.addEventListener("click", () => { tabs.go("harita"); setTimeout(() => flyTo(row), 200); }));
+    bindRows($("quakeList"));
   }
   function flyTo(row) {
     if (!state.map) return;

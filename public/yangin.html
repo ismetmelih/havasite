@@ -33,7 +33,7 @@
 <link rel="stylesheet" href="css/dash.css" />
 <link rel="stylesheet" href="css/fire.css" />
 </head>
-<body class="fire-body" data-guest-quota>
+<body class="fire-body">
 
 <nav class="site-nav">
   <a class="brand" href="index.html"><img src="img/logo.svg" class="brand-logo" alt="" /> Türkiye<span class="text-quake">Canlı</span></a>
@@ -53,18 +53,35 @@
   </div>
 </nav>
 
-<header class="page-head has-scene">
-  <div class="page-scene" aria-hidden="true"><span class="ps-grid"></span></div>
-  <div class="container page-head-row">
-    <div class="page-head-title">
-      <div class="page-icon icon-fire-wrap"><img class="icon-3d" src="img/3d/fire.png" alt="" draggable="false" /></div>
-      <div>
-        <span class="eyebrow text-fire">YANGINLAR</span>
-        <h1>Uydu tabanlı yangın izleme paneli</h1>
-        <p class="page-sub" id="lastUpdated">Yükleniyor…</p>
+<header class="ph">
+  <div class="container ph-grid">
+    <div class="ph-copy">
+      <span class="pill-label">NASA FIRMS · uydu verisi</span>
+      <h1>Uydudan <span class="accent-text">yangın</span> takibi, Türkiye geneli.</h1>
+      <p class="ph-lead">NASA uydularının tespit ettiği ısı noktalarını haritada ve il il listede gör. Ege ve Akdeniz için günlük yangın riski endeksiyle birlikte. Yangın görürsen hemen 177'yi ara.</p>
+      <div class="ph-cta">
+        <a class="btn btn-primary" href="tel:177"><span class="ic" data-icon="phone" data-icon-size="16"></span> 177 Orman Yangını İhbar</a>
+        <button class="btn btn-ghost" type="button" data-goto-view="harita"><span class="ic" data-icon="map" data-icon-size="16"></span> Haritada gör</button>
       </div>
+      <dl class="lp-stats">
+        <div><dt id="phF24">—</dt><dd>Son 24 saatte tespit</dd></div>
+        <div><dt id="phFTop">—</dt><dd>En çok tespit</dd></div>
+        <div><dt id="phFRisk">—</dt><dd>Yangın riski</dd></div>
+      </dl>
+      <p class="ph-updated"><span class="live-dot"></span><span id="lastUpdated">Yükleniyor…</span></p>
     </div>
-    <span class="badge badge-live"><span class="live-blip"></span> NASA FIRMS</span>
+    <div class="ph-visual" aria-hidden="true">
+      <div class="lp-rings"><span></span><span></span><span></span></div>
+      <div class="ph-card">
+        <div class="ph-card-head"><span><span class="live-dot"></span> Son 24 saat · uydu</span><span id="phFFresh">—</span></div>
+        <div class="ph-card-big" id="phFCount">—</div>
+        <div style="color:var(--text-muted);font-size:.86rem;margin-top:6px">ısı noktası tespit edildi</div>
+        <div class="ph-bars" id="phFBars"></div>
+        <div class="ph-chips"><span><span class="ic" data-icon="flame" data-icon-size="13"></span><span id="phFFrp">—</span></span><span><span class="ic" data-icon="sun" data-icon-size="13"></span><span id="phFDN">—</span></span></div>
+      </div>
+      <div class="lp-float ph-f1"><span class="ic-box" style="--c: var(--c-fire)"><span class="ic" data-icon="satellite" data-icon-size="17"></span></span><div><b>VIIRS + MODIS</b><small>NASA uyduları</small></div></div>
+      <div class="lp-float ph-f2"><span class="ic-box" style="--c: var(--status-warning)"><span class="ic" data-icon="thermometer" data-icon-size="17"></span></span><div><b id="phFRiskF">—</b><small>Ege ve Akdeniz yangın riski</small></div></div>
+    </div>
   </div>
 </header>
 
