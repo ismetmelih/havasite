@@ -89,6 +89,7 @@
       submitAuth(loginForm, "/api/auth/login", {
         email: email.value.trim(),
         password: password.value,
+        remember: !!(loginForm.remember && loginForm.remember.checked),
       });
     });
 

@@ -7,8 +7,27 @@
       "target": { "kind": "Compute", "src": "default" }
     },
     {
+      "path": "/*.html",
+      "target": { "kind": "Compute", "src": "default" }
+    },
+    {
+      "path": "/sw.js",
+      "target": { "kind": "Static", "cacheControl": "no-cache" },
+      "fallback": { "kind": "Compute", "src": "default" }
+    },
+    {
+      "path": "/fonts/*",
+      "target": { "kind": "Static", "cacheControl": "public, max-age=2592000" },
+      "fallback": { "kind": "Compute", "src": "default" }
+    },
+    {
+      "path": "/img/*",
+      "target": { "kind": "Static", "cacheControl": "public, max-age=604800" },
+      "fallback": { "kind": "Compute", "src": "default" }
+    },
+    {
       "path": "/*.*",
-      "target": { "kind": "Static", "cacheControl": "public, max-age=60" },
+      "target": { "kind": "Static", "cacheControl": "public, max-age=300" },
       "fallback": { "kind": "Compute", "src": "default" }
     },
     {

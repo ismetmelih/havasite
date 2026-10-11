@@ -1,15 +1,16 @@
 // Basit, bagimliliksiz Node.js sunucusu.
-// - /public altindaki dosyalari statik olarak sunar
-// - /api/quakes  -> Kandilli (canli deprem) verisini proxy'ler
+// - /public altindaki dosyalari statik olarak sunar (guvenlik basliklari + sikistirma ile)
+// - /api/quakes  -> AFAD (yedek: EMSC) canli deprem verisini proxy'ler
 // - /api/fires   -> NASA FIRMS (canli yangin/aktif ates tespiti) verisini proxy'ler
+// - /api/auth/*, /api/admin/* -> hesap ve yonetim uc noktalari (hiz sinirli)
 // Node >= 18 gereklidir (global fetch kullanilir).
 
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
-const url = require("url");
 const { getPool, ensureSchema } = require("./lib/db");
 const AuthLib = require("./lib/auth");
+const HttpLib = require("./lib/http");
 
 // Varsa .env dosyasindaki ortam degiskenlerini yukle (yerel gelistirme ve AWS Amplify:
 // Amplify ortam degiskenleri calisma aninda sunucuya ulasmadigi icin build sirasinda .env'e yazilir).
@@ -84,14 +85,37 @@ async function fetchWithTimeout(resource, opts = {}, timeoutMs = 12000) {
   }
 }
 
-function sendJson(res, status, obj) {
-  const body = JSON.stringify(obj);
-  res.writeHead(status, {
+// Not: Access-Control-Allow-Origin bilerek yok — API'ler yalnizca bu sitenin kendi
+// sayfalarina hizmet eder; baska sitelerin tarayicidan dogrudan kullanmasi engellenir
+// (aksi halde NASA FIRMS anahtarimizin kotasi baskalarinca tuketilebilirdi).
+function sendJson(res, status, obj, extraHeaders) {
+  HttpLib.send(res.req, res, status, {
+    ...HttpLib.securityHeaders(false),
     "Content-Type": "application/json; charset=utf-8",
     "Cache-Control": "no-store",
-    "Access-Control-Allow-Origin": "*",
-  });
-  res.end(body);
+    ...(extraHeaders || {}),
+  }, JSON.stringify(obj));
+}
+
+// ---------- hiz sinirlama ----------
+const limiters = {
+  loginIp: HttpLib.createRateLimiter({ windowMs: 15 * 60 * 1000, max: 10 }),
+  loginEmail: HttpLib.createRateLimiter({ windowMs: 15 * 60 * 1000, max: 8 }),
+  register: HttpLib.createRateLimiter({ windowMs: 60 * 60 * 1000, max: 5 }),
+  admin: HttpLib.createRateLimiter({ windowMs: 15 * 60 * 1000, max: 5 }),
+};
+
+// sinir asildiysa 429 yazar ve false doner
+function checkLimit(res, limiter, key) {
+  const r = limiter.hit(key);
+  if (r.ok) return true;
+  const mins = Math.max(1, Math.ceil(r.retryAfterSec / 60));
+  sendJson(res, 429, {
+    ok: false,
+    reason: "rate_limited",
+    message: `Çok fazla deneme yapıldı. Lütfen ${mins} dakika sonra tekrar dene.`,
+  }, { "Retry-After": String(r.retryAfterSec) });
+  return false;
 }
 
 // ---------- /api/quakes ----------
@@ -353,7 +377,7 @@ async function handleFires(req, res, query) {
     return sendJson(res, 200, {
       ok: false,
       reason: "no_key",
-      message: "FIRMS_MAP_KEY tanimli degil. config.json dosyasina ucretsiz NASA FIRMS anahtarini ekle: https://firms.modaps.eosdis.nasa.gov/api/map_key/",
+      message: "Yangın verisi için NASA FIRMS anahtarı tanımlı değil. Ücretsiz anahtar: https://firms.modaps.eosdis.nasa.gov/api/map_key/",
       data: [],
     });
   }
@@ -436,7 +460,7 @@ async function requireDb(res) {
     sendJson(res, 200, {
       ok: false,
       reason: "no_database",
-      message: "DATABASE_URL tanimli degil veya veritabanina baglanilamadi. DATABASE_URL ortam degiskenini tanimla (AWS Amplify: Environment variables + Redeploy).",
+      message: "Hesap sistemine şu an ulaşılamıyor. Lütfen biraz sonra tekrar dene.",
     });
     return false;
   }
@@ -457,26 +481,27 @@ async function currentUser(req) {
 }
 
 async function handleRegister(req, res) {
+  if (!checkLimit(res, limiters.register, HttpLib.clientIp(req))) return;
   if (!(await requireDb(res))) return;
   let body;
   try {
     body = await readJsonBody(req);
   } catch {
-    return sendJson(res, 400, { ok: false, reason: "bad_request", message: "Gecersiz istek govdesi." });
+    return sendJson(res, 400, { ok: false, reason: "bad_request", message: "Geçersiz istek." });
   }
   const name = String(body.name || "").trim();
   const email = String(body.email || "").trim().toLowerCase();
   const password = String(body.password || "");
 
-  if (name.length < 2) return sendJson(res, 400, { ok: false, reason: "invalid_name", message: "Ad en az 2 karakter olmali." });
-  if (!isValidEmail(email)) return sendJson(res, 400, { ok: false, reason: "invalid_email", message: "Gecerli bir e-posta gir." });
-  if (password.length < 6) return sendJson(res, 400, { ok: false, reason: "invalid_password", message: "Sifre en az 6 karakter olmali." });
+  if (name.length < 2) return sendJson(res, 400, { ok: false, reason: "invalid_name", message: "Ad en az 2 karakter olmalı." });
+  if (!isValidEmail(email)) return sendJson(res, 400, { ok: false, reason: "invalid_email", message: "Geçerli bir e-posta adresi gir." });
+  if (password.length < 6) return sendJson(res, 400, { ok: false, reason: "invalid_password", message: "Şifre en az 6 karakter olmalı." });
 
   const pool = getPool();
   try {
     const existing = await pool.query("SELECT id FROM users WHERE email = $1", [email]);
     if (existing.rows.length) {
-      return sendJson(res, 409, { ok: false, reason: "email_taken", message: "Bu e-posta zaten kayitli." });
+      return sendJson(res, 409, { ok: false, reason: "email_taken", message: "Bu e-posta adresiyle zaten bir hesap var." });
     }
 
     // Not: site yoneticisi (admin) burada olusmaz; admin ayri, ADMIN_EMAIL/ADMIN_PASSWORD
@@ -491,7 +516,7 @@ async function handleRegister(req, res) {
     sendJson(res, 200, { ok: true, user: publicUser(user) });
   } catch (err) {
     console.error("[auth] kayit hatasi:", err.message);
-    sendJson(res, 500, { ok: false, reason: "server_error", message: "Kayit sirasinda bir hata olustu." });
+    sendJson(res, 500, { ok: false, reason: "server_error", message: "Kayıt sırasında bir hata oluştu. Lütfen tekrar dene." });
   }
 }
 
@@ -501,23 +526,26 @@ async function handleLogin(req, res) {
   try {
     body = await readJsonBody(req);
   } catch {
-    return sendJson(res, 400, { ok: false, reason: "bad_request", message: "Gecersiz istek govdesi." });
+    return sendJson(res, 400, { ok: false, reason: "bad_request", message: "Geçersiz istek." });
   }
   const email = String(body.email || "").trim().toLowerCase();
   const password = String(body.password || "");
+  if (!checkLimit(res, limiters.loginIp, HttpLib.clientIp(req))) return;
+  if (!checkLimit(res, limiters.loginEmail, email)) return;
 
   const pool = getPool();
   try {
     const r = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
     const user = r.rows[0];
     if (!user || !AuthLib.verifyPassword(password, user.password_hash)) {
-      return sendJson(res, 401, { ok: false, reason: "invalid_credentials", message: "Hatali e-posta veya sifre." });
+      return sendJson(res, 401, { ok: false, reason: "invalid_credentials", message: "E-posta veya şifre hatalı." });
     }
-    res.setHeader("Set-Cookie", AuthLib.createSessionCookie(req, user));
+    limiters.loginEmail.reset(email);
+    res.setHeader("Set-Cookie", AuthLib.createSessionCookie(req, user, { remember: body.remember !== false }));
     sendJson(res, 200, { ok: true, user: publicUser(user) });
   } catch (err) {
     console.error("[auth] giris hatasi:", err.message);
-    sendJson(res, 500, { ok: false, reason: "server_error", message: "Giris sirasinda bir hata olustu." });
+    sendJson(res, 500, { ok: false, reason: "server_error", message: "Giriş sırasında bir hata oluştu. Lütfen tekrar dene." });
   }
 }
 
@@ -535,20 +563,20 @@ async function handleMe(req, res) {
 
 async function handleUpdateMe(req, res) {
   const user = await currentUser(req);
-  if (!user) return sendJson(res, 401, { ok: false, reason: "unauthorized", message: "Giris yapmalisin." });
+  if (!user) return sendJson(res, 401, { ok: false, reason: "unauthorized", message: "Bu işlem için giriş yapmalısın." });
   let body;
   try {
     body = await readJsonBody(req);
   } catch {
-    return sendJson(res, 400, { ok: false, reason: "bad_request", message: "Gecersiz istek govdesi." });
+    return sendJson(res, 400, { ok: false, reason: "bad_request", message: "Geçersiz istek." });
   }
   const name = String(body.name || "").trim();
-  if (name.length < 2) return sendJson(res, 400, { ok: false, reason: "invalid_name", message: "Ad en az 2 karakter olmali." });
+  if (name.length < 2) return sendJson(res, 400, { ok: false, reason: "invalid_name", message: "Ad en az 2 karakter olmalı." });
   try {
     const r = await getPool().query("UPDATE users SET name = $1 WHERE id = $2 RETURNING *", [name, user.id]);
     sendJson(res, 200, { ok: true, user: publicUser(r.rows[0]) });
   } catch (err) {
-    sendJson(res, 500, { ok: false, reason: "server_error", message: "Guncelleme basarisiz." });
+    sendJson(res, 500, { ok: false, reason: "server_error", message: "Güncelleme yapılamadı. Lütfen tekrar dene." });
   }
 }
 
@@ -566,13 +594,14 @@ async function handleAdminLogin(req, res) {
   try {
     body = await readJsonBody(req);
   } catch {
-    return sendJson(res, 400, { ok: false, reason: "bad_request", message: "Gecersiz istek govdesi." });
+    return sendJson(res, 400, { ok: false, reason: "bad_request", message: "Geçersiz istek." });
   }
+  if (!checkLimit(res, limiters.admin, HttpLib.clientIp(req))) return;
   if (!adminCredentialsConfigured()) {
     return sendJson(res, 200, {
       ok: false,
       reason: "not_configured",
-      message: "Sunucuda ADMIN_EMAIL / ADMIN_PASSWORD ortam degiskenleri tanimli degil. AWS Amplify Environment variables bolumunden ekleyip Redeploy edin.",
+      message: "Yönetici girişi henüz yapılandırılmamış (ADMIN_EMAIL / ADMIN_PASSWORD).",
     });
   }
   const email = String(body.email || "").trim().toLowerCase();
@@ -582,7 +611,7 @@ async function handleAdminLogin(req, res) {
   const emailOk = AuthLib.timingSafeEqualStr(email, expectedEmail);
   const passwordOk = AuthLib.timingSafeEqualStr(password, process.env.ADMIN_PASSWORD);
   if (!emailOk || !passwordOk) {
-    return sendJson(res, 401, { ok: false, reason: "invalid_credentials", message: "Hatali admin e-postasi veya sifresi." });
+    return sendJson(res, 401, { ok: false, reason: "invalid_credentials", message: "Yönetici e-postası veya şifresi hatalı." });
   }
   res.setHeader("Set-Cookie", AuthLib.createAdminSessionCookie(req));
   sendJson(res, 200, { ok: true });
@@ -600,7 +629,7 @@ function handleAdminSession(req, res) {
 // admin API uc noktalarini korumak icin kullanilir; basarisizsa kendisi yanit yazar ve false doner
 async function requireAdmin(req, res) {
   if (!AuthLib.readAdminSession(req)) {
-    sendJson(res, 401, { ok: false, reason: "unauthorized", message: "Admin girisi yapmalisin." });
+    sendJson(res, 401, { ok: false, reason: "unauthorized", message: "Bu işlem için yönetici girişi gerekli." });
     return false;
   }
   return true;
@@ -624,7 +653,7 @@ async function handleAdminStats(req, res) {
       },
     });
   } catch (err) {
-    sendJson(res, 500, { ok: false, reason: "server_error", message: "Istatistikler alinamadi." });
+    sendJson(res, 500, { ok: false, reason: "server_error", message: "İstatistikler alınamadı." });
   }
 }
 
@@ -636,7 +665,7 @@ async function handleAdminUsersList(req, res) {
     const r = await pool.query("SELECT * FROM users ORDER BY created_at DESC");
     sendJson(res, 200, { ok: true, users: r.rows.map(publicUser) });
   } catch (err) {
-    sendJson(res, 500, { ok: false, reason: "server_error", message: "Kullanicilar alinamadi." });
+    sendJson(res, 500, { ok: false, reason: "server_error", message: "Kullanıcılar alınamadı." });
   }
 }
 
@@ -645,22 +674,34 @@ async function handleAdminUserDelete(req, res, id) {
   if (!(await requireDb(res))) return;
   try {
     const r = await getPool().query("DELETE FROM users WHERE id = $1", [id]);
-    if (!r.rowCount) return sendJson(res, 404, { ok: false, reason: "not_found", message: "Kullanici bulunamadi." });
+    if (!r.rowCount) return sendJson(res, 404, { ok: false, reason: "not_found", message: "Kullanıcı bulunamadı." });
     sendJson(res, 200, { ok: true });
   } catch (err) {
-    sendJson(res, 500, { ok: false, reason: "server_error", message: "Silme basarisiz." });
+    sendJson(res, 500, { ok: false, reason: "server_error", message: "Silme işlemi yapılamadı." });
   }
 }
 
 // ---------- statik dosya sunumu ----------
+function staticCacheControl(ext, filePath) {
+  if (ext === ".html" || filePath.endsWith("sw.js")) return "no-cache";
+  if (/[\\/](fonts|img)[\\/]/.test(filePath)) return "public, max-age=2592000"; // 30 gun
+  return "public, max-age=300";
+}
+
 function serveStatic(req, res, pathname) {
-  let filePath = path.join(PUBLIC_DIR, decodeURIComponent(pathname));
+  let decoded;
+  try {
+    decoded = decodeURIComponent(pathname);
+  } catch {
+    // bozuk yuzde kodlamasi (orn. /%E0%A4%A): sunucuyu cokertmesin, 400 donsun
+    return HttpLib.send(req, res, 400, { ...HttpLib.securityHeaders(false), "Content-Type": "text/plain; charset=utf-8" }, "Geçersiz adres.");
+  }
+  let filePath = path.join(PUBLIC_DIR, decoded);
   if (pathname === "/") filePath = path.join(PUBLIC_DIR, "index.html");
 
   // dizin gezintisini engelle
-  if (!filePath.startsWith(PUBLIC_DIR)) {
-    res.writeHead(403);
-    return res.end("Forbidden");
+  if (!filePath.startsWith(PUBLIC_DIR + path.sep) && filePath !== PUBLIC_DIR) {
+    return HttpLib.send(req, res, 403, { ...HttpLib.securityHeaders(false), "Content-Type": "text/plain; charset=utf-8" }, "Erişim engellendi.");
   }
 
   fs.stat(filePath, (err, stat) => {
@@ -668,38 +709,45 @@ function serveStatic(req, res, pathname) {
       // .html uzantisiz temiz URL destegi (orn. /hava -> /hava.html)
       const withHtml = filePath + ".html";
       fs.stat(withHtml, (err2, stat2) => {
-        if (!err2 && stat2.isFile()) return streamFile(res, withHtml);
+        if (!err2 && stat2.isFile()) return sendFile(req, res, withHtml);
         // stilli 404 sayfasi (yoksa duz metne dus)
-        const notFound = path.join(PUBLIC_DIR, "404.html");
-        fs.readFile(notFound, (err3, buf) => {
-          res.writeHead(404, { "Content-Type": "text/html; charset=utf-8" });
-          res.end(err3 ? "<h1>404</h1><p>Sayfa bulunamadi.</p>" : buf);
+        fs.readFile(path.join(PUBLIC_DIR, "404.html"), (err3, buf) => {
+          HttpLib.send(req, res, 404, {
+            ...HttpLib.securityHeaders(true),
+            "Content-Type": "text/html; charset=utf-8",
+            "Cache-Control": "no-cache",
+          }, err3 ? "<h1>404</h1><p>Sayfa bulunamadı.</p>" : buf);
         });
       });
       return;
     }
-    streamFile(res, filePath);
+    sendFile(req, res, filePath);
   });
 }
 
-function streamFile(res, filePath) {
+function sendFile(req, res, filePath) {
   const ext = path.extname(filePath).toLowerCase();
-  res.writeHead(200, { "Content-Type": MIME[ext] || "application/octet-stream" });
-  fs.createReadStream(filePath).pipe(res);
+  fs.readFile(filePath, (err, buf) => {
+    if (err) {
+      return HttpLib.send(req, res, 500, { "Content-Type": "text/plain; charset=utf-8" }, "Dosya okunamadı.");
+    }
+    HttpLib.send(req, res, 200, {
+      ...HttpLib.securityHeaders(ext === ".html"),
+      "Content-Type": MIME[ext] || "application/octet-stream",
+      "Cache-Control": staticCacheControl(ext, filePath),
+    }, buf);
+  });
 }
 
-const server = http.createServer((req, res) => {
-  const parsed = url.parse(req.url, true);
+function route(req, res) {
+  const parsed = new URL(req.url, "http://localhost");
   const pathname = parsed.pathname;
+  const query = Object.fromEntries(parsed.searchParams);
   const method = req.method;
 
-  if (pathname === "/api/quakes") return handleQuakes(req, res, parsed.query);
-  if (pathname === "/api/quakes/history") return handleQuakeHistory(req, res, parsed.query);
-  if (pathname === "/api/fires") return handleFires(req, res, parsed.query);
-  if (pathname === "/api/reload-config") {
-    loadConfig();
-    return sendJson(res, 200, { ok: true });
-  }
+  if (pathname === "/api/quakes") return handleQuakes(req, res, query);
+  if (pathname === "/api/quakes/history") return handleQuakeHistory(req, res, query);
+  if (pathname === "/api/fires") return handleFires(req, res, query);
 
   if (pathname === "/api/auth/register" && method === "POST") return handleRegister(req, res);
   if (pathname === "/api/auth/login" && method === "POST") return handleLogin(req, res);
@@ -715,7 +763,32 @@ const server = http.createServer((req, res) => {
   const userMatch = pathname.match(/^\/api\/admin\/users\/(\d+)$/);
   if (userMatch && method === "DELETE") return handleAdminUserDelete(req, res, userMatch[1]);
 
+  if (pathname.startsWith("/api/")) {
+    return sendJson(res, 404, { ok: false, reason: "not_found", message: "Böyle bir uç nokta yok." });
+  }
+  if (method !== "GET" && method !== "HEAD") {
+    return HttpLib.send(req, res, 405, { "Content-Type": "text/plain; charset=utf-8", Allow: "GET, HEAD" }, "Bu yöntem desteklenmiyor.");
+  }
   return serveStatic(req, res, pathname);
+}
+
+// Tek bir istekteki beklenmeyen hata tum sunucuyu dusurmesin: yakala, 500 don.
+function handleError(res, err) {
+  console.error("[sunucu] beklenmeyen hata:", err && err.stack ? err.stack : err);
+  if (res.headersSent) return res.destroy();
+  try {
+    sendJson(res, 500, { ok: false, reason: "server_error", message: "Beklenmeyen bir hata oluştu." });
+  } catch {
+    res.destroy();
+  }
+}
+
+const server = http.createServer((req, res) => {
+  try {
+    Promise.resolve(route(req, res)).catch((err) => handleError(res, err));
+  } catch (err) {
+    handleError(res, err);
+  }
 });
 
 // Render'in onerdigi gibi acikca 0.0.0.0'a bagla (host belirtilmeden birakmak

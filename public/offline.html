@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<script>(function(){try{var t=localStorage.getItem('havasite_theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<script src="/js/theme-init.js"></script>
 <title>Bağlantı yok — TürkiyeCanlı</title>
 <meta name="theme-color" content="#0a1224" />
 <link rel="icon" type="image/svg+xml" href="/img/logo.svg" />
@@ -29,8 +29,8 @@
   <img class="icon-3d" src="/img/3d/cloud.png" alt="" />
   <h1>İnternet bağlantısı yok</h1>
   <p>Bu sayfa daha önce açılmadığı için çevrimdışı gösterilemiyor. Bağlantın gelince otomatik olarak yenilenecek.</p>
-  <button class="btn btn-primary" type="button" onclick="location.reload()">Tekrar dene</button>
+  <button class="btn btn-primary" type="button" id="retryBtn">Tekrar dene</button>
 </main>
-<script>window.addEventListener("online", () => location.reload());</script>
+<script src="/js/offline.js"></script>
 </body>
 </html>
