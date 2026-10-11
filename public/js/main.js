@@ -121,6 +121,11 @@
   window.hydrateIcons = hydrateIcons;
 
 
+  // ---------------- Turkiye saatine gore gun anahtari ("YYYY-MM-DD") ----------------
+  // toISOString() UTC verir; gece 00:00-03:00 arasi Turkiye'de "bugun" UTC'de "dun"dur.
+  const TR_DAY = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Istanbul", year: "numeric", month: "2-digit", day: "2-digit" });
+  window.trDateKey = (d) => TR_DAY.format(d);
+
   // ---------------- uygulama (PWA): service worker + "ana ekrana ekle" karti ----------------
   const INSTALL_DISMISS_KEY = "havasite_install_dismissed";
   const INSTALL_SNOOZE_MS = 14 * 24 * 3600 * 1000;
@@ -256,7 +261,7 @@
   // yenilemek kotadan dusmesin diye sessionStorage ile isaretlenir.
   const QUOTA_KEY = "havasite_guest_quota";
   const QUOTA_LIMIT = 5;
-  const todayStr = () => new Date().toISOString().slice(0, 10);
+  const todayStr = () => window.trDateKey(new Date());
 
   function readQuota() {
     try {

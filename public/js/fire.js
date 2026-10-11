@@ -210,7 +210,7 @@
       <span class="mag-chip" style="background:${color}">${f.frp && f.frp.toFixed ? round(f.frp) : "-"}</span>
       <div class="row-main">
         <div class="row-title">${c ? window.escapeHtml(c) + " yakını" : `${f.lat.toFixed(2)}, ${f.lon.toFixed(2)}`}</div>
-        <div class="row-sub">FRP ${f.frp && f.frp.toFixed ? f.frp.toFixed(1) : "—"} MW · Güven: ${confLabel(f.confidence)} · ${window.escapeHtml(f.date || "")} ${window.escapeHtml(f.time || "")} · ${(f.daynight || "").toUpperCase().startsWith("D") ? "gündüz" : "gece"}</div>
+        <div class="row-sub">FRP ${f.frp && f.frp.toFixed ? f.frp.toFixed(1) : "—"} MW · Güven: ${confLabel(f.confidence)} · ${window.escapeHtml(fireTime(f))} · ${(f.daynight || "").toUpperCase().startsWith("D") ? "gündüz" : "gece"}</div>
       </div>
     </div>`;
   }
@@ -266,7 +266,7 @@
         <span class="fmk-ember e1"></span><span class="fmk-ember e2"></span></div>`;
       const c = cityOf(f);
       const m = L.marker([f.lat, f.lon], { icon: L.divIcon({ className: "", html, iconSize: [size, size], iconAnchor: [size / 2, size / 2] }) }).addTo(state.layer);
-      m.bindPopup(`<div class="map-pop"><strong>${c ? window.escapeHtml(c) + " yakını" : "Tespit"}</strong><br/>FRP: ${f.frp && f.frp.toFixed ? f.frp.toFixed(1) : f.frp} MW · Güven: ${confLabel(f.confidence)}<br/>${window.escapeHtml(f.date || "")} ${window.escapeHtml(f.time || "")} UTC</div>`);
+      m.bindPopup(`<div class="map-pop"><strong>${c ? window.escapeHtml(c) + " yakını" : "Tespit"}</strong><br/>FRP: ${f.frp && f.frp.toFixed ? f.frp.toFixed(1) : f.frp} MW · Güven: ${confLabel(f.confidence)}<br/>${window.escapeHtml(fireTime(f))} (TSİ)</div>`);
     });
   }
 
@@ -352,7 +352,7 @@
     D.bars($("fProvFull"), [...cc.entries()].sort((a, b) => b[1] - a[1]).slice(0, 12).map(([label, v]) => ({ label, v })), { fire: true });
     const big = [...list].sort((a, b) => (b.frp || 0) - (a.frp || 0)).slice(0, 12);
     $("fBigTable").innerHTML = `<thead><tr><th>Konum</th><th>FRP</th><th>Güven</th><th>Zaman (UTC)</th></tr></thead>
-      <tbody>${big.map((f) => `<tr><td>${window.escapeHtml(cityOf(f) ? cityOf(f) + " yakını" : f.lat.toFixed(2) + ", " + f.lon.toFixed(2))}</td><td>${f.frp && f.frp.toFixed ? f.frp.toFixed(1) : "—"}</td><td>${confLabel(f.confidence)}</td><td>${window.escapeHtml((f.date || "") + " " + (f.time || ""))}</td></tr>`).join("")}</tbody>`;
+      <tbody>${big.map((f) => `<tr><td>${window.escapeHtml(cityOf(f) ? cityOf(f) + " yakını" : f.lat.toFixed(2) + ", " + f.lon.toFixed(2))}</td><td>${f.frp && f.frp.toFixed ? f.frp.toFixed(1) : "—"}</td><td>${confLabel(f.confidence)}</td><td>${window.escapeHtml(fireTime(f))}</td></tr>`).join("")}</tbody>`;
   }
 
   /* ---- demo ---- */

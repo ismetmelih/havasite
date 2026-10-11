@@ -64,7 +64,7 @@
     </div>
     <div class="search-wrap">
       <div class="search-box">
-        <input type="text" id="citySearch" placeholder="Şehir ara (ör. Antalya)" autocomplete="off" />
+        <input type="text" id="citySearch" aria-label="Şehir ara" placeholder="Şehir ara (ör. Antalya)" autocomplete="off" />
         <div class="search-results" id="searchResults" hidden></div>
       </div>
       <button class="btn btn-ghost btn-sm" id="geoBtn" type="button"><span class="ic" data-icon="map-pin" data-icon-size="15"></span> Konumum</button>
@@ -73,6 +73,7 @@
 </header>
 
 <main class="container wx">
+  <h2 class="sr-only">Hava durumu paneli</h2>
 
   <nav class="wx-tabs" id="wxTabs" aria-label="Hava durumu bölümleri">
     <button class="wx-tab active" type="button" data-view="genel"><span class="ic" data-icon="sun" data-icon-size="16"></span> Genel</button>

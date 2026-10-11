@@ -62,6 +62,7 @@
 </header>
 
 <main class="container dash">
+  <h2 class="sr-only">Deprem paneli</h2>
 
   <nav class="dash-tabs" id="qTabs" aria-label="Deprem bölümleri">
     <button class="dash-tab active" type="button" data-view="genel"><span class="ic" data-icon="activity" data-icon-size="16"></span> Genel</button>
@@ -183,9 +184,9 @@
     <div class="map-box" id="timelineMap" style="height:460px;"></div>
     <div class="timeline-controls">
       <button class="btn btn-primary btn-sm" id="timelinePlay" type="button"><span class="ic" data-icon="play" data-icon-size="14"></span> <span id="timelinePlayLabel">Oynat</span></button>
-      <input type="range" id="timelineSlider" min="0" max="29" value="29" step="1" />
+      <input type="range" id="timelineSlider" aria-label="Gösterilecek gün" min="0" max="29" value="29" step="1" />
       <div class="timeline-date" id="timelineDate">—</div>
-      <select id="timelineSpeed" class="filter-select">
+      <select id="timelineSpeed" aria-label="Oynatma hızı" class="filter-select">
         <option value="900">Yavaş</option>
         <option value="450" selected>Normal</option>
         <option value="180">Hızlı</option>

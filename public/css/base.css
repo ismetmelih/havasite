@@ -27,7 +27,7 @@
   /* metin */
   --text-primary: #e7eef9;
   --text-secondary: #a2b3cd;
-  --text-muted: #6d809f;
+  --text-muted: #8194b3;
 
   /* marka vurgusu — camgobegi */
   --accent: #22d3ee;
@@ -87,15 +87,15 @@
 
   --text-primary: #0f1b33;
   --text-secondary: #4a5a78;
-  --text-muted: #7f8ca6;
+  --text-muted: #5f6c85;
 
-  --accent: #0891b2;
-  --accent-2: #0e7490;
-  --accent-weak: rgba(8, 145, 178, 0.12);
+  --accent: #0e7490;
+  --accent-2: #155e75;
+  --accent-weak: rgba(14, 116, 144, 0.12);
   --accent-contrast: #ffffff;
 
   --c-weather: #0284c7;
-  --c-weather-2: #0ea5e9;
+  --c-weather-2: #0369a1;
   --c-weather-glow: #0284c7;
   --c-quake: #d97706;
   --c-quake-2: #b45309;
@@ -1921,4 +1921,17 @@ body {
   .stat-tile .stat-value { font-size: 1.3rem; }
   .page-head-row { padding: 16px; }
   .page-icon { width: 48px; height: 48px; border-radius: 14px; }
+}
+
+/* yalnizca ekran okuyucular icin (gorsel olarak gizli) */
+.sr-only {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }

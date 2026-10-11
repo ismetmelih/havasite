@@ -236,3 +236,9 @@
 @media (max-width: 560px) {
   .f-risk-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 }
+
+/* ---- okunabilirlik (kontrast) ---- */
+/* koyu kirmizi FRP rozetlerinde siyah yazi okunmuyordu */
+.fire-body .side-row .mag-chip { color: #fff; text-shadow: 0 1px 1px rgba(0, 0, 0, 0.25); }
+.fab-hotline.fab-112 strong { color: var(--c-fire-2); }
+.fire-disclaim, .fire-disclaimer { color: var(--text-secondary); }

@@ -40,7 +40,7 @@
 .dash-tab:hover { color: var(--text-primary); }
 .dash-tab.active { color: var(--accent-contrast); }
 .quake-body .dash-tab.active { background: var(--c-quake); color: #0b0b0b; }
-.fire-body .dash-tab.active { background: var(--c-fire); color: #fff; }
+.fire-body .dash-tab.active { background: var(--c-fire); color: #220707; }
 
 .dash-view { display: none; animation: dash-in 0.35s ease; }
 .dash-view.is-active { display: block; }
@@ -196,3 +196,4 @@
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-soft);
 }
+:root[data-theme="light"] .fire-body .dash-tab.active { color: #fff; }

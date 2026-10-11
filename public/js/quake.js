@@ -286,8 +286,8 @@
 
     function buckets(list, n) {
       const map = new Map();
-      const today = new Date();
-      for (let i = n - 1; i >= 0; i--) { const d = new Date(today); d.setDate(d.getDate() - i); map.set(d.toISOString().slice(0, 10), { key: d.toISOString().slice(0, 10), quakes: [] }); }
+      const now = Date.now();
+      for (let i = n - 1; i >= 0; i--) { const key = window.trDateKey(new Date(now - i * 86400000)); map.set(key, { key, quakes: [] }); }
       list.forEach((q) => { const k = (q.date || "").slice(0, 10); if (map.has(k)) map.get(k).quakes.push(q); });
       return [...map.values()];
     }
@@ -295,7 +295,7 @@
     function renderDay(idx) {
       if (!days.length) return;
       idx = Math.max(0, Math.min(idx, days.length - 1));
-      const d = new Date(days[idx].key);
+      const d = new Date(`${days[idx].key}T12:00:00`);
       dateEl.textContent = d.toLocaleDateString("tr-TR", { day: "2-digit", month: "short" });
       tLayer.clearLayers();
       let cum = 0, cumMax = null;
@@ -367,16 +367,18 @@
     D.histogram($("qDepthHist"), depthBins);
 
     // günlük sayı
+    // Gun anahtarlari Turkiye saatine gore (AFAD tarihleri de Turkiye saatiyle gelir).
+    // toISOString() UTC verdigi icin gece 00:00-03:00 arasi "bugun"un depremleri kayboluyordu.
     const byDay = new Map();
-    const today = new Date();
-    for (let i = 29; i >= 0; i--) { const d = new Date(today); d.setDate(d.getDate() - i); byDay.set(d.toISOString().slice(0, 10), 0); }
+    const now = Date.now();
+    for (let i = 29; i >= 0; i--) byDay.set(window.trDateKey(new Date(now - i * 86400000)), 0);
     h.forEach((q) => { const k = (q.date || "").slice(0, 10); if (byDay.has(k)) byDay.set(k, byDay.get(k) + 1); });
     const dayArr = [...byDay.entries()];
     const dailyAvg = dayArr.reduce((s, [, v]) => s + v, 0) / dayArr.length;
     $("qDailyHint").textContent = `Dönem ortalaması: günde ${dailyAvg.toFixed(1)} deprem`;
-    D.daySeries($("qDailyChart"), dayArr.map(([k, v], i) => {
-      const d = new Date(k);
-      return { v, label: `${d.getDate()} ${["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"][d.getMonth()]}` };
+    D.daySeries($("qDailyChart"), dayArr.map(([k, v]) => {
+      const [, mo, da] = k.split("-").map(Number);
+      return { v, label: `${da} ${["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"][mo - 1]}` };
     }), { height: 240, label: "Deprem" });
 
     // 24 saat kadranı
