@@ -64,7 +64,7 @@
     }
 
     const wantView = (new URLSearchParams(location.search).get("v") || location.hash.slice(1) || "").toLowerCase();
-    if (["genel", "saatlik", "ayrinti", "harita", "aylik", "egilim"].includes(wantView)) state.view = wantView;
+    if (["genel", "saatlik", "ayrinti", "harita", "aylik", "egilim", "modeller"].includes(wantView)) state.view = wantView;
 
     setupTabs();
     setupSearch();
@@ -188,6 +188,7 @@
     if (v === "harita") initMap();
     if (v === "aylik") { renderCalendar(); ensureArchive(); }
     if (v === "egilim") { ensureArchive(); }
+    if (v === "modeller") renderModels();
     window.hydrateIcons && window.hydrateIcons();
   }
 
@@ -1039,6 +1040,114 @@
 
   /* ---------------- arama + konum ---------------- */
   let searchTimer = null;
+  /* ============================================================
+     MODELLER: 6 sayisal modelin 3 gunluk yagis/sicaklik beklentisi
+     (Open-Meteo, tek istekte coklu model)
+     ============================================================ */
+  const MODELS = [
+    { id: "ecmwf_ifs025", name: "ECMWF", org: "Avrupa" },
+    { id: "gfs_seamless", name: "GFS", org: "ABD" },
+    { id: "icon_seamless", name: "ICON", org: "Almanya" },
+    { id: "meteofrance_seamless", name: "ARPEGE", org: "Fransa" },
+    { id: "gem_seamless", name: "GEM", org: "Kanada" },
+    { id: "ukmo_seamless", name: "UKMO", org: "İngiltere" },
+  ];
+  const r1 = (v) => (v == null ? null : Math.round(v * 10) / 10);
+  const fmtMm = (v) => (v == null ? "—" : `${v.toFixed(1)} mm`);
+  function dayShort(iso) { const d = new Date(`${iso}T12:00:00`); return `${d.getDate()} ${AY_KISA[d.getMonth()]}`; }
+  // bilgi amacli siniflama (24 saatlik toplam, mm)
+  function rainLabel(mm) {
+    if (mm == null || mm < 0.5) return null;
+    if (mm < 5) return { text: "Hafif yağış", cls: "lv-1" };
+    if (mm < 20) return { text: "Orta şiddette yağış", cls: "lv-2" };
+    if (mm < 50) return { text: "Kuvvetli yağış", cls: "lv-3" };
+    return { text: "Çok kuvvetli yağış", cls: "lv-4" };
+  }
+
+  async function renderModels() {
+    const grid = $("wxModelGrid");
+    if (!grid || !state.loc) return;
+    const key = `${state.loc.lat.toFixed(3)},${state.loc.lon.toFixed(3)}`;
+    if (!state.models || state.models.key !== key) {
+      try {
+        const p = new URLSearchParams({
+          latitude: state.loc.lat, longitude: state.loc.lon,
+          daily: "precipitation_sum,precipitation_probability_max,temperature_2m_max,temperature_2m_min,weather_code",
+          models: MODELS.map((m) => m.id).join(","),
+          timezone: "Europe/Istanbul", forecast_days: 3,
+        });
+        const data = await fetch(`${FORECAST_URL}?${p}`).then((r) => r.json());
+        if (!data.daily) throw new Error("veri yok");
+        state.models = { key, daily: data.daily };
+      } catch {
+        grid.innerHTML = `<div class="sr-empty">Model verisi alınamadı, biraz sonra tekrar dene.</div>`;
+        return;
+      }
+    }
+    const dl = state.models.daily, days = dl.time;
+    const get = (field, m) => (dl[`${field}_${m}`] || []).map(r1);
+
+    const rows = MODELS.map((m) => {
+      const pr = get("precipitation_sum", m.id);
+      const has = pr.some((v) => v != null);
+      return { ...m, pr, tmax: get("temperature_2m_max", m.id), total: has ? r1(pr.reduce((a, v) => a + (v || 0), 0)) : null };
+    }).filter((m) => m.total != null);
+    if (!rows.length) { grid.innerHTML = `<div class="sr-empty">Bu konum için model verisi yok.</div>`; return; }
+
+    // model ortalamasi (her gun icin, verisi olan modellerin ortalamasi)
+    const avgAt = (arrs, i) => { const v = arrs.map((a) => a[i]).filter((x) => x != null); return v.length ? r1(v.reduce((a, x) => a + x, 0) / v.length) : null; };
+    const mean = {
+      name: "Ortalama", org: `${rows.length} model`, consensus: true,
+      pr: days.map((_, i) => avgAt(rows.map((r) => r.pr), i)),
+      tmax: days.map((_, i) => avgAt(rows.map((r) => r.tmax), i)),
+    };
+    mean.total = r1(mean.pr.reduce((a, v) => a + (v || 0), 0));
+    const maxTotal = Math.max(...rows.map((r) => r.total));
+
+    const card = (m) => `
+      <article class="wx-model${m.consensus ? " is-consensus" : ""}${!m.consensus && m.total === maxTotal && maxTotal >= 1 ? " is-wettest" : ""}">
+        <header><strong>${m.name}</strong><span>${m.org}</span></header>
+        <div class="wm-days">${days.map((d, i) => `
+          <div class="wm-day"><span class="wm-date">${dayShort(d)}</span><span class="wm-mm${(m.pr[i] || 0) >= 0.5 ? " wet" : ""}">${m.pr[i] == null ? "—" : m.pr[i].toFixed(1)}</span><span class="wm-t">${m.tmax[i] == null ? "" : Math.round(m.tmax[i]) + "°"}</span></div>`).join("")}
+        </div>
+        <footer><span>3 günlük toplam</span><b>${m.total.toFixed(1)}<small> mm</small></b></footer>
+      </article>`;
+    grid.innerHTML = rows.map(card).join("") + card(mean);
+
+    // model uyumu: toplamlarin yayilimi
+    const totals = rows.map((r) => r.total);
+    const spread = Math.max(...totals) - Math.min(...totals);
+    const agree = $("wxModelsAgree");
+    let level;
+    if (mean.total < 1 && spread < 2) level = { t: "Modeller kuru hava konusunda hemfikir", c: "ok" };
+    else if (maxTotal < 5) level = { t: "Modeller yalnızca hafif yağış öngörüyor", c: "ok" };
+    else { const ratio = spread / Math.max(mean.total, 1); level = ratio < 0.6 ? { t: "Model uyumu: yüksek", c: "ok" } : ratio < 1.2 ? { t: "Model uyumu: orta", c: "mid" } : { t: "Model uyumu: düşük — belirsizlik yüksek", c: "low" }; }
+    agree.textContent = level.t; agree.className = `badge wx-agree ${level.c}`; agree.hidden = false;
+    $("wxModelsHint").textContent = `${state.loc.region ? state.loc.name + ", " + state.loc.region : state.loc.name} için ${rows.length} modelin tahmini · en yağışlı: ${rows.find((r) => r.total === maxTotal).name} (${maxTotal.toFixed(1)} mm)`;
+
+    // gunluk ozet (ortalama)
+    const pop = (i) => avgAt(MODELS.map((m) => get("precipitation_probability_max", m.id)), i);
+    const tmin = (i) => avgAt(MODELS.map((m) => get("temperature_2m_min", m.id)), i);
+    const code = (i) => { const c = (dl[`weather_code_${MODELS[0].id}`] || [])[i]; return c != null ? c : (dl[`weather_code_${rows[0].id}`] || [])[i]; };
+    $("wxModelDays").innerHTML = days.map((d, i) => {
+      const lbl = rainLabel(mean.pr[i]);
+      const pp = pop(i);
+      // ikon ortalamayla celismesin: ortalama kuruysa yagisli ikon yerine bulutlu goster
+      let ic = code(i);
+      if (!lbl && ["rain", "drizzle", "storm", "snow"].includes(window.WeatherWMO.category(ic))) ic = 3;
+      return `<article class="wx-mday">
+        <header>${dayShort(d)}</header>
+        <div class="wx-mday-ic">${window.WeatherWMO.svg(ic, true)}</div>
+        <dl>
+          <div><dt>Yağış</dt><dd class="c-rain">${fmtMm(mean.pr[i])}</dd></div>
+          <div><dt>En düşük / en yüksek</dt><dd>${Math.round(tmin(i))}° / <span class="c-hot">${Math.round(mean.tmax[i])}°</span></dd></div>
+          ${pp != null ? `<div><dt>Yağış ihtimali</dt><dd class="c-prob">%${Math.round(pp)}</dd></div>` : ""}
+        </dl>
+        ${lbl ? `<span class="wx-rain-pill ${lbl.cls}">${window.HavaIcon("droplet", { size: 13 })} ${lbl.text}</span>` : `<span class="wx-rain-pill lv-0">Yağış beklenmiyor</span>`}
+      </article>`;
+    }).join("");
+  }
+
   /* ============================================================
      IL / ILCE: 81 il + 973 ilce (data/iller.json — TurkiyeAPI MIT,
      koordinatlar GeoNames CC BY 4.0 / © OpenStreetMap katkicilari ODbL)

@@ -114,6 +114,7 @@
     <button class="wx-tab" type="button" data-view="harita"><span class="ic" data-icon="map" data-icon-size="16"></span> Harita</button>
     <button class="wx-tab" type="button" data-view="aylik"><span class="ic" data-icon="layers" data-icon-size="16"></span> Aylık</button>
     <button class="wx-tab" type="button" data-view="egilim"><span class="ic" data-icon="trending-up" data-icon-size="16"></span> Eğilimler</button>
+    <button class="wx-tab" type="button" data-view="modeller"><span class="ic" data-icon="layers" data-icon-size="16"></span> Modeller</button>
   </nav>
 
   <div class="wx-cities" id="wxCities" aria-label="Şehir kısayolları"></div>
@@ -218,6 +219,38 @@
   </section>
 
   <!-- ============ EĞİLİMLER ============ -->
+  <section class="wx-view" id="view-modeller">
+    <section class="card wx-models">
+      <div class="wx-chart-head">
+        <div>
+          <h3><span class="h-icon ic" data-icon="layers" data-icon-size="18"></span>Sayısal modellerin 3 günlük yağış beklentisi</h3>
+          <p class="field-hint" id="wxModelsHint">Dünyanın önde gelen 6 hava tahmin modeli karşılaştırılıyor</p>
+        </div>
+        <span class="badge" id="wxModelsAgree" hidden></span>
+      </div>
+      <div class="wx-model-grid" id="wxModelGrid">
+        <div class="skeleton" style="height:180px;border-radius:14px"></div>
+        <div class="skeleton" style="height:180px;border-radius:14px"></div>
+        <div class="skeleton" style="height:180px;border-radius:14px"></div>
+      </div>
+    </section>
+
+    <section class="card wx-models-days">
+      <div class="wx-chart-head">
+        <div>
+          <h3><span class="h-icon ic" data-icon="clock" data-icon-size="18"></span>Günlük yağış ve sıcaklık özeti</h3>
+          <p class="field-hint">Modellerin ortalamasına göre</p>
+        </div>
+      </div>
+      <div class="wx-mday-grid" id="wxModelDays"></div>
+      <p class="field-hint wx-models-note">
+        Her model atmosferi farklı yöntem ve çözünürlükle hesaplar; modeller aynı şeyi söylüyorsa tahmine
+        güven artar, ayrışıyorsa belirsizlik yüksektir. Yağış etiketleri modellerin ortalamasından
+        hesaplanan bilgi amaçlı göstergelerdir, resmî uyarı değildir — resmî uyarılar için MGM'yi takip et.
+      </p>
+    </section>
+  </section>
+
   <section class="wx-view" id="view-egilim">
     <div class="wx-trend-top">
       <div class="wx-donut card" id="wxDonut">
