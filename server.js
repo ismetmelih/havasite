@@ -51,6 +51,7 @@ const MIME = {
   ".webp": "image/webp",
   ".webmanifest": "application/manifest+json; charset=utf-8",
   ".txt": "text/plain; charset=utf-8",
+  ".xml": "application/xml; charset=utf-8",
 };
 
 // ---- basit bellek-ici cache ----
@@ -681,6 +682,42 @@ async function handleAdminUserDelete(req, res, id) {
   }
 }
 
+// ---------- sitenin tam adresi (paylasim etiketleri, sitemap) ----------
+// Kalici alan adi baglaninca Amplify'da SITE_URL (orn. https://ornek.com) tanimlanmali;
+// tanimli degilse istegin geldigi alan adi kullanilir (dogrulanmis bicimde).
+function siteOrigin(req) {
+  if (process.env.SITE_URL) return process.env.SITE_URL.replace(/\/+$/, "");
+  const host = String(req.headers["x-forwarded-host"] || req.headers.host || "").split(",")[0].trim();
+  if (!/^[a-z0-9.-]+(:\d+)?$/i.test(host)) return "";
+  const proto = String(req.headers["x-forwarded-proto"] || "").split(",")[0].trim() || (/^(localhost|127\.)/.test(host) ? "http" : "https");
+  return `${proto === "http" ? "http" : "https"}://${host}`;
+}
+
+const SITEMAP_PAGES = ["/", "/hava.html", "/deprem.html", "/yangin.html"];
+
+function handleRobots(req, res) {
+  const origin = siteOrigin(req);
+  const body = [
+    "User-agent: *",
+    "Allow: /",
+    "Disallow: /api/",
+    "Disallow: /admin.html",
+    "Disallow: /ayarlar.html",
+    "Disallow: /login.html",
+    origin ? `Sitemap: ${origin}/sitemap.xml` : "",
+    "",
+  ].join("\n");
+  HttpLib.send(req, res, 200, { ...HttpLib.securityHeaders(false), "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "public, max-age=3600" }, body);
+}
+
+function handleSitemap(req, res) {
+  const origin = siteOrigin(req);
+  const today = new Date().toISOString().slice(0, 10);
+  const urls = SITEMAP_PAGES.map((p) => `  <url><loc>${origin}${p}</loc><lastmod>${today}</lastmod><changefreq>${p === "/" ? "daily" : "hourly"}</changefreq></url>`).join("\n");
+  const body = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`;
+  HttpLib.send(req, res, 200, { ...HttpLib.securityHeaders(false), "Content-Type": "application/xml; charset=utf-8", "Cache-Control": "public, max-age=3600" }, body);
+}
+
 // ---------- statik dosya sunumu ----------
 function staticCacheControl(ext, filePath) {
   if (ext === ".html" || filePath.endsWith("sw.js")) return "no-cache";
@@ -731,11 +768,13 @@ function sendFile(req, res, filePath) {
     if (err) {
       return HttpLib.send(req, res, 500, { "Content-Type": "text/plain; charset=utf-8" }, "Dosya okunamadı.");
     }
+    // HTML'deki {{ORIGIN}} yer tutucusunu sitenin tam adresiyle doldur (og:image vb. mutlak adres ister)
+    const body = ext === ".html" ? buf.toString("utf8").split("{{ORIGIN}}").join(siteOrigin(req)) : buf;
     HttpLib.send(req, res, 200, {
       ...HttpLib.securityHeaders(ext === ".html"),
       "Content-Type": MIME[ext] || "application/octet-stream",
       "Cache-Control": staticCacheControl(ext, filePath),
-    }, buf);
+    }, body);
   });
 }
 
@@ -762,6 +801,9 @@ function route(req, res) {
   if (pathname === "/api/admin/users" && method === "GET") return handleAdminUsersList(req, res);
   const userMatch = pathname.match(/^\/api\/admin\/users\/(\d+)$/);
   if (userMatch && method === "DELETE") return handleAdminUserDelete(req, res, userMatch[1]);
+
+  if (pathname === "/robots.txt" && (method === "GET" || method === "HEAD")) return handleRobots(req, res);
+  if (pathname === "/sitemap.xml" && (method === "GET" || method === "HEAD")) return handleSitemap(req, res);
 
   if (pathname.startsWith("/api/")) {
     return sendJson(res, 404, { ok: false, reason: "not_found", message: "Böyle bir uç nokta yok." });
