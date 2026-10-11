@@ -314,7 +314,8 @@ async function getLatestQuakes(limit) {
         result = await fetchEmscQuakes(`&limit=${limit}`);
         source = "emsc";
       } catch (err3) {
-        return { ok: false, reason: "fetch_failed", detail: String(err3.message || err3), data: [] };
+        console.error("[deprem] tum kaynaklar basarisiz:", String(err3.message || err3));
+        return { ok: false, reason: "fetch_failed", data: [] };
       }
     }
   }
@@ -357,7 +358,8 @@ async function handleQuakeHistory(req, res, query) {
       result = await fetchEmscQuakes(`&limit=2000&starttime=${isoNoMs(start)}`);
       source = "emsc";
     } catch (err2) {
-      return sendJson(res, 200, { ok: false, reason: "fetch_failed", detail: String(err2.message || err2), data: [] });
+      console.error("[deprem gecmisi] alinamadi:", String(err2.message || err2));
+      return sendJson(res, 200, { ok: false, reason: "fetch_failed", data: [] });
     }
   }
 
@@ -431,7 +433,8 @@ async function handleFires(req, res, query) {
     setCache(cacheKey, payload, 5 * 60 * 1000); // 5 dk (FIRMS verisi genelde ~1-2 saatte bir guncellenir)
     sendJson(res, 200, payload);
   } catch (err) {
-    sendJson(res, 200, { ok: false, reason: "fetch_failed", detail: String(err.message || err), data: [] });
+    console.error("[yangin] alinamadi:", String(err.message || err).slice(0, 300));
+    sendJson(res, 200, { ok: false, reason: "fetch_failed", data: [] });
   }
 }
 
@@ -539,6 +542,8 @@ async function handleRegister(req, res) {
   }
 }
 
+const DUMMY_HASH = AuthLib.hashPassword(require("crypto").randomBytes(16).toString("hex"));
+
 async function handleLogin(req, res) {
   if (!(await requireDb(res))) return;
   let body;
@@ -556,7 +561,9 @@ async function handleLogin(req, res) {
   try {
     const r = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
     const user = r.rows[0];
-    if (!user || !AuthLib.verifyPassword(password, user.password_hash)) {
+    // kullanici yoksa da ayni maliyette dogrulama: yanit suresi e-postanin kayitli olup olmadigini ele vermesin
+    const passwordOk = AuthLib.verifyPassword(password, user ? user.password_hash : DUMMY_HASH);
+    if (!user || !passwordOk) {
       return sendJson(res, 401, { ok: false, reason: "invalid_credentials", message: "E-posta veya şifre hatalı." });
     }
     limiters.loginEmail.reset(email);
@@ -758,11 +765,18 @@ async function handleResetPassword(req, res) {
 }
 
 // ---------- deprem bildirimleri (Web Push) ----------
+// Sunucu bu adreslere istek atacagi icin yalnizca bilinen tarayici bildirim servisleri kabul edilir
+// (aksi halde biri sunucuyu istedigi adrese istek atmaya zorlayabilirdi — SSRF).
+const PUSH_HOSTS = [/^fcm\.googleapis\.com$/, /^updates\.push\.services\.mozilla\.com$/, /^([a-z0-9-]+\.)*push\.apple\.com$/, /^([a-z0-9-]+\.)*notify\.windows\.com$/];
+
 function validSubscription(sub) {
   if (!sub || typeof sub !== "object") return null;
   const endpoint = String(sub.endpoint || "");
   const keys = sub.keys || {};
   if (!/^https:\/\/[^\s]{10,}$/.test(endpoint) || endpoint.length > 1000) return null;
+  let host;
+  try { host = new URL(endpoint).hostname; } catch { return null; }
+  if (!PUSH_HOSTS.some((re) => re.test(host))) return null;
   const p256dh = String(keys.p256dh || ""), auth = String(keys.auth || "");
   if (!/^[A-Za-z0-9_-]{40,200}$/.test(p256dh) || !/^[A-Za-z0-9_-]{10,60}$/.test(auth)) return null;
   return { endpoint, p256dh, auth };
@@ -1098,12 +1112,30 @@ function canonicalRedirect(req, res, pathname, search) {
   return true;
 }
 
+// CSRF icin ek savunma (cerezler zaten SameSite=Lax): degisiklik yapan API istekleri
+// tarayicidan geliyorsa Origin bu sitenin kendisi olmali. Origin'siz istekler (EventBridge,
+// curl) gecer; onlarin korumasi gizli anahtar/oturum kontrolundedir.
+function sameOriginWrite(req, pathname) {
+  if (!pathname.startsWith("/api/") || ["GET", "HEAD", "OPTIONS"].includes(req.method)) return true;
+  const origin = req.headers.origin;
+  if (!origin) return true;
+  let originHost;
+  try { originHost = new URL(origin).host; } catch { return false; }
+  const host = String(req.headers["x-forwarded-host"] || req.headers.host || "").split(",")[0].trim();
+  if (originHost === host) return true;
+  if (process.env.SITE_URL) { try { return originHost === new URL(process.env.SITE_URL).host; } catch {} }
+  return false;
+}
+
 function route(req, res) {
   const parsed = new URL(req.url, "http://localhost");
   const pathname = parsed.pathname;
   const query = Object.fromEntries(parsed.searchParams);
   const method = req.method;
   if (canonicalRedirect(req, res, pathname, parsed.search)) return;
+  if (!sameOriginWrite(req, pathname)) {
+    return sendJson(res, 403, { ok: false, reason: "cross_origin", message: "Bu istek başka bir siteden geldiği için reddedildi." });
+  }
 
   if (pathname === "/api/quakes") return handleQuakes(req, res, query);
   if (pathname === "/api/quakes/history") return handleQuakeHistory(req, res, query);
