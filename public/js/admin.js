@@ -121,7 +121,7 @@
       }
       const s = data.stats;
       document.getElementById("statTotalUsers").textContent = s.totalUsers;
-      document.getElementById("statToday").textContent = s.registeredToday;
+      document.getElementById("statPush").textContent = s.pushSubscribers;
       document.getElementById("statUptime").textContent = fmtUptime(s.uptimeSeconds);
       document.getElementById("statNode").textContent = s.nodeVersion;
       const firmsBadge = document.getElementById("statFirms");
@@ -157,7 +157,7 @@
     const tbody = document.getElementById("userTableBody");
 
     if (!users.length) {
-      tbody.innerHTML = `<tr><td colspan="4">Henüz kayıtlı kullanıcı yok.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="4">Eski hesap kalmadı.</td></tr>`;
       return;
     }
 
@@ -170,7 +170,6 @@
           <td>${fmtDate(u.createdAt)}</td>
           <td>
             <div class="admin-row-actions">
-              <button type="button" data-action="reset" title="Şifre sıfırlama bağlantısı oluştur">Sıfırlama linki</button>
               <button type="button" class="danger" data-action="delete">Sil</button>
             </div>
           </td>
@@ -178,47 +177,12 @@
       )
       .join("");
 
-    tbody.querySelectorAll("button[data-action='reset']").forEach((btn) => {
-      btn.addEventListener("click", () => createResetLink(btn.closest("tr").dataset.id, btn));
-    });
     tbody.querySelectorAll("button[data-action='delete']").forEach((btn) => {
       btn.addEventListener("click", () => {
         const row = btn.closest("tr");
         deleteUser(row.dataset.id, row);
       });
     });
-  }
-
-  // E-posta gonderimi kurulu degilken: yonetici baglantiyi olusturup kullaniciya kendisi iletir
-  async function createResetLink(id, btn) {
-    btn.disabled = true;
-    try {
-      const r = await fetch(`/api/admin/users/${id}/reset-link`, { method: "POST", credentials: "same-origin" });
-      const data = await r.json();
-      if (!data.ok) {
-        if (data.reason === "unauthorized") return showLogin();
-        window.showToast(data.message || "Bağlantı oluşturulamadı.", { accent: "var(--status-critical)" });
-        return;
-      }
-      let copied = false;
-      try { await navigator.clipboard.writeText(data.link); copied = true; } catch {}
-      const row = btn.closest("tr");
-      let box = row.nextElementSibling;
-      if (!box || !box.classList.contains("admin-reset-row")) {
-        box = document.createElement("tr");
-        box.className = "admin-reset-row";
-        row.after(box);
-      }
-      box.innerHTML = `<td colspan="4"><div class="admin-reset-box">
-        <span>${copied ? "Bağlantı panoya kopyalandı." : "Bağlantıyı kopyala:"} ${data.expiresInHours} saat geçerli, tek kullanımlık. Yalnızca hesap sahibine ilet.</span>
-        <input type="text" readonly value="${window.escapeHtml(data.link)}" aria-label="Sıfırlama bağlantısı" />
-      </div></td>`;
-      box.querySelector("input").addEventListener("focus", (e) => e.target.select());
-    } catch {
-      window.showToast("Sunucuya ulaşılamadı.", { accent: "var(--status-critical)" });
-    } finally {
-      btn.disabled = false;
-    }
   }
 
   async function deleteUser(id, row) {

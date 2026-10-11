@@ -1190,10 +1190,6 @@ main.container {
   margin-top: 2px;
 }
 
-/* oturum dogrulanana kadar korumali sayfa icerigini gizle (yetkisiz icerik yanip sonmesin) */
-html.auth-pending body {
-  visibility: hidden;
-}
 
 /* ================= sayfa basligi ambiyans sahnesi (paylasilan) =================
    Herhangi bir page-head'e .has-scene class'i + icine bir .page-scene eklenerek

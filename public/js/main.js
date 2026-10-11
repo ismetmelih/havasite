@@ -255,11 +255,11 @@
           <a href="yangin.html">${ic("flame")} Yangınlar</a>
           <a href="hava.html?v=modeller">${ic("layers")} Tahmin modelleri</a>
         </nav>
-        <nav class="footer-col" aria-label="Hesap">
-          <h4>Hesap</h4>
-          <a href="login.html">${ic("user")} Giriş / kayıt</a>
-          <a href="ayarlar.html">${ic("settings")} Ayarlar</a>
+        <nav class="footer-col" aria-label="Uygulama">
+          <h4>Uygulama</h4>
           <a href="ayarlar.html#bildirimler">${ic("bell")} Deprem bildirimleri</a>
+          <a href="ayarlar.html#hazirlik">${ic("shield-check")} Deprem çantası</a>
+          <a href="ayarlar.html">${ic("settings")} Ayarlar</a>
         </nav>
         <nav class="footer-col" aria-label="Kaynaklar ve yasal">
           <h4>Kaynaklar</h4>
@@ -309,76 +309,9 @@
     setupPWA();
     markActiveLink();
 
-    window.HavaAuth.ready.then((user) => {
-      const page = location.pathname.split("/").pop() || "index.html";
-
-      if (!user) {
-        // Misafir kotasi: giris yapmadan gunde birkac sayfa serbest, sonra giris duvari.
-        if (document.body.hasAttribute("data-guest-quota")) {
-          if (!window.HavaQuota.pageAlreadyCounted(page) && !window.HavaQuota.canView()) {
-            location.replace(`login.html?redirect=${encodeURIComponent(page)}&reason=quota`);
-            return;
-          }
-          window.HavaQuota.countPage(page);
-        } else if (document.body.hasAttribute("data-require-auth")) {
-          location.replace(`login.html?redirect=${encodeURIComponent(page)}`);
-          return;
-        }
-      }
-
-      setupUserState(user);
-      document.documentElement.classList.remove("auth-pending");
-      document.dispatchEvent(new CustomEvent("havasite:auth-ready", { detail: { user } }));
-
-      if (!user && window.HavaQuota.remaining() <= 1 && document.body.hasAttribute("data-guest-quota")) {
-        const left = window.HavaQuota.remaining();
-        window.showToast(
-          left === 0
-            ? "Bu, bugünkü son ücretsiz görüntülemendi. Sonraki ziyarette giriş yapman gerekecek."
-            : "Bugün 1 ücretsiz görüntüleme hakkın kaldı — ücretsiz hesapla sınırsız devam edebilirsin.",
-          { accent: "var(--accent)", duration: 6000 }
-        );
-      }
-    });
+    setupNavAction();
+    document.documentElement.classList.remove("auth-pending");
   });
-
-  // ---------------- misafir goruntuleme kotasi ----------------
-  // Tamamen istemci tarafinda (localStorage). Amac: giris olmadan tadına bakılabilsin,
-  // sonra kayit/giris'e yonlendirilsin. Gunluk sifirlanir; ayni sekmede sayfa
-  // yenilemek kotadan dusmesin diye sessionStorage ile isaretlenir.
-  const QUOTA_KEY = "havasite_guest_quota";
-  const QUOTA_LIMIT = 5;
-  const todayStr = () => window.trDateKey(new Date());
-
-  function readQuota() {
-    try {
-      const raw = JSON.parse(localStorage.getItem(QUOTA_KEY) || "{}");
-      if (raw.date !== todayStr()) return { date: todayStr(), count: 0 };
-      return { date: raw.date, count: Math.max(0, raw.count | 0) };
-    } catch {
-      return { date: todayStr(), count: 0 };
-    }
-  }
-  function writeQuota(q) {
-    try { localStorage.setItem(QUOTA_KEY, JSON.stringify(q)); } catch {}
-  }
-
-  window.HavaQuota = {
-    limit: QUOTA_LIMIT,
-    used: () => Math.min(QUOTA_LIMIT, readQuota().count),
-    remaining: () => Math.max(0, QUOTA_LIMIT - readQuota().count),
-    canView: () => readQuota().count < QUOTA_LIMIT,
-    pageAlreadyCounted(page) {
-      try { return sessionStorage.getItem("havasite_view_" + page) === "1"; } catch { return false; }
-    },
-    countPage(page) {
-      if (this.pageAlreadyCounted(page)) return this.remaining();
-      const q = readQuota();
-      if (q.count < QUOTA_LIMIT) { q.count += 1; writeQuota(q); }
-      try { sessionStorage.setItem("havasite_view_" + page, "1"); } catch {}
-      return this.remaining();
-    },
-  };
 
   // ---------------- acil durum modu ----------------
   function setupEmergencyMode() {
@@ -519,7 +452,7 @@
     }
   }
 
-  // ---------------- kullanici tercihleri (profil ozellestirme) ----------------
+  // ---------------- kullanici tercihleri (cihazda) ----------------
   const PREFS_KEY = "havasite_prefs";
   const DEFAULT_PREFS = { favoriteCity: "", quakeAlertMag: 3.5 };
 
@@ -537,35 +470,10 @@
       console.warn("Tercihler kaydedilemedi:", err);
     }
   }
-  // Giris yapilmissa tercihler hesaba da kaydedilir (her cihazda ayni); tarayicidaki kopya onbellektir.
+  // tercihler yalnizca bu cihazda saklanir (kullanici hesabi yok)
   async function setPrefs(p) {
-    const merged = { ...getPrefs(), ...p };
-    saveLocalPrefs(merged);
-    if (!sessionUser) return true;
-    try {
-      const r = await fetch("/api/auth/prefs", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "same-origin",
-        body: JSON.stringify(merged),
-      });
-      const data = await r.json();
-      if (data.ok && data.user) sessionUser = data.user;
-      return !!data.ok;
-    } catch {
-      return false;
-    }
-  }
-  // Oturum acilinca: hesapta tercih varsa onu kullan; yoksa bu tarayicidakini hesaba tasi.
-  function syncPrefs(user) {
-    const server = (user && user.prefs) || {};
-    if (Object.keys(server).length) {
-      saveLocalPrefs({ ...DEFAULT_PREFS, ...server });
-    } else {
-      const local = getPrefs();
-      if (local.favoriteCity || local.quakeAlertMag !== DEFAULT_PREFS.quakeAlertMag) setPrefs(local);
-    }
-    document.dispatchEvent(new CustomEvent("havaprefs:sync"));
+    saveLocalPrefs({ ...getPrefs(), ...p });
+    return true;
   }
   window.HavaPrefs = { get: getPrefs, set: setPrefs };
 
@@ -614,79 +522,16 @@
     targets.forEach((t) => io.observe(t));
   }
 
-  // ---------------- oturum (sunucu tarafli, imzali cerez) ----------------
-  // Sayfa acilir acilmaz oturumu sunucuya sorar (window.HavaAuth.ready). Senkron
-  // erisim gerektiren kod HavaAuth.ready.then(...) ile beklemeli; DOMContentLoaded'da
-  // bu beklendikten sonra nav ve sayfa koruma (data-require-auth/-admin) uygulanir.
-  let sessionUser = null;
+  // ---------------- oturum ----------------
+  // Sitede kullanici hesabi yok (yalnizca admin paneli kendi girisini kullanir).
+  // HavaAuth, eski kodla uyum icin her zaman "misafir" doner.
+  window.HavaAuth = { ready: Promise.resolve(null), getUser: () => null };
 
-  function fetchSession() {
-    return fetch("/api/auth/me", { credentials: "same-origin" })
-      .then((r) => r.json())
-      .then((data) => {
-        sessionUser = data.ok ? data.user : null;
-        if (sessionUser) syncPrefs(sessionUser);
-        return sessionUser;
-      })
-      .catch(() => {
-        sessionUser = null;
-        return null;
-      });
-  }
-
-  window.HavaAuth = {
-    ready: fetchSession(),
-    getUser: () => sessionUser,
-    async refresh() {
-      window.HavaAuth.ready = fetchSession();
-      return window.HavaAuth.ready;
-    },
-    async logout() {
-      try {
-        await fetch("/api/auth/logout", { method: "POST", credentials: "same-origin" });
-      } catch (err) {
-        console.warn("Cikis sirasinda hata:", err);
-      }
-      sessionUser = null;
-      location.href = "index.html";
-    },
-  };
-
-  function setupUserState(user) {
+  // ust menunun sagindaki eylem: deprem bildirimlerini acma kisayolu
+  function setupNavAction() {
     const slot = document.getElementById("navUser");
     if (!slot) return;
-    if (user) {
-      slot.innerHTML = `
-        <a class="user-chip" href="ayarlar.html" title="Profil ve ayarlar">
-          <span class="user-avatar">${escapeHtml((user.name || "?").slice(0, 1).toUpperCase())}</span>
-          <span class="label">${escapeHtml(user.name || user.email || "Kullanıcı")}</span>
-        </a>
-        <button class="logout-btn" id="logoutBtn" type="button" title="Çıkış yap">
-          <span class="label">Çıkış</span>
-          ${window.HavaIcon("log-out", { size: 16 })}
-        </button>
-      `;
-      document.getElementById("logoutBtn").addEventListener("click", () => window.HavaAuth.logout());
-    } else {
-      const onLoginPage = /login\.html$/.test(location.pathname);
-      const onQuotaPage = document.body.hasAttribute("data-guest-quota");
-      if (onLoginPage || !onQuotaPage) {
-        slot.innerHTML = `<a class="btn btn-primary btn-sm" href="login.html"><span class="label">Giriş Yap</span>${window.HavaIcon("arrow-right", { size: 15 })}</a>`;
-        return;
-      }
-      const used = window.HavaQuota.used();
-      const limit = window.HavaQuota.limit;
-      const remaining = window.HavaQuota.remaining();
-      const dots = Array.from({ length: limit }, (_, i) =>
-        `<span class="gq-dot${i < used ? " spent" : ""}"></span>`
-      ).join("");
-      slot.innerHTML = `
-        <span class="guest-quota${remaining <= 1 ? " low" : ""}" title="Misafir olarak bugün ${remaining}/${limit} ücretsiz görüntüleme hakkın kaldı">
-          <span class="gq-text">Misafir</span>
-          <span class="gq-dots" aria-hidden="true">${dots}</span>
-          <a class="gq-login" href="login.html?redirect=${encodeURIComponent(location.pathname.split("/").pop() || "index.html")}">Giriş</a>
-        </span>`;
-    }
+    slot.innerHTML = `<a class="btn btn-primary btn-sm nav-cta" href="ayarlar.html#bildirimler">${window.HavaIcon("bell", { size: 15 })}<span class="label">Bildirim al</span></a>`;
   }
 
   function escapeHtml(str) {

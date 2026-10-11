@@ -58,7 +58,7 @@
   <div class="settings-shell reveal">
 
     <div class="settings-tabs">
-      <button class="settings-tab active" data-tab="profil" type="button"><span class="ic" data-icon="user" data-icon-size="15"></span> Profil</button>
+      <button class="settings-tab active" data-tab="profil" type="button"><span class="ic" data-icon="sparkle" data-icon-size="15"></span> Tercihler</button>
       <button class="settings-tab" data-tab="bildirimler" type="button"><span class="ic" data-icon="bell" data-icon-size="15"></span> Bildirimler</button>
       <button class="settings-tab" data-tab="gorunum" type="button"><span class="ic" data-icon="palette" data-icon-size="15"></span> Görünüm</button>
       <button class="settings-tab" data-tab="hazirlik" type="button"><span class="ic" data-icon="shield-check" data-icon-size="15"></span> Hazırlık</button>
@@ -66,103 +66,21 @@
 
     <section class="settings-panel active" id="panel-profil">
       <div class="card profile-card">
-
-        <div id="profileLoggedIn" hidden>
-          <div class="profile-header">
-            <div class="profile-avatar-lg" id="profileAvatar">?</div>
-            <div>
-              <div id="profileNameDisplay" style="font-weight:800;font-size:1.1rem"></div>
-              <div id="profileEmailDisplay" style="color:var(--text-muted);font-size:0.86rem"></div>
-            </div>
-          </div>
-
-          <form id="profileForm" class="auth-form">
-            <label class="field">
-              <span>Görünen ad</span>
-              <input type="text" name="name" id="fName" minlength="2" required />
-              <small class="field-error"></small>
-            </label>
-            <label class="field">
-              <span>E-posta</span>
-              <input type="email" id="fEmail" disabled />
-              <span class="field-hint">E-posta adresi değiştirilemez.</span>
-            </label>
-
-            <label class="field">
-              <span>Favori şehir</span>
-              <select id="fCity"><option value="">Seçilmedi</option></select>
-              <span class="field-hint">Hava Durumu sayfası ilk açılışta bu şehri gösterir.</span>
-            </label>
-
-            <label class="field">
-              <span>Deprem bildirim eşiği: <strong id="fMagVal">3.5</strong>+</span>
-              <input type="range" id="fMag" min="2.5" max="6" step="0.5" value="3.5" />
-              <span class="field-hint">Deprem sayfası açıkken bu büyüklük ve üzerindeki yeni depremler için uyarı gösterilir. Tercihlerin hesabına kaydedilir.</span>
-            </label>
-
-            <button class="btn btn-primary btn-block" type="submit">Kaydet</button>
-          </form>
-
-          <div class="settings-section">
-            <h3><span class="h-icon ic" data-icon="key" data-icon-size="18"></span>Şifre değiştir</h3>
-            <form id="passwordForm" class="auth-form" novalidate>
-              <label class="field">
-                <span>Mevcut şifre</span>
-                <input type="password" name="current" autocomplete="current-password" required />
-                <small class="field-error"></small>
-              </label>
-              <label class="field">
-                <span>Yeni şifre</span>
-                <input type="password" name="next" placeholder="En az 8 karakter" autocomplete="new-password" required minlength="8" />
-                <small class="field-error"></small>
-              </label>
-              <label class="field">
-                <span>Yeni şifre (tekrar)</span>
-                <input type="password" name="next2" autocomplete="new-password" required minlength="8" />
-                <small class="field-error"></small>
-              </label>
-              <button class="btn btn-primary btn-block" type="submit">Şifreyi güncelle</button>
-              <span class="field-hint">Şifreni değiştirince diğer cihazlardaki oturumların kapanır.</span>
-            </form>
-          </div>
-
-          <div class="settings-section danger-zone">
-            <h3><span class="h-icon ic" data-icon="alert-triangle" data-icon-size="18"></span>Hesabı sil</h3>
-            <p class="field-hint">Hesabın ve kayıtlı tüm bilgilerin (ad, e-posta, tercihler) kalıcı olarak silinir. Bu işlem geri alınamaz.</p>
-            <form id="deleteForm" class="auth-form" novalidate>
-              <label class="field">
-                <span>Onay için şifren</span>
-                <input type="password" name="password" autocomplete="current-password" required />
-                <small class="field-error"></small>
-              </label>
-              <label class="checkbox"><input type="checkbox" name="confirm" /> Hesabımın kalıcı olarak silineceğini anlıyorum</label>
-              <button class="btn btn-danger btn-block" type="submit">Hesabımı kalıcı olarak sil</button>
-            </form>
-          </div>
-        </div>
-
-        <div id="profileGuest" class="profile-guest" hidden>
-          <span class="guest-lock" data-icon="lock" data-icon-size="26"></span>
-          <h3>Profilini özelleştirmek için giriş yap</h3>
-          <p style="color:var(--text-secondary);max-width:420px;margin:0 auto 20px">
-            Görünen adını ve avatarını ayarlamak için hesabına giriş yapmalısın.
-            Favori şehir ve deprem uyarı eşiğini giriş yapmadan da aşağıdan ayarlayabilirsin (yalnızca bu tarayıcıda saklanır).
-          </p>
-          <a class="btn btn-primary" href="login.html">Giriş Yap <span class="ic" data-icon="arrow-right" data-icon-size="15"></span></a>
-
-          <form id="guestPrefsForm" class="auth-form" style="max-width:360px;margin:26px auto 0;text-align:left">
-            <label class="field">
-              <span>Favori şehir</span>
-              <select id="fCityGuest"><option value="">Seçilmedi</option></select>
-            </label>
-            <label class="field">
-              <span>Deprem bildirim eşiği: <strong id="fMagValGuest">3.5</strong>+</span>
-              <input type="range" id="fMagGuest" min="2.5" max="6" step="0.5" value="3.5" />
-            </label>
-            <button class="btn btn-primary btn-block" type="submit">Kaydet</button>
-          </form>
-        </div>
-
+        <h3 style="margin-top:0"><span class="h-icon ic" data-icon="sparkle" data-icon-size="18"></span>Tercihlerin</h3>
+        <p class="field-hint" style="margin:0 0 18px">Hesap gerekmez; tercihlerin yalnızca bu cihazda saklanır.</p>
+        <form id="prefsForm" class="auth-form" style="max-width:420px">
+          <label class="field">
+            <span>Favori şehir</span>
+            <select id="fCity"><option value="">Seçilmedi</option></select>
+            <span class="field-hint">Hava Durumu sayfası ilk açılışta bu şehri gösterir.</span>
+          </label>
+          <label class="field">
+            <span>Deprem uyarı eşiği: <strong id="fMagVal">3.5</strong>+</span>
+            <input type="range" id="fMag" min="2.5" max="6" step="0.5" value="3.5" />
+            <span class="field-hint">Deprem sayfası açıkken bu büyüklük ve üzerindeki yeni depremler için uyarı gösterilir. Telefon kilitliyken bildirim için “Bildirimler” sekmesini kullan.</span>
+          </label>
+          <button class="btn btn-primary btn-block" type="submit">Kaydet</button>
+        </form>
       </div>
     </section>
 

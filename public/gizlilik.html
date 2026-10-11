@@ -44,8 +44,8 @@
     <p>
       Bu metin, 6698 sayılı Kişisel Verilerin Korunması Kanunu ("KVKK") kapsamında, TürkiyeCanlı'yı
       kullanırken hangi kişisel verilerinin işlendiğini, neden işlendiğini ve hakların neler olduğunu
-      anlatır. Kısaca: yalnızca hesabın için gereken en az bilgiyi tutuyoruz, verilerini satmıyor ve
-      reklam amacıyla kullanmıyoruz.
+      anlatır. Kısaca: sitede üyelik yok; adını, e-postanı veya şifreni istemiyoruz. Yalnızca
+      bildirim açarsan bunun için gereken en az bilgiyi tutuyoruz, verilerini satmıyor ve reklam amacıyla kullanmıyoruz.
     </p>
 
     <h2>1. Veri sorumlusu</h2>
@@ -55,20 +55,12 @@
     </p>
 
     <h2>2. Hangi verileri işliyoruz?</h2>
-    <h3>Hesap oluşturursan</h3>
-    <ul>
-      <li><strong>Ad soyad ve e-posta adresi:</strong> hesabını tanımak ve sana sitede adınla hitap etmek için.</li>
-      <li><strong>Şifre:</strong> şifrenin kendisi değil, yalnızca geri döndürülemez özeti (hash) saklanır. Kimse, biz dahil, şifreni göremez.</li>
-      <li><strong>Hesap oluşturma tarihi.</strong></li>
-      <li><strong>Site tercihlerin:</strong> favori şehrin ve deprem uyarı eşiğin. Bunları hesabında tutuyoruz ki her cihazda aynı ayarlarla devam edebilesin.</li>
-      <li><strong>Şifre sıfırlama:</strong> şifreni sıfırlamak istersen tek kullanımlık bir bağlantı oluşturulur. Bağlantının kendisi değil yalnızca özeti saklanır ve en geç 24 saatte geçersiz olur.</li>
-    </ul>
+    <p>Siteyi kullanmak için hesap açman gerekmez. Ad, e-posta veya şifre toplamıyoruz.</p>
     <h3>Deprem bildirimlerini açarsan</h3>
     <ul>
       <li>
         <strong>Bildirim aboneliği:</strong> tarayıcının/telefonunun bildirim servisinin (Google, Apple veya Mozilla)
-        cihazına özel verdiği anonim bir adres ve şifreleme anahtarları. Adın veya e-postan bu kayda bağlı değildir
-        (hesabınla açarsan hesabınla ilişkilendirilir).
+        cihazına özel verdiği anonim bir adres ve şifreleme anahtarları. Kimliğinle ilişkilendirilmez.
       </li>
       <li><strong>Bildirim tercihlerin:</strong> büyüklük eşiği ve seçtiysen kapsam (ör. "konumuma 250 km").</li>
       <li>
@@ -80,56 +72,49 @@
     <h3>Herkes için</h3>
     <ul>
       <li>
-        <strong>IP adresi:</strong> şifre deneme saldırılarını engellemek için giriş/kayıt isteklerinde
-        en fazla yaklaşık 1 saat sunucu belleğinde tutulur, kalıcı olarak kaydedilmez. Barındırma sağlayıcımız
-        (Amazon Web Services) altyapısı gereği standart erişim kayıtları tutabilir.
+        <strong>IP adresi:</strong> kötüye kullanımı (ör. aşırı istek) engellemek için en fazla yaklaşık 1 saat
+        sunucu belleğinde tutulur, kalıcı olarak kaydedilmez. Barındırma sağlayıcımız (Amazon Web Services)
+        altyapısı gereği standart erişim kayıtları tutabilir.
       </li>
       <li>
         <strong>Konum:</strong> yalnızca "Konumum" veya "Konumumu kullan" düğmesine bastığında, tarayıcının
         izin penceresini onaylarsan kullanılır. Hava durumu için koordinatlar tarayıcından doğrudan
-        Open-Meteo'ya gönderilir; deprem uzaklıkları cihazında hesaplanır. Konumun <strong>sunucumuza
-        gönderilmez ve bizde saklanmaz.</strong>
+        Open-Meteo'ya gönderilir; deprem uzaklıkları cihazında hesaplanır. Bildirimler dışında konumun
+        <strong>sunucumuza gönderilmez ve bizde saklanmaz.</strong>
       </li>
     </ul>
 
-    <h3>Cihazında saklananlar (çerez ve yerel depolama)</h3>
+    <h3>Cihazında saklananlar (yerel depolama)</h3>
     <ul>
-      <li><strong>Oturum çerezi</strong> (zorunlu): giriş yaptığını hatırlamak için. "Beni hatırla" işaretliyse 30 gün, değilse tarayıcı kapanana kadar geçerlidir.</li>
-      <li><strong>Yerel depolama:</strong> tema tercihin, son baktığın şehir, misafir günlük görüntüleme sayacı, deprem çantası listen ve "Konumumu kullan" ile verdiğin konum. Bunlar yalnızca cihazında durur.</li>
+      <li><strong>Yerel depolama:</strong> tema tercihin, favori ve son baktığın şehir, deprem uyarı eşiğin, deprem çantası listen ve "Konumumu kullan" ile verdiğin konum. Bunlar yalnızca cihazında durur; tarayıcı verilerini silerek kaldırabilirsin.</li>
       <li><strong>Uygulama önbelleği:</strong> site internetsiz de açılabilsin diye sayfalar ve son deprem/yangın verisi cihazında önbelleğe alınır.</li>
     </ul>
     <p>Reklam, izleme veya üçüncü taraf analiz çerezi <strong>kullanmıyoruz.</strong></p>
 
     <h2>3. Amaçlar ve hukuki sebepler</h2>
     <ul>
-      <li>Hesabının oluşturulması, girişin ve tercihlerinin saklanması: KVKK m.5/2-c (bir sözleşmenin kurulması veya ifasıyla doğrudan ilgili olması).</li>
-      <li>Kötüye kullanımın ve şifre deneme saldırılarının önlenmesi: KVKK m.5/2-f (temel hak ve özgürlüklerine zarar vermemek kaydıyla meşru menfaat).</li>
       <li>Senin açtığın deprem bildirimlerinin gönderilmesi: KVKK m.5/2-c; konumun yalnızca bu seçeneği kendin seçersen ve bu amaçla işlenir.</li>
+      <li>Kötüye kullanımın ve aşırı isteklerin önlenmesi: KVKK m.5/2-f (temel hak ve özgürlüklerine zarar vermemek kaydıyla meşru menfaat).</li>
     </ul>
 
     <h2>4. Veriler kimlerle ve nerede paylaşılıyor?</h2>
     <p>Verilerin satılmaz ve reklam amacıyla paylaşılmaz. Siteyi çalıştırmak için şu hizmet sağlayıcılardan yararlanıyoruz:</p>
     <ul>
       <li><strong>Amazon Web Services (AWS Amplify):</strong> sitenin barındırılması. Sunucular Avrupa'da (Frankfurt).</li>
-      <li><strong>Supabase:</strong> hesap veritabanı. Sunucular Avrupa'da (Frankfurt).</li>
-      <li><strong>Resend:</strong> yalnızca e-postayla şifre sıfırlama açıksa, sıfırlama e-postasının gönderilmesi.</li>
+      <li><strong>Supabase:</strong> bildirim aboneliklerinin tutulduğu veritabanı. Sunucular Avrupa'da (Frankfurt).</li>
       <li><strong>Tarayıcı bildirim servisleri</strong> (Google Firebase Cloud Messaging, Apple Push, Mozilla Push): yalnızca deprem bildirimlerini açtıysan, bildirimin cihazına iletilmesi. Bildirim içeriği bu servislere şifreli gider.</li>
     </ul>
     <p>
-      Bu sağlayıcıların sunucuları Türkiye dışında bulunduğundan hesap verilerin yurt dışında saklanır
-      (KVKK m.9). Hava, deprem ve yangın verilerini aldığımız Open-Meteo, AFAD ve NASA FIRMS'e hesap
-      bilgilerin gönderilmez.
+      Bu sağlayıcıların sunucuları Türkiye dışında bulunduğundan bildirim kayıtların yurt dışında saklanır
+      (KVKK m.9). Hava, deprem ve yangın verilerini aldığımız Open-Meteo, AFAD ve NASA FIRMS'e kişisel
+      verin gönderilmez.
     </p>
 
     <h2>5. Ne kadar süre saklıyoruz?</h2>
     <ul>
-      <li>Hesap bilgilerin ve tercihlerin, hesabın açık olduğu sürece saklanır.</li>
-      <li>
-        <strong>Hesabını istediğin an kendin silebilirsin:</strong> Ayarlar → Profil → "Hesabı sil".
-        Silme anında ad, e-posta, şifre özeti, tercihler ve sıfırlama kayıtların kalıcı olarak silinir.
-      </li>
-      <li>IP adresleri en fazla yaklaşık 1 saat bellekte tutulur; şifre sıfırlama bağlantıları en geç 24 saatte geçersiz olur.</li>
       <li>Bildirim aboneliğin, Ayarlar → Bildirimler'den kapatana, tarayıcıdan bildirim iznini kaldırana veya uygulamayı silene kadar saklanır; geçersiz hale gelen abonelikler otomatik silinir.</li>
+      <li>IP adresleri en fazla yaklaşık 1 saat bellekte tutulur.</li>
+      <li>Sitede daha önce üyelik vardı; o dönemde açılmış hesapların bilgileri (ad, e-posta, şifre özeti, tercihler) silinmektedir. Hemen silinmesini istersen aşağıdaki adrese yazabilirsin.</li>
     </ul>
 
     <h2>6. KVKK kapsamındaki hakların (m.11)</h2>
@@ -144,8 +129,7 @@
       <li>Kanuna aykırı işlenmesi sebebiyle zarara uğradıysan zararın giderilmesini talep etmek.</li>
     </ul>
     <p>
-      Başvurunu <strong>{{CONTACT_EMAIL}}</strong> adresine, hesabına kayıtlı e-posta adresinden
-      yazabilirsin. Başvurular en geç 30 gün içinde ücretsiz olarak yanıtlanır.
+      Başvurunu <strong>{{CONTACT_EMAIL}}</strong> adresine yazabilirsin. Başvurular en geç 30 gün içinde ücretsiz olarak yanıtlanır.
     </p>
 
     <h2>7. Kullanım koşulları</h2>

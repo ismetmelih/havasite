@@ -11,7 +11,6 @@ const path = require("path");
 const { getPool, ensureSchema } = require("./lib/db");
 const AuthLib = require("./lib/auth");
 const HttpLib = require("./lib/http");
-const Mail = require("./lib/mail");
 const Push = require("./lib/push");
 
 // Varsa .env dosyasindaki ortam degiskenlerini yukle (yerel gelistirme ve AWS Amplify:
@@ -102,14 +101,7 @@ function sendJson(res, status, obj, extraHeaders) {
 
 // ---------- hiz sinirlama ----------
 const limiters = {
-  loginIp: HttpLib.createRateLimiter({ windowMs: 15 * 60 * 1000, max: 10 }),
-  loginEmail: HttpLib.createRateLimiter({ windowMs: 15 * 60 * 1000, max: 8 }),
-  register: HttpLib.createRateLimiter({ windowMs: 60 * 60 * 1000, max: 5 }),
   admin: HttpLib.createRateLimiter({ windowMs: 15 * 60 * 1000, max: 5 }),
-  password: HttpLib.createRateLimiter({ windowMs: 15 * 60 * 1000, max: 6 }),
-  forgotIp: HttpLib.createRateLimiter({ windowMs: 60 * 60 * 1000, max: 6 }),
-  forgotEmail: HttpLib.createRateLimiter({ windowMs: 60 * 60 * 1000, max: 3 }),
-  reset: HttpLib.createRateLimiter({ windowMs: 15 * 60 * 1000, max: 10 }),
   pushSub: HttpLib.createRateLimiter({ windowMs: 60 * 60 * 1000, max: 30 }),
   pushTest: HttpLib.createRateLimiter({ windowMs: 15 * 60 * 1000, max: 5 }),
 };
@@ -468,10 +460,6 @@ function publicUser(u) {
   return { id: u.id, name: u.name, email: u.email, isAdmin: !!u.is_admin, createdAt: u.created_at, prefs: u.prefs || {} };
 }
 
-function isValidEmail(v) {
-  return typeof v === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
-}
-
 // ---------- auth ----------
 async function requireDb(res) {
   const ok = await ensureSchema();
@@ -484,284 +472,6 @@ async function requireDb(res) {
     return false;
   }
   return true;
-}
-
-async function currentUser(req) {
-  const session = AuthLib.readSession(req);
-  if (!session) return null;
-  const pool = getPool();
-  if (!pool) return null;
-  try {
-    const r = await pool.query("SELECT * FROM users WHERE id = $1", [session.uid]);
-    const user = r.rows[0] || null;
-    // sifre degistirildiyse/sifirlandiysa eski oturumlar gecersiz
-    if (user && (session.tv || 0) !== (user.token_version || 0)) return null;
-    return user;
-  } catch {
-    return null;
-  }
-}
-
-async function handleRegister(req, res) {
-  if (!checkLimit(res, limiters.register, HttpLib.clientIp(req))) return;
-  if (!(await requireDb(res))) return;
-  let body;
-  try {
-    body = await readJsonBody(req);
-  } catch {
-    return sendJson(res, 400, { ok: false, reason: "bad_request", message: "Geçersiz istek." });
-  }
-  const name = String(body.name || "").trim();
-  const email = String(body.email || "").trim().toLowerCase();
-  const password = String(body.password || "");
-
-  if (name.length < 2) return sendJson(res, 400, { ok: false, reason: "invalid_name", message: "Ad en az 2 karakter olmalı." });
-  if (!isValidEmail(email)) return sendJson(res, 400, { ok: false, reason: "invalid_email", message: "Geçerli bir e-posta adresi gir." });
-  if (password.length < 8) return sendJson(res, 400, { ok: false, reason: "invalid_password", message: "Şifre en az 8 karakter olmalı." });
-
-  const pool = getPool();
-  try {
-    const existing = await pool.query("SELECT id FROM users WHERE email = $1", [email]);
-    if (existing.rows.length) {
-      return sendJson(res, 409, { ok: false, reason: "email_taken", message: "Bu e-posta adresiyle zaten bir hesap var." });
-    }
-
-    // Not: site yoneticisi (admin) burada olusmaz; admin ayri, ADMIN_EMAIL/ADMIN_PASSWORD
-    // ortam degiskenleriyle dogrulanan, tamamen bagimsiz bir girisdir (bkz. handleAdminLogin).
-    const passwordHash = AuthLib.hashPassword(password);
-    const inserted = await pool.query(
-      "INSERT INTO users (name, email, password_hash, is_admin) VALUES ($1,$2,$3,FALSE) RETURNING *",
-      [name, email, passwordHash]
-    );
-    const user = inserted.rows[0];
-    res.setHeader("Set-Cookie", AuthLib.createSessionCookie(req, user));
-    sendJson(res, 200, { ok: true, user: publicUser(user) });
-  } catch (err) {
-    console.error("[auth] kayit hatasi:", err.message);
-    sendJson(res, 500, { ok: false, reason: "server_error", message: "Kayıt sırasında bir hata oluştu. Lütfen tekrar dene." });
-  }
-}
-
-const DUMMY_HASH = AuthLib.hashPassword(require("crypto").randomBytes(16).toString("hex"));
-
-async function handleLogin(req, res) {
-  if (!(await requireDb(res))) return;
-  let body;
-  try {
-    body = await readJsonBody(req);
-  } catch {
-    return sendJson(res, 400, { ok: false, reason: "bad_request", message: "Geçersiz istek." });
-  }
-  const email = String(body.email || "").trim().toLowerCase();
-  const password = String(body.password || "");
-  if (!checkLimit(res, limiters.loginIp, HttpLib.clientIp(req))) return;
-  if (!checkLimit(res, limiters.loginEmail, email)) return;
-
-  const pool = getPool();
-  try {
-    const r = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
-    const user = r.rows[0];
-    // kullanici yoksa da ayni maliyette dogrulama: yanit suresi e-postanin kayitli olup olmadigini ele vermesin
-    const passwordOk = AuthLib.verifyPassword(password, user ? user.password_hash : DUMMY_HASH);
-    if (!user || !passwordOk) {
-      return sendJson(res, 401, { ok: false, reason: "invalid_credentials", message: "E-posta veya şifre hatalı." });
-    }
-    limiters.loginEmail.reset(email);
-    res.setHeader("Set-Cookie", AuthLib.createSessionCookie(req, user, { remember: body.remember !== false }));
-    sendJson(res, 200, { ok: true, user: publicUser(user) });
-  } catch (err) {
-    console.error("[auth] giris hatasi:", err.message);
-    sendJson(res, 500, { ok: false, reason: "server_error", message: "Giriş sırasında bir hata oluştu. Lütfen tekrar dene." });
-  }
-}
-
-function handleLogout(req, res) {
-  res.setHeader("Set-Cookie", AuthLib.clearSessionCookie(req));
-  sendJson(res, 200, { ok: true });
-}
-
-async function handleMe(req, res) {
-  const pool = getPool();
-  if (!pool) return sendJson(res, 200, { ok: true, user: null });
-  const user = await currentUser(req);
-  sendJson(res, 200, { ok: true, user: user ? publicUser(user) : null });
-}
-
-async function handleUpdateMe(req, res) {
-  const user = await currentUser(req);
-  if (!user) return sendJson(res, 401, { ok: false, reason: "unauthorized", message: "Bu işlem için giriş yapmalısın." });
-  let body;
-  try {
-    body = await readJsonBody(req);
-  } catch {
-    return sendJson(res, 400, { ok: false, reason: "bad_request", message: "Geçersiz istek." });
-  }
-  const name = String(body.name || "").trim();
-  if (name.length < 2) return sendJson(res, 400, { ok: false, reason: "invalid_name", message: "Ad en az 2 karakter olmalı." });
-  try {
-    const r = await getPool().query("UPDATE users SET name = $1 WHERE id = $2 RETURNING *", [name, user.id]);
-    sendJson(res, 200, { ok: true, user: publicUser(r.rows[0]) });
-  } catch (err) {
-    sendJson(res, 500, { ok: false, reason: "server_error", message: "Güncelleme yapılamadı. Lütfen tekrar dene." });
-  }
-}
-
-// ---------- hesap: sifre, silme, tercihler, sifre sifirlama ----------
-async function handleChangePassword(req, res) {
-  const user = await currentUser(req);
-  if (!user) return sendJson(res, 401, { ok: false, reason: "unauthorized", message: "Bu işlem için giriş yapmalısın." });
-  if (!checkLimit(res, limiters.password, `u${user.id}`)) return;
-  let body;
-  try { body = await readJsonBody(req); } catch { return sendJson(res, 400, { ok: false, reason: "bad_request", message: "Geçersiz istek." }); }
-  const current = String(body.currentPassword || "");
-  const next = String(body.newPassword || "");
-  if (!AuthLib.verifyPassword(current, user.password_hash)) {
-    return sendJson(res, 400, { ok: false, reason: "wrong_password", message: "Mevcut şifre hatalı." });
-  }
-  if (next.length < 8) return sendJson(res, 400, { ok: false, reason: "invalid_password", message: "Yeni şifre en az 8 karakter olmalı." });
-  if (next === current) return sendJson(res, 400, { ok: false, reason: "same_password", message: "Yeni şifre eskisiyle aynı olamaz." });
-  try {
-    const r = await getPool().query(
-      "UPDATE users SET password_hash = $1, token_version = token_version + 1 WHERE id = $2 RETURNING *",
-      [AuthLib.hashPassword(next), user.id]
-    );
-    // bu cihazda oturum acik kalsin, digerleri kapansin
-    res.setHeader("Set-Cookie", AuthLib.createSessionCookie(req, r.rows[0]));
-    sendJson(res, 200, { ok: true, message: "Şifren güncellendi. Diğer cihazlardaki oturumlar kapatıldı." });
-  } catch (err) {
-    console.error("[auth] sifre degistirme:", err.message);
-    sendJson(res, 500, { ok: false, reason: "server_error", message: "Şifre güncellenemedi. Lütfen tekrar dene." });
-  }
-}
-
-async function handleDeleteMe(req, res) {
-  const user = await currentUser(req);
-  if (!user) return sendJson(res, 401, { ok: false, reason: "unauthorized", message: "Bu işlem için giriş yapmalısın." });
-  if (!checkLimit(res, limiters.password, `u${user.id}`)) return;
-  let body;
-  try { body = await readJsonBody(req); } catch { return sendJson(res, 400, { ok: false, reason: "bad_request", message: "Geçersiz istek." }); }
-  if (!AuthLib.verifyPassword(String(body.password || ""), user.password_hash)) {
-    return sendJson(res, 400, { ok: false, reason: "wrong_password", message: "Şifre hatalı." });
-  }
-  try {
-    await getPool().query("DELETE FROM users WHERE id = $1", [user.id]);
-    res.setHeader("Set-Cookie", AuthLib.clearSessionCookie(req));
-    sendJson(res, 200, { ok: true, message: "Hesabın ve tüm kişisel verilerin silindi." });
-  } catch (err) {
-    console.error("[auth] hesap silme:", err.message);
-    sendJson(res, 500, { ok: false, reason: "server_error", message: "Hesap silinemedi. Lütfen tekrar dene." });
-  }
-}
-
-// tercihler: yalnizca bilinen alanlar, dogrulanmis degerlerle saklanir
-function cleanPrefs(input) {
-  const out = {};
-  if (typeof input.favoriteCity === "string") out.favoriteCity = input.favoriteCity.trim().slice(0, 60);
-  const mag = Number(input.quakeAlertMag);
-  if (Number.isFinite(mag)) out.quakeAlertMag = Math.min(6, Math.max(2.5, Math.round(mag * 2) / 2));
-  return out;
-}
-
-async function handleUpdatePrefs(req, res) {
-  const user = await currentUser(req);
-  if (!user) return sendJson(res, 401, { ok: false, reason: "unauthorized", message: "Bu işlem için giriş yapmalısın." });
-  let body;
-  try { body = await readJsonBody(req, 4 * 1024); } catch { return sendJson(res, 400, { ok: false, reason: "bad_request", message: "Geçersiz istek." }); }
-  const prefs = { ...(user.prefs || {}), ...cleanPrefs(body || {}) };
-  try {
-    const r = await getPool().query("UPDATE users SET prefs = $1::jsonb WHERE id = $2 RETURNING *", [JSON.stringify(prefs), user.id]);
-    sendJson(res, 200, { ok: true, user: publicUser(r.rows[0]) });
-  } catch (err) {
-    sendJson(res, 500, { ok: false, reason: "server_error", message: "Tercihler kaydedilemedi." });
-  }
-}
-
-const RESET_TTL_MS = 60 * 60 * 1000; // e-postayla giden baglanti: 1 saat
-const ADMIN_RESET_TTL_MS = 24 * 3600 * 1000; // yoneticinin olusturdugu baglanti: 24 saat
-
-async function createResetLink(req, userId, ttlMs) {
-  const pool = getPool();
-  const { token, hash } = AuthLib.createResetToken();
-  // ayni kullanicinin eski, kullanilmamis baglantilari gecersiz olsun
-  await pool.query("DELETE FROM password_resets WHERE user_id = $1 AND used_at IS NULL", [userId]);
-  // suresi gecmis/kullanilmis eski kayitlar birikmesin
-  await pool.query("DELETE FROM password_resets WHERE expires_at < now() - interval '1 day'");
-  await pool.query(
-    "INSERT INTO password_resets (user_id, token_hash, expires_at) VALUES ($1, $2, now() + $3::int * interval '1 millisecond')",
-    [userId, hash, ttlMs]
-  );
-  // token adres cubugunun # kisminda: sunucu kayitlarina ve Referer basligina dusmez
-  return `${siteOrigin(req)}/sifre-sifirla.html#t=${token}`;
-}
-
-async function handleForgotPassword(req, res) {
-  if (!(await requireDb(res))) return;
-  let body;
-  try { body = await readJsonBody(req, 4 * 1024); } catch { return sendJson(res, 400, { ok: false, reason: "bad_request", message: "Geçersiz istek." }); }
-  const email = String(body.email || "").trim().toLowerCase();
-  if (!isValidEmail(email)) return sendJson(res, 400, { ok: false, reason: "invalid_email", message: "Geçerli bir e-posta adresi gir." });
-  if (!checkLimit(res, limiters.forgotIp, HttpLib.clientIp(req))) return;
-  if (!checkLimit(res, limiters.forgotEmail, email)) return;
-
-  const mailOn = Mail.mailConfigured();
-  if (mailOn) {
-    try {
-      const r = await getPool().query("SELECT id, name FROM users WHERE email = $1", [email]);
-      const user = r.rows[0];
-      if (user) {
-        const link = await createResetLink(req, user.id, RESET_TTL_MS);
-        await Mail.sendMail({
-          to: email,
-          subject: "TürkiyeCanlı — şifre sıfırlama",
-          text: `Merhaba ${user.name},\n\nŞifreni sıfırlamak için bu bağlantıyı aç (1 saat geçerli):\n${link}\n\nBu isteği sen yapmadıysan bu e-postayı yok sayabilirsin.`,
-          html: `<p>Merhaba ${user.name.replace(/[<>&"]/g, "")},</p><p>Şifreni sıfırlamak için aşağıdaki bağlantıyı aç (1 saat geçerli):</p><p><a href="${link}">Şifremi sıfırla</a></p><p>Bu isteği sen yapmadıysan bu e-postayı yok sayabilirsin.</p>`,
-        });
-      }
-    } catch (err) {
-      console.error("[auth] sifre sifirlama istegi:", err.message);
-    }
-  }
-  // Hesabin var olup olmadigi disari sizmasin: her durumda ayni yanit
-  sendJson(res, 200, {
-    ok: true,
-    mailEnabled: mailOn,
-    message: mailOn
-      ? "Bu e-postayla kayıtlı bir hesap varsa, şifre sıfırlama bağlantısı gönderildi. Gelen kutunu (ve spam klasörünü) kontrol et."
-      : "E-posta ile sıfırlama henüz aktif değil. Site yöneticisinden şifre sıfırlama bağlantısı isteyebilirsin.",
-  });
-}
-
-async function handleResetPassword(req, res) {
-  if (!(await requireDb(res))) return;
-  if (!checkLimit(res, limiters.reset, HttpLib.clientIp(req))) return;
-  let body;
-  try { body = await readJsonBody(req, 4 * 1024); } catch { return sendJson(res, 400, { ok: false, reason: "bad_request", message: "Geçersiz istek." }); }
-  const token = String(body.token || "");
-  const password = String(body.password || "");
-  if (password.length < 8) return sendJson(res, 400, { ok: false, reason: "invalid_password", message: "Yeni şifre en az 8 karakter olmalı." });
-  const pool = getPool();
-  try {
-    const r = await pool.query(
-      "SELECT * FROM password_resets WHERE token_hash = $1 AND used_at IS NULL AND expires_at > now()",
-      [AuthLib.hashResetToken(token)]
-    );
-    const row = r.rows[0];
-    if (!row) {
-      return sendJson(res, 400, { ok: false, reason: "invalid_token", message: "Bu bağlantı geçersiz ya da süresi dolmuş. Yeni bir sıfırlama bağlantısı iste." });
-    }
-    const u = await pool.query(
-      "UPDATE users SET password_hash = $1, token_version = token_version + 1 WHERE id = $2 RETURNING *",
-      [AuthLib.hashPassword(password), row.user_id]
-    );
-    await pool.query("UPDATE password_resets SET used_at = now() WHERE id = $1", [row.id]);
-    await pool.query("DELETE FROM password_resets WHERE user_id = $1 AND used_at IS NULL", [row.user_id]);
-    if (!u.rows[0]) return sendJson(res, 400, { ok: false, reason: "invalid_token", message: "Hesap bulunamadı." });
-    res.setHeader("Set-Cookie", AuthLib.createSessionCookie(req, u.rows[0]));
-    sendJson(res, 200, { ok: true, message: "Şifren güncellendi, giriş yapıldı." });
-  } catch (err) {
-    console.error("[auth] sifre sifirlama:", err.message);
-    sendJson(res, 500, { ok: false, reason: "server_error", message: "Şifre sıfırlanamadı. Lütfen tekrar dene." });
-  }
 }
 
 // ---------- sistem durumu (alt bilgideki canli gosterge) ----------
@@ -818,7 +528,6 @@ async function handlePushSubscribe(req, res) {
   const lat = hasLoc ? Math.round(Number(body.lat) * 100) / 100 : null;
   const lon = hasLoc ? Math.round(Number(body.lon) * 100) / 100 : null;
   const radius = hasLoc && [50, 100, 250, 500].includes(Number(body.radiusKm)) ? Number(body.radiusKm) : null;
-  const user = await currentUser(req);
   try {
     await getPool().query(
       `INSERT INTO push_subscriptions (endpoint, p256dh, auth, user_id, min_mag, lat, lon, radius_km)
@@ -826,7 +535,7 @@ async function handlePushSubscribe(req, res) {
        ON CONFLICT (endpoint) DO UPDATE SET p256dh = EXCLUDED.p256dh, auth = EXCLUDED.auth,
          user_id = COALESCE(EXCLUDED.user_id, push_subscriptions.user_id), min_mag = EXCLUDED.min_mag,
          lat = EXCLUDED.lat, lon = EXCLUDED.lon, radius_km = EXCLUDED.radius_km`,
-      [sub.endpoint, sub.p256dh, sub.auth, user ? user.id : null, minMag, lat, lon, radius]
+      [sub.endpoint, sub.p256dh, sub.auth, null, minMag, lat, lon, radius]
     );
     sendJson(res, 200, { ok: true, minMag, radiusKm: radius });
   } catch (err) {
@@ -958,12 +667,12 @@ async function handleAdminStats(req, res) {
   try {
     const pool = getPool();
     const totalRes = await pool.query("SELECT COUNT(*)::int AS n FROM users");
-    const todayRes = await pool.query("SELECT COUNT(*)::int AS n FROM users WHERE created_at::date = now()::date");
+    const pushRes = await pool.query("SELECT COUNT(*)::int AS n FROM push_subscriptions");
     sendJson(res, 200, {
       ok: true,
       stats: {
         totalUsers: totalRes.rows[0].n,
-        registeredToday: todayRes.rows[0].n,
+        pushSubscribers: pushRes.rows[0].n,
         firmsKeyConfigured: !!(CONFIG.FIRMS_MAP_KEY && CONFIG.FIRMS_MAP_KEY !== "BURAYA_KENDI_ANAHTARINI_YAZ"),
         nodeVersion: process.version,
         uptimeSeconds: Math.round(process.uptime()),
@@ -983,20 +692,6 @@ async function handleAdminUsersList(req, res) {
     sendJson(res, 200, { ok: true, users: r.rows.map(publicUser) });
   } catch (err) {
     sendJson(res, 500, { ok: false, reason: "server_error", message: "Kullanıcılar alınamadı." });
-  }
-}
-
-async function handleAdminResetLink(req, res, id) {
-  if (!(await requireAdmin(req, res))) return;
-  if (!(await requireDb(res))) return;
-  try {
-    const r = await getPool().query("SELECT id FROM users WHERE id = $1", [id]);
-    if (!r.rows[0]) return sendJson(res, 404, { ok: false, reason: "not_found", message: "Kullanıcı bulunamadı." });
-    const link = await createResetLink(req, r.rows[0].id, ADMIN_RESET_TTL_MS);
-    sendJson(res, 200, { ok: true, link, expiresInHours: 24 });
-  } catch (err) {
-    console.error("[admin] sifirlama baglantisi:", err.message);
-    sendJson(res, 500, { ok: false, reason: "server_error", message: "Bağlantı oluşturulamadı." });
   }
 }
 
@@ -1041,7 +736,6 @@ function handleRobots(req, res) {
     "Disallow: /api/",
     "Disallow: /admin.html",
     "Disallow: /ayarlar.html",
-    "Disallow: /login.html",
     origin ? `Sitemap: ${origin}/sitemap.xml` : "",
     "",
   ].join("\n");
@@ -1159,17 +853,6 @@ function route(req, res) {
   if (pathname === "/api/quakes/history") return handleQuakeHistory(req, res, query);
   if (pathname === "/api/fires") return handleFires(req, res, query);
 
-  if (pathname === "/api/auth/register" && method === "POST") return handleRegister(req, res);
-  if (pathname === "/api/auth/login" && method === "POST") return handleLogin(req, res);
-  if (pathname === "/api/auth/logout" && method === "POST") return handleLogout(req, res);
-  if (pathname === "/api/auth/me" && method === "GET") return handleMe(req, res);
-  if (pathname === "/api/auth/me" && method === "PATCH") return handleUpdateMe(req, res);
-  if (pathname === "/api/auth/me" && method === "DELETE") return handleDeleteMe(req, res);
-  if (pathname === "/api/auth/password" && method === "POST") return handleChangePassword(req, res);
-  if (pathname === "/api/auth/prefs" && method === "PUT") return handleUpdatePrefs(req, res);
-  if (pathname === "/api/auth/forgot" && method === "POST") return handleForgotPassword(req, res);
-  if (pathname === "/api/auth/reset" && method === "POST") return handleResetPassword(req, res);
-
   if (pathname === "/api/admin/login" && method === "POST") return handleAdminLogin(req, res);
   if (pathname === "/api/admin/logout" && method === "POST") return handleAdminLogout(req, res);
   if (pathname === "/api/admin/session" && method === "GET") return handleAdminSession(req, res);
@@ -1177,8 +860,6 @@ function route(req, res) {
   if (pathname === "/api/admin/users" && method === "GET") return handleAdminUsersList(req, res);
   const userMatch = pathname.match(/^\/api\/admin\/users\/(\d+)$/);
   if (userMatch && method === "DELETE") return handleAdminUserDelete(req, res, userMatch[1]);
-  const resetMatch = pathname.match(/^\/api\/admin\/users\/(\d+)\/reset-link$/);
-  if (resetMatch && method === "POST") return handleAdminResetLink(req, res, resetMatch[1]);
 
   if (pathname === "/api/status" && method === "GET") return handleStatus(req, res);
   if (pathname === "/api/push/key" && method === "GET") return handlePushKey(req, res);
@@ -1188,6 +869,10 @@ function route(req, res) {
   if (pathname === "/api/push/test" && method === "POST") return handlePushTest(req, res);
   if (pathname === "/api/push/run" && method === "POST") return handlePushRun(req, res);
 
+  // kullanici hesaplari kaldirildi: eski giris/sifre sayfasi baglantilari ana sayfaya gider
+  if ((pathname === "/login.html" || pathname === "/sifre-sifirla.html") && (method === "GET" || method === "HEAD")) {
+    return HttpLib.send(req, res, 301, { ...HttpLib.securityHeaders(false), Location: "/", "Cache-Control": "public, max-age=86400" }, "");
+  }
   if (pathname === "/robots.txt" && (method === "GET" || method === "HEAD")) return handleRobots(req, res);
   if (pathname === "/sitemap.xml" && (method === "GET" || method === "HEAD")) return handleSitemap(req, res);
 

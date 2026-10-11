@@ -6,7 +6,7 @@
     setupTabs();
     setupThemeOptions();
     fillCitySelects();
-    window.HavaAuth.ready.then((user) => setupProfile(user));
+    setupPrefs();
     setupChecklist();
   });
 
@@ -51,170 +51,28 @@
   }
 
   function fillCitySelects() {
-    const cities = window.TR_CITIES || [];
-    ["fCity", "fCityGuest"].forEach((id) => {
-      const sel = document.getElementById(id);
-      if (!sel) return;
-      cities.forEach((c) => {
-        const opt = document.createElement("option");
-        opt.value = c.name;
-        opt.textContent = c.name;
-        sel.appendChild(opt);
-      });
+    const sel = document.getElementById("fCity");
+    if (!sel) return;
+    (window.TR_CITIES || []).forEach((c) => {
+      const opt = document.createElement("option");
+      opt.value = c.name;
+      opt.textContent = c.name;
+      sel.appendChild(opt);
     });
   }
 
-  function setupProfile(user) {
+  function setupPrefs() {
     const prefs = window.HavaPrefs.get();
-
-    if (user) {
-      document.getElementById("profileLoggedIn").hidden = false;
-      document.getElementById("profileGuest").hidden = true;
-
-      document.getElementById("profileAvatar").textContent = (user.name || "?").slice(0, 1).toUpperCase();
-      document.getElementById("profileNameDisplay").textContent = user.name || user.email;
-      document.getElementById("profileEmailDisplay").textContent = user.email || "";
-
-      document.getElementById("fName").value = user.name || "";
-      document.getElementById("fEmail").value = user.email || "";
-      document.getElementById("fCity").value = prefs.favoriteCity || "";
-      document.getElementById("fMag").value = prefs.quakeAlertMag;
-      document.getElementById("fMagVal").textContent = Number(prefs.quakeAlertMag).toFixed(1);
-
-      window.bindRangeFill && window.bindRangeFill(document.getElementById("fMag"));
-      document.getElementById("fMag").addEventListener("input", (e) => {
-        document.getElementById("fMagVal").textContent = Number(e.target.value).toFixed(1);
-      });
-
-      document.getElementById("profileForm").addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const name = document.getElementById("fName").value.trim();
-        if (name.length < 2) {
-          window.showToast("Görünen ad en az 2 karakter olmalı.");
-          return;
-        }
-        try {
-          const r = await fetch("/api/auth/me", {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            credentials: "same-origin",
-            body: JSON.stringify({ name }),
-          });
-          const data = await r.json();
-          if (!data.ok) {
-            window.showToast(data.message || "Profil güncellenemedi.", { accent: "var(--status-critical)" });
-            return;
-          }
-          await window.HavaAuth.refresh();
-        } catch (err) {
-          window.showToast("Sunucuya ulaşılamadı.", { accent: "var(--status-critical)" });
-          return;
-        }
-        const saved = await window.HavaPrefs.set({
-          favoriteCity: document.getElementById("fCity").value,
-          quakeAlertMag: parseFloat(document.getElementById("fMag").value),
-        });
-        document.getElementById("profileAvatar").textContent = name.slice(0, 1).toUpperCase();
-        document.getElementById("profileNameDisplay").textContent = name;
-        if (saved) window.showToast("Profil ve tercihler kaydedildi", { accent: "var(--status-good)" });
-        else window.showToast("Profil kaydedildi; tercihler yalnızca bu cihaza kaydedilebildi.", { accent: "var(--status-warning)" });
-      });
-
-      setupSecurity();
-    } else {
-      document.getElementById("profileLoggedIn").hidden = true;
-      document.getElementById("profileGuest").hidden = false;
-
-      document.getElementById("fCityGuest").value = prefs.favoriteCity || "";
-      document.getElementById("fMagGuest").value = prefs.quakeAlertMag;
-      document.getElementById("fMagValGuest").textContent = Number(prefs.quakeAlertMag).toFixed(1);
-
-      window.bindRangeFill && window.bindRangeFill(document.getElementById("fMagGuest"));
-      document.getElementById("fMagGuest").addEventListener("input", (e) => {
-        document.getElementById("fMagValGuest").textContent = Number(e.target.value).toFixed(1);
-      });
-
-      document.getElementById("guestPrefsForm").addEventListener("submit", (e) => {
-        e.preventDefault();
-        window.HavaPrefs.set({
-          favoriteCity: document.getElementById("fCityGuest").value,
-          quakeAlertMag: parseFloat(document.getElementById("fMagGuest").value),
-        });
-        window.showToast("Tercihler kaydedildi", { accent: "var(--status-good)" });
-      });
-    }
-  }
-
-  // ---------------- sifre degistirme + hesap silme ----------------
-  function fieldError(input, msg) {
-    const small = input.closest(".field").querySelector(".field-error");
-    input.classList.toggle("invalid", !!msg);
-    if (small) small.textContent = msg || "";
-  }
-
-  async function postJson(url, method, body) {
-    const r = await fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      credentials: "same-origin",
-      body: JSON.stringify(body),
-    });
-    return r.json();
-  }
-
-  function setupSecurity() {
-    const pf = document.getElementById("passwordForm");
-    pf.addEventListener("submit", async (e) => {
+    const city = document.getElementById("fCity"), mag = document.getElementById("fMag"), magVal = document.getElementById("fMagVal");
+    city.value = prefs.favoriteCity || "";
+    mag.value = prefs.quakeAlertMag;
+    magVal.textContent = Number(prefs.quakeAlertMag).toFixed(1);
+    window.bindRangeFill && window.bindRangeFill(mag);
+    mag.addEventListener("input", () => { magVal.textContent = Number(mag.value).toFixed(1); });
+    document.getElementById("prefsForm").addEventListener("submit", (e) => {
       e.preventDefault();
-      let ok = true;
-      if (!pf.current.value) { fieldError(pf.current, "Mevcut şifreni gir."); ok = false; } else fieldError(pf.current, "");
-      if (pf.next.value.length < 8) { fieldError(pf.next, "Yeni şifre en az 8 karakter olmalı."); ok = false; } else fieldError(pf.next, "");
-      if (pf.next2.value !== pf.next.value) { fieldError(pf.next2, "Şifreler eşleşmiyor."); ok = false; } else fieldError(pf.next2, "");
-      if (!ok) return;
-      const btn = pf.querySelector("button[type=submit]");
-      btn.disabled = true;
-      try {
-        const data = await postJson("/api/auth/password", "POST", { currentPassword: pf.current.value, newPassword: pf.next.value });
-        if (!data.ok) {
-          if (data.reason === "wrong_password") fieldError(pf.current, data.message);
-          window.showToast(data.message || "Şifre güncellenemedi.", { accent: "var(--status-critical)" });
-          return;
-        }
-        pf.reset();
-        window.showToast(data.message, { accent: "var(--status-good)" });
-      } catch {
-        window.showToast("Sunucuya ulaşılamadı.", { accent: "var(--status-critical)" });
-      } finally {
-        btn.disabled = false;
-      }
-    });
-
-    const df = document.getElementById("deleteForm");
-    df.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      if (!df.password.value) return fieldError(df.password, "Onay için şifreni gir.");
-      fieldError(df.password, "");
-      if (!df.confirm.checked) {
-        window.showToast("Silmek için onay kutusunu işaretle.", { accent: "var(--status-warning)" });
-        return;
-      }
-      const btn = df.querySelector("button[type=submit]");
-      btn.disabled = true;
-      try {
-        const data = await postJson("/api/auth/me", "DELETE", { password: df.password.value });
-        if (!data.ok) {
-          if (data.reason === "wrong_password") fieldError(df.password, data.message);
-          window.showToast(data.message || "Hesap silinemedi.", { accent: "var(--status-critical)" });
-          btn.disabled = false;
-          return;
-        }
-        try { localStorage.removeItem("havasite_prefs"); } catch {}
-        window.showToast(data.message, { accent: "var(--status-good)" });
-        setTimeout(() => { location.href = "index.html"; }, 1500);
-      } catch {
-        window.showToast("Sunucuya ulaşılamadı.", { accent: "var(--status-critical)" });
-        btn.disabled = false;
-      }
+      window.HavaPrefs.set({ favoriteCity: city.value, quakeAlertMag: parseFloat(mag.value) });
+      window.showToast("Tercihler kaydedildi", { accent: "var(--status-good)" });
     });
   }
 
