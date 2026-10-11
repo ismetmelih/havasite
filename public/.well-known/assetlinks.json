@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "com.turkiyecanli.app",
+        "sha256_cert_fingerprints": ["AE:C2:76:8D:D3:94:DB:76:57:7B:6A:1A:F6:A6:31:DD:55:39:EB:E5:31:1E:60:9F:E7:D7:B5:E5:57:FB:BA:D0"]
+      }
+    }]
