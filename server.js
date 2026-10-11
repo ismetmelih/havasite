@@ -375,27 +375,19 @@ function parseCsv(text) {
   });
 }
 
-async function handleFires(req, res, query) {
-  // NASA FIRMS 'country' uc noktasi gunluk araligi 1-5 ile sinirlar
-  const days = Math.min(Math.max(parseInt(query.days, 10) || 1, 1), 5);
-  const source = ["VIIRS_SNPP_NRT", "VIIRS_NOAA20_NRT", "VIIRS_NOAA21_NRT", "MODIS_NRT"].includes(query.source)
-    ? query.source
-    : "VIIRS_SNPP_NRT";
-
+async function getFires(source, days) {
   const key = CONFIG.FIRMS_MAP_KEY;
   if (!key || key === "BURAYA_KENDI_ANAHTARINI_YAZ") {
-    return sendJson(res, 200, {
+    return {
       ok: false,
       reason: "no_key",
       message: "Yangın verisi için NASA FIRMS anahtarı tanımlı değil. Ücretsiz anahtar: https://firms.modaps.eosdis.nasa.gov/api/map_key/",
       data: [],
-    });
+    };
   }
-
   const cacheKey = `fires:${source}:${days}`;
   const cached = getCache(cacheKey);
-  if (cached) return sendJson(res, 200, cached);
-
+  if (cached) return cached;
   try {
     // Dogru host: firms.modaps.eosdis.nasa.gov (eski firms.modis.gov artik cozulmuyor / kapatildi).
     // 'country/csv/.../TUR/...' bu sunucuda "Invalid API call" donuyor; bunun yerine
@@ -423,11 +415,20 @@ async function handleFires(req, res, query) {
 
     const payload = { ok: true, updated: new Date().toISOString(), count: rows.length, source, days, data: rows };
     setCache(cacheKey, payload, 5 * 60 * 1000); // 5 dk (FIRMS verisi genelde ~1-2 saatte bir guncellenir)
-    sendJson(res, 200, payload);
+    return payload;
   } catch (err) {
     console.error("[yangin] alinamadi:", String(err.message || err).slice(0, 300));
-    sendJson(res, 200, { ok: false, reason: "fetch_failed", data: [] });
+    return { ok: false, reason: "fetch_failed", data: [] };
   }
+}
+
+async function handleFires(req, res, query) {
+  // NASA FIRMS 'area' uc noktasi gunluk araligi 1-5 ile sinirlar
+  const days = Math.min(Math.max(parseInt(query.days, 10) || 1, 1), 5);
+  const source = ["VIIRS_SNPP_NRT", "VIIRS_NOAA20_NRT", "VIIRS_NOAA21_NRT", "MODIS_NRT"].includes(query.source)
+    ? query.source
+    : "VIIRS_SNPP_NRT";
+  sendJson(res, 200, await getFires(source, days));
 }
 
 // ---------- govde okuma + json yardimcilari ----------
@@ -519,21 +520,33 @@ async function handlePushSubscribe(req, res) {
   const sub = validSubscription(body.subscription);
   if (!sub) return sendJson(res, 400, { ok: false, reason: "bad_subscription", message: "Bildirim aboneliği geçersiz." });
   const minMag = Math.min(7, Math.max(3, Math.round((Number(body.minMag) || 4) * 2) / 2));
-  // konum gizlilik icin ~1 km'ye yuvarlanir; yaricap yalnizca konum varsa anlamli
-  const hasLoc = Number.isFinite(Number(body.lat)) && Number.isFinite(Number(body.lon));
+  // konum gizlilik icin ~1 km'ye yuvarlanir; hava/yangin bildirimleri ve deprem yaricapi icin gerekir
+  const hasLoc = Number.isFinite(Number(body.lat)) && Number.isFinite(Number(body.lon))
+    && Number(body.lat) > 34 && Number(body.lat) < 43.5 && Number(body.lon) > 24 && Number(body.lon) < 46;
   const lat = hasLoc ? Math.round(Number(body.lat) * 100) / 100 : null;
   const lon = hasLoc ? Math.round(Number(body.lon) * 100) / 100 : null;
+  const placeName = hasLoc ? String(body.placeName || "").replace(/[<>]/g, "").trim().slice(0, 40) || null : null;
+  const quakeOn = body.quakeOn !== false;
   const radius = hasLoc && [50, 100, 250, 500].includes(Number(body.radiusKm)) ? Number(body.radiusKm) : null;
+  const wxDaily = hasLoc && body.wxDaily === true;
+  const wxHour = Math.min(10, Math.max(5, parseInt(body.wxHour, 10) || 7));
+  const wxAlerts = hasLoc && body.wxAlerts === true;
+  const fireRadius = hasLoc && [25, 50, 100].includes(Number(body.fireRadiusKm)) ? Number(body.fireRadiusKm) : null;
+  const fireOn = !!fireRadius && body.fireOn === true;
+  if (!quakeOn && !wxDaily && !wxAlerts && !fireOn) {
+    return sendJson(res, 400, { ok: false, reason: "nothing_selected", message: "En az bir bildirim türü seç." });
+  }
   try {
     await getPool().query(
-      `INSERT INTO push_subscriptions (endpoint, p256dh, auth, user_id, min_mag, lat, lon, radius_km)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
-       ON CONFLICT (endpoint) DO UPDATE SET p256dh = EXCLUDED.p256dh, auth = EXCLUDED.auth,
-         user_id = COALESCE(EXCLUDED.user_id, push_subscriptions.user_id), min_mag = EXCLUDED.min_mag,
-         lat = EXCLUDED.lat, lon = EXCLUDED.lon, radius_km = EXCLUDED.radius_km`,
-      [sub.endpoint, sub.p256dh, sub.auth, null, minMag, lat, lon, radius]
+      `INSERT INTO push_subscriptions (endpoint, p256dh, auth, min_mag, lat, lon, radius_km, quake_on, place_name, wx_daily, wx_hour, wx_alerts, fire_on, fire_radius_km)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
+       ON CONFLICT (endpoint) DO UPDATE SET p256dh = EXCLUDED.p256dh, auth = EXCLUDED.auth, min_mag = EXCLUDED.min_mag,
+         lat = EXCLUDED.lat, lon = EXCLUDED.lon, radius_km = EXCLUDED.radius_km, quake_on = EXCLUDED.quake_on,
+         place_name = EXCLUDED.place_name, wx_daily = EXCLUDED.wx_daily, wx_hour = EXCLUDED.wx_hour,
+         wx_alerts = EXCLUDED.wx_alerts, fire_on = EXCLUDED.fire_on, fire_radius_km = EXCLUDED.fire_radius_km`,
+      [sub.endpoint, sub.p256dh, sub.auth, minMag, lat, lon, radius, quakeOn, placeName, wxDaily, wxHour, wxAlerts, fireOn, fireRadius]
     );
-    sendJson(res, 200, { ok: true, minMag, radiusKm: radius });
+    sendJson(res, 200, { ok: true, minMag, radiusKm: radius, quakeOn, wxDaily, wxHour, wxAlerts, fireOn, fireRadiusKm: fireRadius, placeName, hasLocation: hasLoc });
   } catch (err) {
     console.error("[push] abonelik:", err.message);
     sendJson(res, 500, { ok: false, reason: "server_error", message: "Abonelik kaydedilemedi." });
@@ -590,16 +603,18 @@ async function handlePushRun(req, res) {
     return sendJson(res, 401, { ok: false, reason: "unauthorized" });
   }
   if (!(await requireDb(res))) return;
-  const latest = await getLatestQuakes(150);
-  if (!latest.ok) return sendJson(res, 200, { ok: false, reason: "quakes_unavailable" });
+  const pool = getPool();
+  const result = {};
+  // her is bagimsiz: biri hata verirse digerleri yine calisir
   try {
-    const result = await Push.runQuakePush(getPool(), latest.data);
-    if (result.sent || result.removed || result.failed) console.log("[push] calisma:", JSON.stringify(result));
-    sendJson(res, 200, result);
-  } catch (err) {
-    console.error("[push] calisma hatasi:", err.message);
-    sendJson(res, 500, { ok: false, reason: "server_error" });
-  }
+    const latest = await getLatestQuakes(150);
+    result.quake = latest.ok ? await Push.runQuakePush(pool, latest.data) : { ok: false, reason: "quakes_unavailable" };
+  } catch (err) { result.quake = { ok: false, error: String(err.message).slice(0, 120) }; }
+  try { result.weather = await Push.runWeatherPush(pool); } catch (err) { result.weather = { ok: false, error: String(err.message).slice(0, 120) }; }
+  try { result.fire = await Push.runFirePush(pool, () => getFires("VIIRS_SNPP_NRT", 1)); } catch (err) { result.fire = { ok: false, error: String(err.message).slice(0, 120) }; }
+  const noisy = Object.values(result).some((r) => r && (r.sent || r.removed || r.failed || r.error));
+  if (noisy) console.log("[push] calisma:", JSON.stringify(result));
+  sendJson(res, 200, { ok: true, ...result });
 }
 
 // ---------- admin ----------

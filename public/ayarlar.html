@@ -73,35 +73,73 @@
 
     <section class="settings-panel active" id="panel-bildirimler">
       <div class="card profile-card notify-card">
-        <h3 style="margin-top:0"><span class="h-icon ic" data-icon="siren" data-icon-size="18"></span>Deprem bildirimleri</h3>
-        <p class="field-hint" style="margin-top:-6px">
-          Seçtiğin büyüklük ve üzerindeki yeni bir deprem AFAD'a düştüğünde, site kapalıyken ve telefon kilitliyken bile
-          bildirim gönderelim. Hesap gerekmez.
-        </p>
-
+        <h3 style="margin-top:0"><span class="h-icon ic" data-icon="bell" data-icon-size="18"></span>Bildirimler</h3>
+        <p class="field-hint" style="margin-top:-6px">Site kapalıyken ve telefon kilitliyken bile haber verelim. Hesap gerekmez.</p>
         <div class="notify-status" id="nfStatus" role="status">Kontrol ediliyor…</div>
 
         <form id="nfForm" class="auth-form" novalidate>
           <label class="field">
-            <span>Bildirim eşiği: <strong id="nfMagVal">4.0</strong> ve üzeri</span>
-            <input type="range" id="nfMag" min="3" max="7" step="0.5" value="4" />
-            <span class="field-hint">Türkiye'de M3+ depremler günde onlarca olabilir; M4 ve üzeri önerilir.</span>
-          </label>
-          <label class="field">
-            <span>Kapsam</span>
-            <select id="nfRadius">
-              <option value="">Tüm Türkiye</option>
-              <option value="50">Konumuma 50 km içinde</option>
-              <option value="100">Konumuma 100 km içinde</option>
-              <option value="250">Konumuma 250 km içinde</option>
-              <option value="500">Konumuma 500 km içinde</option>
+            <span>Bildirim konumu</span>
+            <select id="nfPlace">
+              <option value="">Konum seçilmedi (yalnızca tüm Türkiye depremleri)</option>
+              <option value="gps">Konumumu kullan (GPS)</option>
             </select>
-            <span class="field-hint" id="nfRadiusHint">Konum seçersen bildirimde depreme uzaklığın da yazar. Konumun yaklaşık 1 km'ye yuvarlanarak saklanır.</span>
+            <span class="field-hint">Hava özeti, hava uyarıları, yakındaki yangınlar ve deprem uzaklığı bu konuma göre hesaplanır. Konum yaklaşık 1 km'ye yuvarlanarak saklanır.</span>
           </label>
+
+          <div class="nf-group" style="--c: var(--c-quake)">
+            <label class="nf-switch"><input type="checkbox" id="nfQuakeOn" checked /><span class="ic-box"><span class="ic" data-icon="wave" data-icon-size="17"></span></span><span><b>Deprem bildirimleri</b><small>AFAD'a düşen yeni depremler</small></span></label>
+            <div class="nf-sub" id="nfQuakeOpts">
+              <label class="field">
+                <span>Büyüklük eşiği: <strong id="nfMagVal">4.0</strong> ve üzeri</span>
+                <input type="range" id="nfMag" min="3" max="7" step="0.5" value="4" />
+                <span class="field-hint">Türkiye'de M3+ depremler günde onlarca olabilir; M4 ve üzeri önerilir.</span>
+              </label>
+              <label class="field">
+                <span>Kapsam</span>
+                <select id="nfRadius">
+                  <option value="">Tüm Türkiye</option>
+                  <option value="50">Konumuma 50 km içinde</option>
+                  <option value="100">Konumuma 100 km içinde</option>
+                  <option value="250">Konumuma 250 km içinde</option>
+                  <option value="500">Konumuma 500 km içinde</option>
+                </select>
+              </label>
+            </div>
+          </div>
+
+          <div class="nf-group" style="--c: var(--c-weather)">
+            <label class="nf-switch"><input type="checkbox" id="nfWxDaily" /><span class="ic-box"><span class="ic" data-icon="cloud-sun" data-icon-size="17"></span></span><span><b>Sabah hava özeti</b><small>Günün sıcaklığı, yağış ve rüzgâr</small></span></label>
+            <div class="nf-sub" id="nfWxDailyOpts">
+              <label class="field">
+                <span>Saat</span>
+                <select id="nfWxHour">
+                  <option value="5">05:00</option><option value="6">06:00</option><option value="7" selected>07:00</option>
+                  <option value="8">08:00</option><option value="9">09:00</option><option value="10">10:00</option>
+                </select>
+              </label>
+            </div>
+            <label class="nf-switch"><input type="checkbox" id="nfWxAlerts" /><span class="ic-box" style="--c: var(--status-warning)"><span class="ic" data-icon="alert-triangle" data-icon-size="17"></span></span><span><b>Kuvvetli hava uyarıları</b><small>Bugün/yarın kuvvetli yağış, fırtına, kar, don, aşırı sıcak, gök gürültülü sağanak</small></span></label>
+          </div>
+
+          <div class="nf-group" style="--c: var(--c-fire)">
+            <label class="nf-switch"><input type="checkbox" id="nfFireOn" /><span class="ic-box"><span class="ic" data-icon="flame" data-icon-size="17"></span></span><span><b>Yakınımda yangın</b><small>Uydular yakınında yeni bir ısı noktası tespit ederse</small></span></label>
+            <div class="nf-sub" id="nfFireOpts">
+              <label class="field">
+                <span>Mesafe</span>
+                <select id="nfFireRadius">
+                  <option value="25">25 km içinde</option>
+                  <option value="50" selected>50 km içinde</option>
+                  <option value="100">100 km içinde</option>
+                </select>
+              </label>
+            </div>
+          </div>
+
           <button class="btn btn-primary btn-block" type="submit" id="nfSave">Bildirimleri aç</button>
           <div class="notify-actions" id="nfActions" hidden>
             <button class="btn btn-ghost" type="button" id="nfTest">Test bildirimi gönder</button>
-            <button class="btn btn-danger" type="button" id="nfOff">Bildirimleri kapat</button>
+            <button class="btn btn-danger" type="button" id="nfOff">Tüm bildirimleri kapat</button>
           </div>
         </form>
 
@@ -109,7 +147,7 @@
           iPhone'da bildirim alabilmek için önce siteyi ana ekrana eklemelisin: Safari'de Paylaş → <b>Ana Ekrana Ekle</b>,
           sonra uygulamayı ana ekrandan açıp bu sayfaya gel (iOS 16.4 ve üzeri).
         </p>
-        <p class="field-hint">Bildirimler bilgi amaçlıdır, resmî erken uyarı değildir. Acil durumda AFAD ve 112'yi esas al.</p>
+        <p class="field-hint">Bildirimler bilgi amaçlıdır, resmî erken uyarı değildir. Acil durumda AFAD, MGM, 112 ve 177'yi esas al.</p>
       </div>
     </section>
 
