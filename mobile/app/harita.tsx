@@ -7,7 +7,8 @@ import { scheduleOnRN } from 'react-native-worklets';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 import * as Haptics from 'expo-haptics';
 import { getCityWeather, getFires, getQuakes } from '@/src/api';
 import { useData } from '@/src/hooks';
@@ -29,6 +30,8 @@ export default function Harita() {
   const [picked, setPicked] = useState<string | null>(null);
   const [zoom, setZoom] = useState(1);
   const [box, setBox] = useState({ w: 0, h: 0 });
+  // tam ekran pencerede SafeAreaView iOS'ta boşluğu sıfır ölçebiliyor; telefonun gerçek değerleri kullanılır
+  const insets = useSafeAreaInsets();
 
   // bu ekranda telefon yan çevrilebilsin; çıkınca dikeye dön
   useEffect(() => {
@@ -104,7 +107,8 @@ export default function Harita() {
   const pick = (n: string) => { Haptics.selectionAsync(); setPicked((p) => (p === n ? null : n)); };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
+    <View style={{ flex: 1, backgroundColor: C.bg, paddingTop: Math.max(insets.top, 12), paddingBottom: Math.max(insets.bottom, 8), paddingLeft: insets.left, paddingRight: insets.right }}>
+      <StatusBar hidden />
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14, paddingTop: 6, paddingBottom: 8 }}>
         <View style={{ flex: 1 }}>
           <Segmented tone={TONE[layer]} items={LAYERS} value={layer} onChange={(k) => { setLayer(k); setPicked(null); }} />
@@ -141,6 +145,6 @@ export default function Harita() {
           </T>
         )}
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
