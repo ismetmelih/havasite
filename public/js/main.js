@@ -283,7 +283,8 @@
         </nav>
         <nav class="footer-col" aria-label="Uygulama">
           <h4>Uygulama</h4>
-          <a href="ayarlar.html#bildirimler">${ic("bell")} Deprem bildirimleri</a>
+          <a href="uygulama.html">${ic("smartphone")} Mobil uygulama</a>
+          <a href="ayarlar.html#bildirimler">${ic("bell")} Bildirimler</a>
           <a href="ayarlar.html#hazirlik">${ic("shield-check")} Deprem çantası</a>
           <a href="ayarlar.html">${ic("settings")} Ayarlar</a>
         </nav>
@@ -363,6 +364,7 @@
           <a class="em-number" href="tel:112"><div class="num">112</div><div class="lbl">Acil Çağrı Merkezi</div></a>
           <a class="em-number" href="tel:122"><div class="num">122</div><div class="lbl">AFAD İhbar Hattı</div></a>
         </div>
+        <a class="em-app" href="uygulama.html"><b>Fener SOS</b> ve kayıtlı kişilere SMS yalnızca mobil uygulamada — yakında App Store ve Google Play'de.</a>
         <div class="em-tools">
           <button class="em-tool" id="emSiren" type="button" aria-pressed="false">${window.HavaIcon("siren", { size: 22 })}<b>Siren</b><small>Yüksek sesli düdük</small></button>
           <button class="em-tool" id="emLight" type="button" aria-pressed="false">${window.HavaIcon("sun", { size: 22 })}<b>Işık sinyali</b><small>Ekran SOS yanıp söner</small></button>

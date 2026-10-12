@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<script src="/js/theme-init.js"></script>
+<title>TürkiyeCanlı Mobil Uygulama — iPhone ve Android</title>
+<meta name="description" content="TürkiyeCanlı mobil uygulaması: hava, deprem ve yangın bildirimleri, fener SOS, siren ve konumlu Güvendeyim mesajı. Yakında App Store ve Google Play'de." />
+<link rel="canonical" href="{{ORIGIN}}/uygulama.html" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="TürkiyeCanlı" />
+<meta property="og:locale" content="tr_TR" />
+<meta property="og:title" content="TürkiyeCanlı Mobil Uygulama — iPhone ve Android" />
+<meta property="og:description" content="Hava, deprem ve yangın bildirimleri, fener SOS, siren ve konumlu Güvendeyim mesajı. Yakında App Store ve Google Play'de." />
+<meta property="og:url" content="{{ORIGIN}}/uygulama.html" />
+<meta property="og:image" content="{{ORIGIN}}/img/og-card.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="icon" href="/favicon.ico" sizes="32x32" />
+<link rel="icon" type="image/svg+xml" href="img/logo.svg" />
+<link rel="manifest" href="/manifest.webmanifest" />
+<meta name="theme-color" content="#0d0f13" />
+<link rel="apple-touch-icon" href="/img/app/apple-touch-icon.png" />
+<link rel="preload" href="/fonts/satoshi-400.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="stylesheet" href="css/base.css" />
+<link rel="stylesheet" href="css/home.css" />
+<link rel="stylesheet" href="css/app-page.css" />
+</head>
+<body>
+
+<nav class="site-nav">
+  <a class="brand" href="index.html"><img src="img/logo.svg" class="brand-logo" alt="" /> Türkiye<span class="text-quake">Canlı</span></a>
+  <button class="hamburger" aria-label="Menü"><span></span><span></span><span></span></button>
+  <div class="nav-links">
+    <a href="index.html" data-page="index.html"><span class="ic nav-ic" data-icon="home" data-icon-size="16"></span>Ana Sayfa</a>
+    <a href="hava.html" data-page="hava.html"><span class="ic nav-ic" data-icon="cloud-sun" data-icon-size="16"></span>Hava Durumu</a>
+    <a href="deprem.html" data-page="deprem.html"><span class="ic nav-ic" data-icon="wave" data-icon-size="16"></span>Depremler</a>
+    <a href="yangin.html" data-page="yangin.html"><span class="ic nav-ic" data-icon="flame" data-icon-size="16"></span>Yangınlar</a>
+    <a href="uygulama.html" data-page="uygulama.html" class="active"><span class="ic nav-ic" data-icon="smartphone" data-icon-size="16"></span>Uygulama</a>
+  </div>
+  <div class="nav-account">
+    <div class="nav-actions">
+      <button class="icon-btn" id="themeToggle" type="button" aria-label="Açık/Koyu tema" title="Açık/Koyu tema"><span data-theme-icon></span></button>
+      <a class="icon-btn icon-settings" href="ayarlar.html" aria-label="Ayarlar" title="Ayarlar"><span class="ic" data-icon="settings" data-icon-size="18"></span></a>
+    </div>
+    <div class="nav-user" id="navUser"></div>
+  </div>
+</nav>
+
+<header class="ap-hero">
+  <div class="container ap-hero-grid">
+    <div class="ap-copy">
+      <span class="pill-label">Mobil uygulama · iPhone ve Android</span>
+      <h1>TürkiyeCanlı artık <span class="accent-text">cebinde.</span></h1>
+      <p class="lp-lead">
+        Sitedeki canlı haritalar, depremler, yangınlar ve hava tahmini; üstüne bildirimler, fener SOS, siren ve
+        tek dokunuşla “Güvendeyim” mesajı. Akıcı, hızlı, telefonuna göre tasarlandı.
+      </p>
+      <div class="ap-stores">
+        <span class="ap-store" aria-disabled="true">
+          <span class="ic" data-icon="smartphone" data-icon-size="22"></span>
+          <span><small>Yakında</small><b>App Store</b></span>
+        </span>
+        <span class="ap-store" aria-disabled="true">
+          <span class="ic" data-icon="smartphone" data-icon-size="22"></span>
+          <span><small>Yakında</small><b>Google Play</b></span>
+        </span>
+      </div>
+      <p class="ap-note"><span class="live-dot"></span> Uygulama mağaza incelemesinde. O zamana kadar sitenin web uygulamasını ana ekranına ekleyebilirsin:
+        <button type="button" class="ap-link" data-install>Web uygulamasını yükle</button></p>
+    </div>
+    <div class="ap-phones" aria-hidden="true">
+      <div class="ap-phone ap-phone-l"><img src="img/app-shots/hava.webp" alt="" width="640" height="1387" loading="lazy" /></div>
+      <div class="ap-phone ap-phone-c"><img src="img/app-shots/home.webp" alt="" width="640" height="1387" /></div>
+      <div class="ap-phone ap-phone-r"><img src="img/app-shots/deprem.webp" alt="" width="640" height="1387" loading="lazy" /></div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="section" id="ozel">
+    <div class="container">
+      <div class="section-head">
+        <span class="pill-label">Uygulamaya özel</span>
+        <h2>Sitede olmayan, <span class="accent-text">cebinde olan</span></h2>
+        <p>Uygulama mağazalarda yayınlandığında bildirimler ve acil durum araçları yalnızca uygulamada olacak.</p>
+      </div>
+      <div class="bento">
+        <div class="bento-item b-wide" style="--c: var(--tone-red)">
+          <span class="ic-box"><span class="ic" data-icon="bell" data-icon-size="20"></span></span>
+          <h3>Sana özel bildirimler</h3>
+          <p>Seçtiğin büyüklüğün üzerindeki depremler, her sabah hava özeti, kuvvetli yağış, fırtına, don ve aşırı sıcak uyarıları, yakınında yeni bir yangın tespiti. Telefonun kilitliyken bile.</p>
+        </div>
+        <div class="bento-item" style="--c: var(--tone-amber)">
+          <span class="ic-box"><span class="ic" data-icon="sun" data-icon-size="20"></span></span>
+          <h3>Fener SOS</h3>
+          <p>Telefonunun feneri ve ekranı birlikte ... --- ... düzeninde yanıp söner; istersen sürekli ışık.</p>
+        </div>
+        <div class="bento-item" style="--c: var(--status-critical)">
+          <span class="ic-box"><span class="ic" data-icon="siren" data-icon-size="20"></span></span>
+          <h3>Siren</h3>
+          <p>Sessizdeyken bile yüksek sesli düdük ve titreşim; enkaz altında yerini belli et.</p>
+        </div>
+        <div class="bento-item" style="--c: var(--tone-green)">
+          <span class="ic-box"><span class="ic" data-icon="check-circle" data-icon-size="20"></span></span>
+          <h3>Güvendeyim</h3>
+          <p>Konumunla birlikte hazır mesaj, kaydettiğin 3 kişiye doğrudan SMS olarak.</p>
+        </div>
+        <div class="bento-item" style="--c: var(--tone-blue)">
+          <span class="ic-box"><span class="ic" data-icon="map-pin" data-icon-size="20"></span></span>
+          <h3>Konumuna göre</h3>
+          <p>Her depremin sana uzaklığı, bulunduğun yerin havası, yakınındaki yangınlar.</p>
+        </div>
+        <div class="bento-item" style="--c: var(--accent)">
+          <span class="ic-box"><span class="ic" data-icon="smartphone" data-icon-size="20"></span></span>
+          <h3>Gerçek uygulama</h3>
+          <p>Akıcı geçişler, dokunsal geri bildirim, aşağı çekip yenileme; hesap ve reklam yok.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section ap-gallery-sec">
+    <div class="container">
+      <div class="section-head">
+        <span class="pill-label">Ekranlar</span>
+        <h2>Uygulamayı <span class="accent-text">yakından gör</span></h2>
+      </div>
+    </div>
+    <div class="ap-gallery" tabindex="0" aria-label="Uygulama ekranları">
+      <figure><div class="ap-phone"><img src="img/app-shots/home.webp" alt="Ana sayfa: canlı Türkiye haritası" width="640" height="1387" loading="lazy" /></div><figcaption><b>Ana sayfa</b>Canlı Türkiye haritası ve “Şu an Türkiye”</figcaption></figure>
+      <figure><div class="ap-phone"><img src="img/app-shots/hava.webp" alt="Hava durumu ekranı" width="640" height="1387" loading="lazy" /></div><figcaption><b>Hava</b>Anlık durum, saatlik ve 10 günlük tahmin</figcaption></figure>
+      <figure><div class="ap-phone"><img src="img/app-shots/deprem.webp" alt="Deprem listesi" width="640" height="1387" loading="lazy" /></div><figcaption><b>Deprem</b>Filtreler, sana uzaklık, detay</figcaption></figure>
+      <figure><div class="ap-phone"><img src="img/app-shots/yangin.webp" alt="Yangın ekranı" width="640" height="1387" loading="lazy" /></div><figcaption><b>Yangın</b>Isı haritası ve il il risk</figcaption></figure>
+      <figure><div class="ap-phone"><img src="img/app-shots/acil.webp" alt="Acil durum ekranı" width="640" height="1387" loading="lazy" /></div><figcaption><b>Acil</b>112, fener SOS, siren, Güvendeyim</figcaption></figure>
+    </div>
+  </section>
+
+  <section class="section" id="karsilastir">
+    <div class="container ap-compare-wrap">
+      <div class="section-head">
+        <span class="pill-label">Site mi, uygulama mı?</span>
+        <h2>İkisi de ücretsiz, <span class="accent-text">uygulama daha fazlası</span></h2>
+        <p>Site herkese açık bilgi kaynağı olarak kalıyor; kişisel ve acil durum özellikleri uygulamada.</p>
+      </div>
+      <div class="ap-compare" role="table" aria-label="Site ve uygulama karşılaştırması">
+        <div class="ap-row ap-head" role="row"><span role="columnheader"></span><span role="columnheader">Web sitesi</span><span role="columnheader">Uygulama</span></div>
+        <div class="ap-row" role="row"><span role="cell">Canlı haritalar (hava, deprem, yangın)</span><span role="cell" class="yes">✓</span><span role="cell" class="yes">✓</span></div>
+        <div class="ap-row" role="row"><span role="cell">Deprem ve yangın listeleri</span><span role="cell" class="yes">✓</span><span role="cell" class="yes">✓</span></div>
+        <div class="ap-row" role="row"><span role="cell">81 il hava tahmini</span><span role="cell" class="yes">✓</span><span role="cell" class="yes">✓</span></div>
+        <div class="ap-row" role="row"><span role="cell">Deprem, hava ve yangın bildirimleri</span><span role="cell" class="no">—</span><span role="cell" class="yes">✓</span></div>
+        <div class="ap-row" role="row"><span role="cell">Fener SOS ve siren</span><span role="cell" class="no">—</span><span role="cell" class="yes">✓</span></div>
+        <div class="ap-row" role="row"><span role="cell">Kayıtlı kişilere “Güvendeyim” SMS'i</span><span role="cell" class="no">—</span><span role="cell" class="yes">✓</span></div>
+        <div class="ap-row" role="row"><span role="cell">Konumuna göre uzaklık ve uyarılar</span><span role="cell" class="no">—</span><span role="cell" class="yes">✓</span></div>
+      </div>
+      <p class="ap-foot">Geçiş dönemi: uygulama mağazalarda yayınlanana kadar bildirimler ve acil durum araçları sitede de çalışmaya devam ediyor.</p>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer"></footer>
+
+<script src="js/main.js"></script>
+<script src="js/app-page.js"></script>
+</body>
+</html>

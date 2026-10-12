@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, Linking, Modal, Pressable, ScrollView, Share, Vibration, View } from 'react-native';
 import { setAudioModeAsync, useAudioPlayer } from 'expo-audio';
 import * as Haptics from 'expo-haptics';
+import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useKeepAwake } from 'expo-keep-awake';
 import * as Location from 'expo-location';
 import { router } from 'expo-router';
@@ -94,7 +95,7 @@ export default function Acil() {
 
         <View style={{ flexDirection: 'row', gap: 10 }}>
           <Tool label="Siren" sub="Yüksek sesli düdük" on={sirenOn} onPress={toggleSiren} icon={{ ios: 'speaker.wave.3.fill', android: 'volume_up', web: 'volume_up' }} />
-          <Tool label="Işık sinyali" sub="Ekran SOS yanar" on={light} onPress={() => setLight(true)} icon={{ ios: 'flashlight.on.fill', android: 'flashlight_on', web: 'flashlight_on' }} />
+          <Tool label="Fener" sub="SOS ya da sürekli ışık" on={light} onPress={() => setLight(true)} icon={{ ios: 'flashlight.on.fill', android: 'flashlight_on', web: 'flashlight_on' }} />
         </View>
         <Pressable disabled={sending} onPress={safe} style={({ pressed }) => ({ borderRadius: 18, padding: 18, backgroundColor: '#16a34a', flexDirection: 'row', alignItems: 'center', gap: 12, opacity: pressed || sending ? 0.8 : 1 })}>
           <SymbolView name={{ ios: 'checkmark.shield.fill', android: 'verified_user', web: 'verified_user' }} size={28} tintColor="#fff" />
@@ -141,35 +142,63 @@ function Tool({ label, sub, on, onPress, icon }: { label: string; sub: string; o
   );
 }
 
-// tam ekran SOS: ... --- ... (kısa-uzun-kısa), ekran açık kalır
+// Fener: telefonun feneri (kamera modülü üzerinden) ve ekran birlikte yanar.
+// SOS modunda ... --- ... düzeninde yanıp söner; "Sürekli" modunda açık kalır. Ekran kapanmaz.
 function SosLight({ onClose }: { onClose: () => void }) {
   useKeepAwake();
-  const [lit, setLit] = useState(false);
-  const stop = useRef(false);
+  const [perm, requestPerm] = useCameraPermissions();
+  const [mode, setMode] = useState<'sos' | 'steady'>('sos');
+  const [blink, setBlink] = useState(false);
+
   useEffect(() => {
-    const U = 220;
+    if (perm && !perm.granted && perm.canAskAgain) requestPerm();
+  }, [perm, requestPerm]);
+
+  // SOS: ... --- ... (kısa-uzun-kısa); "Sürekli" modunda zamanlayıcı çalışmaz
+  useEffect(() => {
+    if (mode !== 'sos') return;
+    let alive = true;
+    const U = 260;
     const seq: [boolean, number][] = [];
     [1, 1, 1, 3, 3, 3, 1, 1, 1].forEach((d, i) => { seq.push([true, d * U]); seq.push([false, i === 2 || i === 5 ? 3 * U : U]); });
     seq[seq.length - 1][1] = 7 * U;
     (async () => {
-      while (!stop.current) {
+      while (alive) {
         for (const [on, ms] of seq) {
-          if (stop.current) break;
-          setLit(on);
+          if (!alive) return;
+          setBlink(on);
           await new Promise((r) => setTimeout(r, ms));
         }
       }
     })();
-    return () => { stop.current = true; };
-  }, []);
+    return () => { alive = false; };
+  }, [mode]);
+
+  const lit = mode === 'steady' || blink;
+  const torch = !!perm?.granted;
+  const close = () => { setMode('sos'); setBlink(false); onClose(); };
   return (
-    <Modal visible animationType="fade" statusBarTranslucent onRequestClose={onClose}>
-      <Pressable onPress={onClose} style={{ flex: 1, backgroundColor: lit ? '#fff' : '#000', alignItems: 'center', justifyContent: 'flex-end', paddingBottom: 60 }}>
-        <View style={{ paddingVertical: 12, paddingHorizontal: 20, borderRadius: 16, backgroundColor: 'rgba(120,120,120,0.55)', alignItems: 'center' }}>
-          <T style={{ fontFamily: F.bold, color: '#fff' }}>SOS ışık sinyali</T>
-          <T style={{ color: '#eee', fontSize: 13 }}>Durdurmak için dokun</T>
+    <Modal visible animationType="fade" statusBarTranslucent onRequestClose={close}>
+      <View style={{ flex: 1, backgroundColor: lit ? '#fff' : '#000', justifyContent: 'flex-end', padding: 24, paddingBottom: 56, gap: 12 }}>
+        {torch ? <CameraView style={{ position: 'absolute', width: 1, height: 1, opacity: 0 }} facing="back" enableTorch={lit} /> : null}
+        <View style={{ padding: 16, borderRadius: 18, backgroundColor: 'rgba(90,90,90,0.75)', gap: 10 }}>
+          <T style={{ fontFamily: F.bold, color: '#fff', fontSize: 17, textAlign: 'center' }}>{mode === 'sos' ? 'Fener SOS sinyali' : 'Fener açık'}</T>
+          <T style={{ color: '#eee', fontSize: 13, textAlign: 'center' }}>
+            {torch ? 'Fener ve ekran birlikte yanıyor.' : 'Fener izni verilmedi; yalnızca ekran yanıp sönüyor. İzni telefon ayarlarından açabilirsin.'}
+          </T>
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <Pressable onPress={() => setMode('sos')} style={{ flex: 1, padding: 12, borderRadius: 12, alignItems: 'center', backgroundColor: mode === 'sos' ? C.warn : 'rgba(255,255,255,0.15)' }}>
+              <T style={{ fontFamily: F.bold, color: mode === 'sos' ? '#1b1203' : '#fff' }}>SOS</T>
+            </Pressable>
+            <Pressable onPress={() => setMode('steady')} style={{ flex: 1, padding: 12, borderRadius: 12, alignItems: 'center', backgroundColor: mode === 'steady' ? C.warn : 'rgba(255,255,255,0.15)' }}>
+              <T style={{ fontFamily: F.bold, color: mode === 'steady' ? '#1b1203' : '#fff' }}>Sürekli</T>
+            </Pressable>
+          </View>
+          <Pressable onPress={close} style={{ padding: 14, borderRadius: 12, alignItems: 'center', backgroundColor: C.critical }}>
+            <T style={{ fontFamily: F.bold, color: '#fff' }}>Feneri kapat</T>
+          </Pressable>
         </View>
-      </Pressable>
+      </View>
     </Modal>
   );
 }

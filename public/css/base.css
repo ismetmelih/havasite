@@ -2436,3 +2436,5 @@ button.ms-item:hover { background: var(--surface-hover); }
 /* genel "svg { max-width: 100% }" kurali, ozel harita katmanlarinin svg'sini 0 genislige indiriyordu */
 .leaflet-container .leaflet-pane svg { max-width: none !important; max-height: none !important; }
 .ms-new { background: color-mix(in srgb, var(--page-tone, var(--accent)) 12%, transparent); }
+.em-app { display: block; margin-bottom: 12px; padding: 10px 14px; border-radius: 12px; background: rgba(34, 211, 238, 0.1); border: 1px solid rgba(34, 211, 238, 0.35); color: #cffafe; font-size: 0.84rem; line-height: 1.5; text-decoration: none; }
+.em-app b { color: #fff; }

@@ -762,7 +762,7 @@ function siteOrigin(req) {
   return `${proto === "http" ? "http" : "https"}://${host}`;
 }
 
-const SITEMAP_PAGES = ["/", "/hava.html", "/deprem.html", "/yangin.html", "/gizlilik.html"];
+const SITEMAP_PAGES = ["/", "/hava.html", "/deprem.html", "/yangin.html", "/uygulama.html", "/gizlilik.html"];
 
 // HTML yer tutuculari: {{ORIGIN}} sitenin tam adresi, {{CONTACT_EMAIL}} KVKK iletisim adresi
 function fillPlaceholders(html, req) {

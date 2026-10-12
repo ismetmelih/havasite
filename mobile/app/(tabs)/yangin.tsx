@@ -66,7 +66,7 @@ export default function Yangin() {
         <TurkeyMap
           glow
           fillFor={(n) => { const c = counts.get(n); return c ? fireHeat(Math.sqrt(c / peak)) : null; }}
-          points={[...fires].sort((a, b) => a.frp - b.frp).slice(-1200).map((x) => ({ lat: x.lat, lon: x.lon, r: x.frp >= 45 ? 16 : x.frp >= 15 ? 12 : 9, color: x.frp >= 15 ? '#ffd166' : '#ff6b3d', opacity: 0.95 }))}
+          points={[...fires].sort((a, b) => a.frp - b.frp).slice(-1200).map((x) => ({ lat: x.lat, lon: x.lon, r: x.frp >= 45 ? 16 : x.frp >= 15 ? 12 : 9, color: x.frp >= 15 ? '#fff1b8' : '#ffc061', opacity: 1 }))}
         />
         <Muted style={{ marginTop: 0 }}>İller tespit sayısına göre ısınır; büyük sarı noktalar daha güçlü ısı kaynakları.{strongest ? ` En güçlüsü ${Math.round(strongest.frp)} MW (${nearestCity(strongest.lat, strongest.lon)}).` : ''}</Muted>
       </Card>

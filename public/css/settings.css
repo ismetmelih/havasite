@@ -344,3 +344,8 @@
 .nf-sub { padding: 4px 0 2px 50px; }
 .nf-sub[hidden] { display: none; }
 @media (max-width: 480px) { .nf-sub { padding-left: 0; } }
+
+/* mobil uygulama duyurusu */
+.app-teaser { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; margin: 4px 0 14px; border-radius: 14px; border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent); background: color-mix(in srgb, var(--accent) 8%, transparent); color: var(--text-secondary); font-size: 0.86rem; line-height: 1.5; }
+.app-teaser .ic { color: var(--accent); margin-top: 2px; flex-shrink: 0; }
+.app-teaser b { color: var(--text-primary); }
