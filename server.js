@@ -915,6 +915,14 @@ function route(req, res) {
   if (pathname === "/api/push/resubscribe" && method === "POST") return handlePushResubscribe(req, res);
   if (pathname === "/api/push/test" && method === "POST") return handlePushTest(req, res);
   if (pathname === "/api/push/run" && method === "POST") return handlePushRun(req, res);
+  // GECICI teshis: vekil sunucularin eklendigi IP basliklari (cron anahtari gerekir); hemen kaldirilacak
+  if (pathname === "/api/_ipcheck" && method === "GET") {
+    const secret = process.env.PUSH_CRON_SECRET || "";
+    if (!secret || !AuthLib.timingSafeEqualStr(String(req.headers["x-cron-secret"] || ""), secret)) return sendJson(res, 404, { ok: false });
+    const pick = {};
+    for (const k of Object.keys(req.headers)) if (/forwarded|real-ip|client-ip|viewer|cloudfront|amzn|via/i.test(k)) pick[k] = req.headers[k];
+    return sendJson(res, 200, { ok: true, remote: req.socket.remoteAddress, headers: pick });
+  }
 
   // kullanici hesaplari kaldirildi: eski giris/sifre sayfasi baglantilari ana sayfaya gider
   if ((pathname === "/login.html" || pathname === "/sifre-sifirla.html") && (method === "GET" || method === "HEAD")) {
