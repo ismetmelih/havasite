@@ -2440,3 +2440,11 @@ button.ms-item:hover { background: var(--surface-hover); }
 .em-app b { color: #fff; }
 .q-upd { font-style: normal; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.04em; padding: 2px 7px; margin-left: 6px; border-radius: 6px; vertical-align: 2px; color: var(--status-warning); background: color-mix(in srgb, var(--status-warning) 14%, transparent); border: 1px solid color-mix(in srgb, var(--status-warning) 35%, transparent); }
 .src-note { margin: 18px 0 0; font-size: 0.78rem; color: var(--text-muted); line-height: 1.6; }
+/* resmî yetki bildirimi */
+.legal-note { display: flex; gap: 14px; align-items: flex-start; margin: 26px 0 0; padding: 18px 20px; border-radius: 18px; border: 1px solid var(--border-strong); background: var(--surface); }
+.legal-note b { display: block; font-size: 0.98rem; margin-bottom: 6px; }
+.legal-note p { margin: 0; font-size: 0.84rem; line-height: 1.65; color: var(--text-secondary); }
+.legal-note a, .src-note a { color: var(--accent); }
+.legal-note .ic-box { width: 38px; height: 38px; border-radius: 11px; }
+@media (max-width: 560px) { .legal-note { flex-direction: column; } }
+.legal-note p b { display: inline; font-size: inherit; margin: 0; }

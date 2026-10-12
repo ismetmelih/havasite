@@ -297,7 +297,7 @@
         </nav>
       </div>
       <div class="container footer-bottom">
-        <span>© ${new Date().getFullYear()} TürkiyeCanlı · Resmî uyarı sistemi değildir; acil durumda AFAD ve 112'yi esas al.</span>
+        <span>© ${new Date().getFullYear()} TürkiyeCanlı · Resmî uyarı sistemi değildir. Deprem bilgilerini resmî olarak yalnızca AFAD duyurur; acil durumda AFAD ve 112'yi esas al.</span>
         <span class="sys-status" id="sysStatus"><span class="sys-dot"></span>Sistem durumu kontrol ediliyor…</span>
       </div>`;
     fetch("/api/status")

@@ -7,7 +7,7 @@ import { ago, getQuakes, haversineKm, provinceOf, quakeTime } from '@/src/api';
 import { useData } from '@/src/hooks';
 import { C, F, magTone, quakeHeat } from '@/src/theme';
 import { TurkeyMap } from '@/src/TurkeyMap';
-import { Card, Chip, H2, LiveDot, Muted, QuakeRow, Screen, Segmented, T } from '@/src/ui';
+import { Card, Chip, H2, LiveDot, Muted, OfficialNote, QuakeRow, Screen, Segmented, T } from '@/src/ui';
 
 type View_ = 'liste' | 'harita';
 const MAGS = [{ v: 0, l: 'Tümü' }, { v: 2, l: 'M2+' }, { v: 3, l: 'M3+' }, { v: 4, l: 'M4+' }];
@@ -98,6 +98,7 @@ export default function Deprem() {
           {q.error && !q.data ? <Muted style={{ textAlign: 'center' }}>Deprem verisine ulaşılamadı; aşağı çekip yenile.</Muted> : null}
         </View>
       )}
+      <OfficialNote />
     </Screen>
   );
 }

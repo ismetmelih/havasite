@@ -92,3 +92,8 @@
 @media (prefers-reduced-motion: reduce) { .ap-phone-c { animation: none; } }
 .ap-note .live-dot { margin-right: 6px; vertical-align: 1px; }
 .ap-row.ap-head span { white-space: nowrap; }
+@media (max-width: 560px) {
+  .ap-stores { flex-wrap: nowrap; }
+  .ap-store { flex: 1; min-width: 0; padding: 10px 12px; gap: 9px; }
+  .ap-store b { font-size: 1.02rem; white-space: nowrap; }
+}

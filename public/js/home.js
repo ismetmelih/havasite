@@ -1,5 +1,5 @@
 // Ana sayfa: canli Turkiye haritasi, "Su an Turkiye" panosu, son depremler,
-// model karsilastirmasi ve uygulama onizlemesi.
+// model karsilastirmasi.
 (function () {
   "use strict";
 
@@ -11,8 +11,6 @@
   const data = { temps: null, quakes: null, fires: null };
 
   document.addEventListener("DOMContentLoaded", () => {
-    tickClock();
-    setInterval(tickClock, 15000);
     initMap();
     loadTemps();
     loadQuakes();
@@ -21,15 +19,9 @@
     loadPhoneWeather();
     setInterval(loadQuakes, 60000);
     setInterval(loadFires, 5 * 60000);
-    setInterval(() => showPhoneTab((phTab + 1) % PH_TABS.length), 4800);
 
     document.querySelectorAll("[data-install]").forEach((b) => b.addEventListener("click", () => window.HavaInstall && window.HavaInstall.prompt()));
   });
-
-  function tickClock() {
-    const el = $("phClock");
-    if (el) el.textContent = new Date().toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Istanbul" });
-  }
 
   /* ---------------- yardimcilar ---------------- */
   // AFAD tarihi Turkiye saatiyle "YYYY-MM-DD HH:MM:SS"
@@ -180,8 +172,6 @@
     $("puQuakeMax").textContent = max ? `M${max.mag.toFixed(1)} ${provinceOf(max)}` : "—";
     if ($("pnQuake")) $("pnQuake").textContent = `M${last.mag.toFixed(1)} · ${provinceOf(last)}`;
 
-    phData.quake = qs.slice(0, 6).map((q) => `<div class="ph-item">${magSq(q.mag, q.magType)}<div><b>${esc(q.title)}</b><span class="meta">${Number.isFinite(q.depth) ? `${Math.round(q.depth)} km` : ""} · ${ago(quakeTime(q))}</span></div><em>${hhmm(quakeTime(q))}</em></div>`).join("");
-    if (phTab === 0 && $("phList")) $("phList").innerHTML = phData.quake;
     drawQuakes();
   }
 
@@ -195,8 +185,6 @@
       const top = [...cc.entries()].sort((a, b) => b[1] - a[1]);
       data.fires = { count: d.count, points: d.data, top: top[0] || null };
       $("puFire").textContent = top[0] ? `${top[0][0]} · ${top[0][1]} nokta` : "tespit yok";
-      phData.fire = top.slice(0, 6).map(([k, v]) =>
-        `<div class="ph-item"><span class="mag-sq${v >= 20 ? " m-strong" : ""}" style="--m:${v >= 20 ? "#ef4444" : "#f97316"}">${v}<small>NOKTA</small></span><div><b>${esc(k)}</b><span class="meta">son 24 saat · uydu tespiti</span></div><em>NASA</em></div>`).join("");
       drawFires();
     } catch {
       if ($("pnFire")) $("pnFire").textContent = "—";
@@ -235,29 +223,10 @@
     }
   }
 
-  /* ---------------- uygulama onizlemesi: depremler -> hava -> yangin ---------------- */
-  const PH_TABS = ["quake", "weather", "fire"];
-  const phData = { quake: "", weather: "", fire: "" };
-  let phTab = 0;
-  function showPhoneTab(i) {
-    const list = $("phList");
-    if (!list || !phData[PH_TABS[i]]) return;
-    phTab = i;
-    document.querySelectorAll(".ph-tabs span").forEach((t, j) => t.classList.toggle("on", j === i));
-    document.querySelectorAll(".ph-nav > span").forEach((t, j) => t.classList.toggle("on", j === i));
-    list.classList.add("swap");
-    setTimeout(() => { list.innerHTML = phData[PH_TABS[i]]; list.classList.remove("swap"); }, 230);
-  }
-  const PH_CITIES = ["İstanbul", "Ankara", "İzmir", "Antalya", "Trabzon", "Van"];
+  /* ---------------- panel ozeti: Ankara'nin anlik havasi ---------------- */
   async function loadPhoneWeather() {
     try {
       const d = await window.HavaCityWeather();
-      phData.weather = PH_CITIES.map((name) => {
-        const c = d.byName.get(name); if (!c) return "";
-        const icon = window.WeatherWMO ? window.WeatherWMO.svg(c.code, c.isDay) : "";
-        const label = window.WeatherWMO ? window.WeatherWMO.label(c.code) : "";
-        return `<div class="ph-item"><span class="ph-wx">${icon}</span><div><b>${name}</b><span class="meta">${esc(label)} · nem %${Math.round(c.humidity)}</span></div><em class="ph-t">${Math.round(c.temp)}°</em></div>`;
-      }).join("");
       const ank = d.byName.get("Ankara");
       if (ank && $("pnWx") && window.WeatherWMO) $("pnWx").textContent = `${Math.round(ank.temp)}°C · ${window.WeatherWMO.label(ank.code)}`;
     } catch { /* sessiz */ }

@@ -7,7 +7,7 @@ import { AFAD_SOURCE, ago, dayMonth, getQuakes, haversineKm, hhmm, provinceOf, q
 import { useData } from '@/src/hooks';
 import { C, F, magTone } from '@/src/theme';
 import { TurkeyMap } from '@/src/TurkeyMap';
-import { Btn, Card, MagSquare, Muted, T } from '@/src/ui';
+import { Btn, Card, MagSquare, Muted, OfficialNote, T } from '@/src/ui';
 
 function feltText(m: number) {
   if (m >= 6) return 'Çok büyük bir deprem. Geniş bir alanda şiddetle hissedilmiş olabilir; resmî açıklamaları takip et.';
@@ -81,6 +81,7 @@ export default function DepremDetay() {
           <Btn label="Paylaş" onPress={share} />
         </View>
         <Btn label="Kapat" ghost onPress={() => router.back()} />
+        <OfficialNote compact />
         <Muted style={{ textAlign: 'center' }}>{`Kaynak: ${AFAD_SOURCE}. Resmî bilgi için AFAD'ı esas al.`}</Muted>
       </ScrollView>
     </SafeAreaView>

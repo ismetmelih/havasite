@@ -30,6 +30,7 @@
 <link rel="preload" href="/fonts/satoshi-400.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="stylesheet" href="css/base.css" />
 <link rel="stylesheet" href="css/home.css" />
+<link rel="stylesheet" href="css/app-page.css" />
 </head>
 <body>
 
@@ -55,7 +56,7 @@
 <header class="lp-hero">
   <div class="container lp-hero-grid">
     <div class="lp-hero-copy">
-      <span class="pill-label">Hava · Deprem · Yangın</span>
+      <a class="announce" href="uygulama.html"><span class="announce-new">Yeni</span> iPhone ve Android uygulamamız geliyor <span class="ic" data-icon="arrow-right" data-icon-size="14"></span></a>
       <h1>Türkiye'nin nabzı, <span class="accent-text">tek ekranda canlı.</span></h1>
       <p class="lp-lead">
         Gökyüzünde, yerin altında ve ormanlarda ne olduğunu aynı haritada gör. 81 il ve 973 ilçenin havası,
@@ -134,6 +135,34 @@
     </div>
   </section>
 
+  <section class="section home-app" id="uygulama">
+    <div class="container">
+      <div class="ha-card">
+        <div class="ha-copy">
+          <span class="pill-label">Yeni · mobil uygulama</span>
+          <h2>TürkiyeCanlı artık <span class="accent-text">iPhone ve Android'de.</span></h2>
+          <p>Sitedeki her şey, üstüne telefonun için yapılmış özellikler. Ücretsiz, hesap gerekmez, reklam yok.</p>
+          <ul class="ha-feats">
+            <li><span class="ic-box" style="--c: var(--tone-red)"><span class="ic" data-icon="bell" data-icon-size="16"></span></span>Deprem, hava ve yangın bildirimleri</li>
+            <li><span class="ic-box" style="--c: var(--tone-amber)"><span class="ic" data-icon="sun" data-icon-size="16"></span></span>Fener SOS ve siren</li>
+            <li><span class="ic-box" style="--c: var(--tone-green)"><span class="ic" data-icon="check-circle" data-icon-size="16"></span></span>Kayıtlı kişilere “Güvendeyim” SMS'i</li>
+            <li><span class="ic-box" style="--c: var(--tone-blue)"><span class="ic" data-icon="map-pin" data-icon-size="16"></span></span>Konumuna göre uzaklık ve uyarılar</li>
+          </ul>
+          <div class="ap-stores">
+            <span class="ap-store" aria-disabled="true"><span class="ic" data-icon="smartphone" data-icon-size="22"></span><span><small>Yakında</small><b>App Store</b></span></span>
+            <span class="ap-store" aria-disabled="true"><span class="ic" data-icon="smartphone" data-icon-size="22"></span><span><small>Yakında</small><b>Google Play</b></span></span>
+          </div>
+          <a class="btn btn-primary btn-lg ha-cta" href="uygulama.html"><span class="ic" data-icon="smartphone" data-icon-size="18"></span> Uygulamayı yakından gör</a>
+        </div>
+        <div class="ha-phones" aria-hidden="true">
+          <div class="ap-phone ha-l"><img src="img/app-shots/acil.webp" alt="" width="640" height="1387" loading="lazy" /></div>
+          <div class="ap-phone ha-c"><img src="img/app-shots/home.webp" alt="" width="640" height="1387" loading="lazy" /></div>
+          <div class="ap-phone ha-r"><img src="img/app-shots/deprem.webp" alt="" width="640" height="1387" loading="lazy" /></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section class="section lp-latest" id="son-depremler">
     <div class="container">
       <div class="lp-head-row">
@@ -153,7 +182,7 @@
           <a class="btn btn-ghost btn-sm" href="deprem.html?v=harita"><span class="ic" data-icon="map" data-icon-size="15"></span> Deprem haritası</a>
         </div>
       </div>
-      <p class="src-note">Kaynak: T.C. İçişleri Bakanlığı Afet ve Acil Durum Yönetimi Başkanlığı (AFAD) Deprem Dairesi Başkanlığı.</p>
+      <p class="src-note">Kaynak: T.C. İçişleri Bakanlığı Afet ve Acil Durum Yönetimi Başkanlığı (AFAD) Deprem Dairesi Başkanlığı. Deprem bilgilerini kamuoyuna resmî olarak yalnızca AFAD duyurur (4 sayılı CBK m.36/2); buradaki liste resmî açıklama yerine geçmez. <a href="deprem.html#yetki">Ayrıntı</a></p>
     </div>
   </section>
 
@@ -244,35 +273,6 @@
     </div>
   </section>
 
-  <section class="section" id="uygulama">
-    <div class="container">
-      <div class="lp-app">
-        <div class="lp-app-copy">
-          <span class="pill-label">Mobil uygulama · yakında</span>
-          <h2>Hava, deprem ve yangın <span class="accent-text">cebinde.</span></h2>
-          <p>iPhone ve Android uygulamamız geliyor: bildirimler, fener SOS, siren ve kayıtlı kişilerine tek dokunuşla “Güvendeyim” mesajı. Ücretsiz, hesap gerekmez.</p>
-          <div class="lp-app-btns">
-            <a class="btn btn-primary btn-lg" href="uygulama.html"><span class="ic" data-icon="smartphone" data-icon-size="18"></span> Uygulamayı tanı</a>
-            <button type="button" class="btn btn-ghost btn-lg" data-install><span class="ic" data-icon="download" data-icon-size="18"></span> Şimdilik web uygulaması</button>
-          </div>
-        </div>
-        <div class="lp-app-visual" aria-hidden="true">
-          <div class="phone">
-            <div class="phone-notch"></div>
-            <div class="phone-screen">
-              <div class="ph-status"><span id="phClock">--:--</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
-              <div class="ph-tabs"><span class="on">Depremler</span><span>Hava</span><span>Yangın</span></div>
-              <div class="ph-list" id="phList">
-                <div class="ph-item skeleton-row"></div><div class="ph-item skeleton-row"></div><div class="ph-item skeleton-row"></div><div class="ph-item skeleton-row"></div>
-              </div>
-              <div class="ph-nav"><span class="on"><span class="ic" data-icon="wave" data-icon-size="16"></span></span><span><span class="ic" data-icon="cloud-sun" data-icon-size="16"></span></span><span><span class="ic" data-icon="flame" data-icon-size="16"></span></span><span><span class="ic" data-icon="settings" data-icon-size="16"></span></span></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
   <section class="section" id="sss">
     <div class="container lp-faq-wrap">
       <div class="section-head">
@@ -280,7 +280,7 @@
         <h2>Merak <span class="accent-text">edilenler</span></h2>
       </div>
       <div class="lp-faq">
-        <details><summary>Uygulamayı nasıl yüklerim?</summary><p>Android'de Chrome ile siteyi aç ve “Uygulamayı yükle”ye dokun. iPhone'da Safari ile aç, Paylaş simgesine ve ardından “Ana Ekrana Ekle”ye dokun. Mağaza veya hesap gerekmez.</p></details>
+        <details><summary>Mobil uygulama ne zaman çıkıyor?</summary><p>iPhone ve Android uygulamamız mağaza incelemesinde; yayınlandığında App Store ve Google Play'den ücretsiz indirebileceksin. O zamana kadar siteyi ana ekranına ekleyebilirsin: Android'de Chrome menüsünden “Uygulamayı yükle”, iPhone'da Safari'de Paylaş → “Ana Ekrana Ekle”.</p></details>
         <details><summary>Veriler nereden geliyor?</summary><p>Depremler AFAD'ın canlı servisinden gelir; AFAD'a ulaşılamazsa EMSC yedek olarak kullanılır. Yangın tespitleri NASA FIRMS uydu verisidir. Hava durumu Open-Meteo üzerinden ECMWF, GFS, ICON, ARPEGE, GEM ve UKMO modellerinden alınır.</p></details>
         <details><summary>TürkiyeCanlı resmî bir uyarı sistemi mi?</summary><p>Hayır. Bağımsız bir projedir ve resmî açık verileri gösterir. Afet ve acil durumlarda AFAD'ın, 112'nin ve yetkili kurumların duyurularını esas al.</p></details>
         <details><summary>Deprem bildirimleri nasıl çalışıyor?</summary><p>Sunucumuz AFAD verisini 2 dakikada bir kontrol eder. Seçtiğin büyüklüğün (ve istersen konumuna olan uzaklığın) üzerindeki yeni bir deprem olduğunda telefonuna bildirim gönderir. iPhone'da bildirim için önce uygulamayı ana ekrana eklemelisin (iOS 16.4+).</p></details>

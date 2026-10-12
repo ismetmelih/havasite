@@ -217,7 +217,7 @@
 
   <!-- ============ İSTATİSTİK ============ -->
   <section class="dash-view" id="view-istat">
-    <p class="field-hint" style="margin:0 0 14px">Aşağıdaki grafikler AFAD arşivinden <strong>son 30 günün</strong> Türkiye depremlerini özetler.</p>
+    <p class="field-hint" style="margin:0 0 14px">Aşağıdaki grafikler AFAD arşivinden <strong>son 30 günün</strong> Türkiye depremlerini özetler. Bu istatistikler AFAD'ın kamuya açık verisinden derlenmiştir; resmî açıklama yerine geçmez.</p>
     <div class="dash-2col">
       <section class="dash-card" style="margin:0">
         <h3><span class="h-icon ic" data-icon="bar-chart" data-icon-size="17"></span>Büyüklük dağılımı</h3>
@@ -248,7 +248,10 @@
     </section>
   </section>
 
-  <p class="src-note">Deprem verileri: T.C. İçişleri Bakanlığı Afet ve Acil Durum Yönetimi Başkanlığı (AFAD) Deprem Dairesi Başkanlığı. AFAD'a ulaşılamadığında yedek kaynak olarak EMSC (Avrupa-Akdeniz Sismoloji Merkezi) kullanılır. TürkiyeCanlı bağımsız bir projedir; AFAD ile bağlantısı yoktur.</p>
+  <aside class="legal-note" id="yetki" aria-label="Resmî açıklama yetkisi">
+    <span class="ic-box" style="--c: var(--c-quake)"><span class="ic" data-icon="shield-check" data-icon-size="18"></span></span>
+    <div><b>Resmî açıklama yetkisi AFAD'dadır</b><p>4 sayılı Cumhurbaşkanlığı Kararnamesi'nin 36. maddesinin 2. fıkrası gereği, bir depremin büyüklük ve şiddeti gibi temel bilgilerini kamuoyuna resmî olarak yalnızca <b>AFAD</b> duyurur. TürkiyeCanlı deprem verisi üretmez ya da yorumlamaz; T.C. İçişleri Bakanlığı Afet ve Acil Durum Yönetimi Başkanlığı Deprem Dairesi Başkanlığı'nın herkese açık servisindeki kayıtları otomatik olarak alıp liste, harita ve istatistik hâlinde gösterir. Buradaki bilgiler resmî açıklama yerine geçmez: AFAD kayıtları sonradan güncelleyebilir ve değişiklikler ekranımıza birkaç dakika gecikmeyle yansıyabilir. AFAD'a ulaşılamadığı nadir durumlarda geçici olarak EMSC verisi gösterilir ve bu, sayfanın başında belirtilir. Kesin ve güncel bilgi için <a href="https://deprem.afad.gov.tr" target="_blank" rel="noopener">deprem.afad.gov.tr</a> adresini esas al.</p></div>
+  </aside>
 </main>
 
 <footer class="site-footer">

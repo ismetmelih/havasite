@@ -142,6 +142,20 @@ export function Screen({ title, subtitle, children, refreshing, onRefresh, tone 
   );
 }
 
+/* ---------- resmî açıklama yetkisi bildirimi (4 sayılı CBK m.36/2) ---------- */
+export function OfficialNote({ compact }: { compact?: boolean }) {
+  return (
+    <Card style={{ gap: 6, backgroundColor: 'rgba(255,255,255,0.03)' }}>
+      <T style={{ fontFamily: F.bold, fontSize: 14 }}>{"Resmî açıklama yetkisi AFAD'dadır"}</T>
+      <T style={{ color: C.muted, fontSize: 12.5, lineHeight: 18 }}>
+        {compact
+          ? "Deprem bilgilerini kamuoyuna resmî olarak yalnızca AFAD duyurur (4 sayılı CBK m.36/2). TürkiyeCanlı AFAD'ın herkese açık verisini gösterir; resmî açıklama yerine geçmez."
+          : "4 sayılı Cumhurbaşkanlığı Kararnamesi'nin 36. maddesinin 2. fıkrası gereği, bir depremin büyüklük ve şiddeti gibi temel bilgilerini kamuoyuna resmî olarak yalnızca AFAD duyurur. TürkiyeCanlı deprem verisi üretmez ya da yorumlamaz; AFAD Deprem Dairesi Başkanlığı'nın herkese açık servisindeki kayıtları gösterir. Bu bilgiler resmî açıklama yerine geçmez; AFAD kayıtları sonradan güncelleyebilir ve değişiklikler birkaç dakika gecikmeyle yansıyabilir. Kesin bilgi için deprem.afad.gov.tr'yi esas al."}
+      </T>
+    </Card>
+  );
+}
+
 /* ---------- düğme ---------- */
 export function Btn({ label, onPress, ghost, tone = C.accent }: { label: string; onPress: () => void; ghost?: boolean; tone?: string }) {
   return (

@@ -312,3 +312,50 @@ a.flow-node:hover { border-color: color-mix(in srgb, var(--c, var(--accent)) 45%
   .tm-quakes .tm-ping, .flow-link i, .mc-dot { animation: none; }
 }
 .pulse-item b small { display: block; margin-top: 2px; font-size: 0.74rem; font-weight: 500; color: var(--text-muted); }
+
+/* ---------------- hero ustu duyuru ---------------- */
+.announce { display: inline-flex; align-items: center; gap: 10px; padding: 5px 14px 5px 5px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent); background: color-mix(in srgb, var(--accent) 8%, transparent); color: var(--text-primary); font-size: 0.86rem; font-weight: 600; transition: border-color 0.2s ease, background 0.2s ease; }
+.announce:hover { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.announce-new { padding: 3px 10px; border-radius: 999px; background: var(--accent); color: var(--accent-contrast); font-size: 0.72rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
+.announce .ic { color: var(--accent); }
+
+/* ---------------- ana sayfa: mobil uygulama ---------------- */
+.ha-card {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 30px;
+  align-items: center;
+  padding: 50px 50px 0;
+  border-radius: 28px;
+  border: 1px solid var(--border-strong);
+  background:
+    radial-gradient(600px 320px at 0% 0%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 70%),
+    radial-gradient(500px 300px at 100% 100%, color-mix(in srgb, var(--c-quake) 10%, transparent), transparent 70%),
+    var(--surface);
+  overflow: hidden;
+}
+.ha-copy { padding-bottom: 50px; position: relative; z-index: 3; }
+.ha-copy h2 { font-size: clamp(1.9rem, 4vw, 3rem); margin: 16px 0 12px; line-height: 1.06; }
+.ha-copy > p { color: var(--text-secondary); font-size: 1.04rem; margin: 0 0 18px; }
+.ha-feats { list-style: none; padding: 0; margin: 0 0 22px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; }
+.ha-feats li { display: flex; align-items: center; gap: 10px; font-size: 0.92rem; font-weight: 600; }
+.ha-feats .ic-box { width: 34px; height: 34px; border-radius: 10px; }
+.ha-cta { margin-top: 16px; }
+.ha-phones { position: relative; overflow: hidden; margin-right: -50px; display: flex; justify-content: center; align-items: flex-end; height: 470px; }
+.ha-phones .ap-phone { position: absolute; bottom: -120px; }
+.ha-c { width: 250px; z-index: 2; }
+.ha-l, .ha-r { width: 210px; bottom: -150px !important; opacity: 0.85; }
+.ha-l { transform: translateX(-52%) rotate(-7deg); }
+.ha-r { transform: translateX(52%) rotate(7deg); }
+@media (max-width: 980px) {
+  .ha-card { grid-template-columns: 1fr; padding: 34px 24px 0; }
+  .ha-copy { padding-bottom: 0; }
+  .ha-phones { height: 380px; margin-right: 0; }
+}
+@media (max-width: 560px) {
+  .ha-feats { grid-template-columns: 1fr; }
+  .ha-phones { height: 320px; margin-inline: -24px; overflow: hidden; }
+  .ha-c { width: 200px; }
+  .ha-l, .ha-r { width: 170px; }
+  .ha-cta { width: 100%; }
+}
