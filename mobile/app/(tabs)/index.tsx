@@ -6,6 +6,7 @@ import { ago, getCityWeather, getFires, getQuakes, provinceOf, quakeTime } from 
 import { useData } from '@/src/hooks';
 import { C, F, magTone, tempColor } from '@/src/theme';
 import { TurkeyMap, MapPoint } from '@/src/TurkeyMap';
+import { buildLayer } from '@/src/layers';
 import { Card, ExpandMap, H1, H2, Label, LiveDot, Muted, QuakeRow, Screen, Segmented, T } from '@/src/ui';
 import { TR_CITIES } from '@/src/data/cities';
 import { ICONS, wmoLabel } from '@/src/wmo';
@@ -58,6 +59,8 @@ export default function Home() {
     if (layer !== 'temp' || !wx.data) return undefined;
     return (n: string) => { const c = wx.data!.byName.get(n); return c ? tempColor(c.temp) : null; };
   }, [layer, wx.data]);
+  // sıcaklık katmanında il etiketleri (sığmayanlar gizlenir)
+  const labels = useMemo(() => (layer === 'temp' && wx.data ? buildLayer('temp', { wx: wx.data.byName, now: 0 }).labels : []), [layer, wx.data]);
   const points: MapPoint[] = useMemo(() => {
     if (layer === 'quake') return [...day].sort((a, b) => a.mag - b.mag).map((q) => ({ lat: q.lat, lon: q.lon, r: 5 + q.mag * 3.4, color: magTone(q.mag), opacity: 0.55, stroke: magTone(q.mag) }));
     if (layer === 'fire') return (fires.data?.data || []).slice(0, 900).map((f) => ({ lat: f.lat, lon: f.lon, r: f.frp >= 15 ? 12 : 9, color: f.frp >= 15 ? '#ffd166' : '#ff6b3d', opacity: 0.95 }));
@@ -87,7 +90,7 @@ export default function Home() {
         <Segmented items={LAYERS} value={layer} onChange={(k) => { auto.current = false; setLayer(k); }} />
         <View>
           <Pressable onPress={() => router.push({ pathname: '/harita', params: { layer } })} accessibilityLabel="Haritayı tam ekran aç">
-            <TurkeyMap fillFor={fillFor} points={points} glow={layer === 'fire'} ping={layer === 'quake' && latest ? { lat: latest.lat, lon: latest.lon, color: '#ffffff' } : null} />
+            <TurkeyMap fillFor={fillFor} points={points} labels={labels} glow={layer === 'fire'} ping={layer === 'quake' && latest ? { lat: latest.lat, lon: latest.lon, color: '#ffffff' } : null} />
           </Pressable>
           <ExpandMap layer={layer} bottom />
         </View>

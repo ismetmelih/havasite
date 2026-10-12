@@ -38,8 +38,8 @@ export function magTone(m: number) {
   return '#34d399';
 }
 
-type Stop = [number, [number, number, number]];
-function scale(stops: Stop[], v: number) {
+export type Stop = [number, [number, number, number]];
+export function scale(stops: Stop[], v: number) {
   if (v <= stops[0][0]) return `rgb(${stops[0][1].join(',')})`;
   for (let i = 0; i < stops.length - 1; i++) {
     const [x0, c0] = stops[i];

@@ -157,7 +157,7 @@ export function OfficialNote({ compact }: { compact?: boolean }) {
 }
 
 /* ---------- harita kartının köşesindeki büyütme düğmesi ---------- */
-export function ExpandMap({ layer, bottom }: { layer: 'temp' | 'quake' | 'fire'; bottom?: boolean }) {
+export function ExpandMap({ layer, bottom }: { layer: string; bottom?: boolean }) {
   return (
     <Pressable
       onPress={() => { Haptics.selectionAsync(); router.push({ pathname: '/harita', params: { layer } }); }}

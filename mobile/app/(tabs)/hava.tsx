@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -8,7 +8,9 @@ import { getCityWeather, getForecast } from '@/src/api';
 import { Place, Prefs, useData } from '@/src/hooks';
 import { C, F, tempColor } from '@/src/theme';
 import { TurkeyMap } from '@/src/TurkeyMap';
-import { Card, ExpandMap, H2, Muted, Screen, T } from '@/src/ui';
+import { Card, Chip, ExpandMap, H2, Muted, Screen, T } from '@/src/ui';
+import { buildLayer, WX_VARS, WxVar } from '@/src/layers';
+import { MapLegend, MapStats } from '@/src/MapParts';
 import { TR_CITIES } from '@/src/data/cities';
 import { ICONS, wmoIcon, wmoLabel } from '@/src/wmo';
 
@@ -19,6 +21,7 @@ const hm = (iso: string) => iso.slice(11, 16);
 
 export default function Hava() {
   const [place, setPlace] = useState<Place>(DEFAULT);
+  const [wxVar, setWxVar] = useState<WxVar>('temp');
   // şehir seçicisinden dönünce seçili şehri yeniden oku
   useFocusEffect(useCallback(() => { Prefs.getPlace().then((p) => p && setPlace((old) => (old.name === p.name && old.lat === p.lat ? old : p))); }, []));
   const fc = useData(() => getForecast(place.lat, place.lon), 10 * 60_000, [place.lat, place.lon]);
@@ -36,6 +39,8 @@ export default function Hava() {
   const allLo = days.length ? Math.min(...days.map((d) => d.lo)) : 0;
   const allHi = days.length ? Math.max(...days.map((d) => d.hi)) : 1;
   const tone = cur ? tempColor(cur.temperature_2m) : C.weather;
+
+  const layer = useMemo(() => buildLayer(wxVar, { wx: wx.data?.byName, now: 0, active: place.name }), [wxVar, wx.data, place.name]);
 
   const pickProvince = async (name: string) => {
     const c = TR_CITIES.find((x) => x.name === name);
@@ -119,11 +124,18 @@ export default function Hava() {
       ) : null}
 
       {/* 81 il haritası */}
-      <Card style={{ padding: 12, gap: 8 }}>
-        <ExpandMap layer="temp" />
+      <Card style={{ padding: 12, gap: 10 }}>
+        <ExpandMap layer={wxVar} />
         <H2>Türkiye geneli</H2>
-        <Muted style={{ marginTop: 0 }}>Bir ile dokun, o ilin havası açılsın.</Muted>
-        <TurkeyMap active={place.name} onPressProvince={pickProvince} fillFor={wx.data ? (n) => { const c = wx.data!.byName.get(n); return c ? tempColor(c.temp) : null; } : undefined} />
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+          {WX_VARS.map((v) => <Chip key={v.key} tone={C.weather} label={v.label} on={wxVar === v.key} onPress={() => setWxVar(v.key)} />)}
+        </View>
+        <View style={{ marginHorizontal: -6, borderRadius: 12, overflow: 'hidden' }}>
+          <TurkeyMap active={place.name} onPressProvince={pickProvince} fillFor={layer.fillFor} labels={layer.labels} />
+        </View>
+        <MapStats stats={layer.stats} onCity={pickProvince} />
+        {layer.legend ? <MapLegend legend={layer.legend} /> : null}
+        <Muted style={{ marginTop: 0 }}>Bir ile dokun, o ilin havası açılsın. Büyüt ile tam ekranda yakınlaştırabilirsin.</Muted>
       </Card>
       <Muted style={{ textAlign: 'center' }}>Kaynak: Open-Meteo · resmî uyarılar için MGM</Muted>
     </Screen>
