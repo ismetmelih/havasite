@@ -8,6 +8,7 @@
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
+const vm = require("vm");
 const { getPool, ensureSchema } = require("./lib/db");
 const AuthLib = require("./lib/auth");
 const HttpLib = require("./lib/http");
@@ -471,6 +472,64 @@ async function requireDb(res) {
   return true;
 }
 
+// ---------- hava: 81 ilin anlik durumu ve ana sayfa model karsilastirmasi ----------
+// Open-Meteo IP basina sinir koyuyor (cok konumlu istekte her konum ayri sayilir). Bu veriler
+// her kullanicinin tarayicisindan ayri ayri istenmesin diye sunucuda onbellege alinir; kaynak
+// cevap vermezse son basarili veri sunulur (bayat ama bos degil).
+let TR_CITY_LIST = null;
+function trCityList() {
+  if (TR_CITY_LIST) return TR_CITY_LIST;
+  const sandbox = { window: {} };
+  vm.runInNewContext(fs.readFileSync(path.join(PUBLIC_DIR, "js", "cities.js"), "utf8"), sandbox, { timeout: 1000 });
+  TR_CITY_LIST = (sandbox.window.TR_CITIES || []).map((c) => ({ name: c.name, lat: c.lat, lon: c.lon }));
+  return TR_CITY_LIST;
+}
+const wxStore = new Map(); // anahtar -> { data, at, pending }
+function cachedFetch(key, ttlMs, loader) {
+  const e = wxStore.get(key) || { data: null, at: 0, pending: null };
+  wxStore.set(key, e);
+  const fresh = e.data && Date.now() - e.at < ttlMs;
+  if (!fresh && !e.pending) {
+    e.pending = loader()
+      .then((data) => { e.data = data; e.at = Date.now(); })
+      .catch((err) => console.error(`[hava] ${key} alinamadi:`, String(err.message || err).slice(0, 160)))
+      .finally(() => { e.pending = null; });
+  }
+  // bayat veri varsa beklemeden onu don (arka planda yenilenir); hic yoksa ilk yuklemeyi bekle
+  if (e.data) return Promise.resolve({ ...e.data, stale: !fresh });
+  return (e.pending || Promise.resolve()).then(() => (e.data ? { ...e.data, stale: false } : { ok: false, reason: "unavailable" }));
+}
+async function openMeteo(params) {
+  const r = await fetchWithTimeout(`https://api.open-meteo.com/v1/forecast?${new URLSearchParams(params)}`, {}, 15000);
+  if (!r.ok) throw new Error(`open-meteo ${r.status}`);
+  return r.json();
+}
+async function handleWeatherCities(req, res) {
+  const out = await cachedFetch("cities", 10 * 60 * 1000, async () => {
+    const cities = trCityList();
+    const j = await openMeteo({
+      latitude: cities.map((c) => c.lat).join(","), longitude: cities.map((c) => c.lon).join(","),
+      current: "temperature_2m,weather_code,relative_humidity_2m,wind_speed_10m,cloud_cover,is_day", timezone: "Europe/Istanbul",
+    });
+    const arr = Array.isArray(j) ? j : [j];
+    const data = cities.map((c, i) => {
+      const cur = arr[i] && arr[i].current;
+      return cur ? { name: c.name, lat: c.lat, lon: c.lon, temp: cur.temperature_2m, code: cur.weather_code, humidity: cur.relative_humidity_2m, wind: cur.wind_speed_10m, cloud: cur.cloud_cover, isDay: cur.is_day === 1 } : null;
+    }).filter(Boolean);
+    if (data.length < 40) throw new Error("eksik veri");
+    return { ok: true, updated: new Date().toISOString(), data };
+  });
+  sendJson(res, 200, out, { "Cache-Control": "public, max-age=300" });
+}
+const HOME_MODELS = ["ecmwf_ifs025", "gfs_seamless", "icon_seamless", "meteofrance_seamless", "gem_seamless", "ukmo_seamless"];
+async function handleWeatherModels(req, res) {
+  const out = await cachedFetch("models-ankara", 60 * 60 * 1000, async () => {
+    const j = await openMeteo({ latitude: "39.92", longitude: "32.85", daily: "temperature_2m_max", models: HOME_MODELS.join(","), timezone: "Europe/Istanbul", forecast_days: "3" });
+    return { ok: true, updated: new Date().toISOString(), daily: j.daily };
+  });
+  sendJson(res, 200, out, { "Cache-Control": "public, max-age=900" });
+}
+
 // ---------- sistem durumu (alt bilgideki canli gosterge) ----------
 // Dis servislere ek sorgu yapmaz: deprem verisi zaten 25 sn onbellekte, yangin icin son
 // onbellek kaydina bakilir. Boylece her sayfa acilisi AFAD/NASA'ya fazladan istek atmaz.
@@ -837,6 +896,8 @@ function route(req, res) {
   if (pathname === "/api/quakes") return handleQuakes(req, res, query);
   if (pathname === "/api/quakes/history") return handleQuakeHistory(req, res, query);
   if (pathname === "/api/fires") return handleFires(req, res, query);
+  if (pathname === "/api/weather/cities" && method === "GET") return handleWeatherCities(req, res);
+  if (pathname === "/api/weather/models" && method === "GET") return handleWeatherModels(req, res);
 
   if (pathname === "/api/admin/login" && method === "POST") return handleAdminLogin(req, res);
   if (pathname === "/api/admin/logout" && method === "POST") return handleAdminLogout(req, res);

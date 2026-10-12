@@ -335,15 +335,12 @@
     return clamp01((t - 15) / 25) * 0.4 + clamp01((60 - h) / 60) * 0.4 + clamp01(w / 40) * 0.2;
   }
   async function loadRisk() {
-    const lats = RISK_CITIES.map((c) => c.lat).join(",");
-    const lons = RISK_CITIES.map((c) => c.lon).join(",");
     try {
-      const data = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}&current=temperature_2m,relative_humidity_2m,wind_speed_10m&timezone=Europe%2FIstanbul`).then((r) => r.json());
-      const arr = Array.isArray(data) ? data : [data];
-      const cities = arr.map((d, i) => {
-        const c = d.current;
-        return { name: RISK_CITIES[i].name, t: c.temperature_2m, h: c.relative_humidity_2m, w: c.wind_speed_10m, score: cityScore(c.temperature_2m, c.relative_humidity_2m, c.wind_speed_10m) };
-      });
+      // sunucunun ortak 81 il onbelleginden (Open-Meteo'ya kullanici basina istek gitmez)
+      const d = await window.HavaCityWeather();
+      const cities = RISK_CITIES.map((rc) => d.byName.get(rc.name)).filter(Boolean)
+        .map((x) => ({ name: x.name, t: x.temp, h: x.humidity, w: x.wind, score: cityScore(x.temp, x.humidity, x.wind) }));
+      if (!cities.length) throw new Error("veri yok");
       const avg = cities.reduce((s, c) => s + c.score, 0) / cities.length;
       state.risk = { cities, avg };
       renderRiskBanner();

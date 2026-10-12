@@ -243,12 +243,10 @@
 
   async function loadCityData() {
     const wrap = $("wxCities");
-    const lats = QUICK_CITIES.map((c) => c.lat).join(",");
-    const lons = QUICK_CITIES.map((c) => c.lon).join(",");
     try {
-      const r = await fetch(`${FORECAST_URL}?latitude=${lats}&longitude=${lons}&current=temperature_2m,weather_code,is_day&timezone=Europe%2FIstanbul`);
-      const data = await r.json();
-      const arr = Array.isArray(data) ? data : [data];
+      const d = await window.HavaCityWeather();
+      // sunucu onbelleginden; eski alan adlariyla (Open-Meteo 'current' bicimi) eslenir
+      const arr = QUICK_CITIES.map((c) => { const x = d.byName.get(c.name); return x ? { current: { temperature_2m: x.temp, weather_code: x.code, is_day: x.isDay ? 1 : 0 } } : null; });
       wrap.innerHTML = QUICK_CITIES.map((c, i) => {
         const cur = arr[i] && arr[i].current;
         if (!cur) return "";
@@ -787,19 +785,11 @@
     updateMapLegend();
   }
   async function refreshCityRows() {
-    const cities = window.TR_CITIES || [];
-    if (!cities.length) return;
     try {
-      const r = await fetch(`${FORECAST_URL}?latitude=${cities.map((c) => c.lat).join(",")}&longitude=${cities.map((c) => c.lon).join(",")}&current=temperature_2m,weather_code,relative_humidity_2m,wind_speed_10m,cloud_cover&timezone=Europe%2FIstanbul`);
-      const data = await r.json();
-      const arr = Array.isArray(data) ? data : [data];
-      state.cityRows = arr.map((d, i) => {
-        const c = cities[i];
-        if (!c || !d.current) return null;
-        return { c, temp: d.current.temperature_2m, code: d.current.weather_code, humidity: d.current.relative_humidity_2m, wind: d.current.wind_speed_10m, cloud: d.current.cloud_cover };
-      }).filter(Boolean);
+      const d = await window.HavaCityWeather();
+      state.cityRows = d.data.map((x) => ({ c: { name: x.name, lat: x.lat, lon: x.lon }, temp: x.temp, code: x.code, humidity: x.humidity, wind: x.wind, cloud: x.cloud }));
       state.cityByName = new Map(state.cityRows.map((row) => [row.c.name, row]));
-      state.mapUpdated = new Date();
+      state.mapUpdated = new Date(d.updated);
     } catch { /* sessiz */ }
   }
   async function loadMapData() {

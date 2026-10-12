@@ -698,6 +698,21 @@
   }
   window.escapeHtml = escapeHtml;
 
+  // 81 ilin anlik havasi: sunucudaki ortak onbellekten (Open-Meteo'ya kullanici basina istek gitmez).
+  // Ayni sayfadaki tum parcalar tek istegi paylasir; 5 dakikadan eskiyse yenilenir.
+  let cityWx = null, cityWxAt = 0;
+  window.HavaCityWeather = function () {
+    if (!cityWx || Date.now() - cityWxAt > 5 * 60 * 1000) {
+      cityWxAt = Date.now();
+      cityWx = fetch("/api/weather/cities").then((r) => r.json()).then((d) => {
+        if (!d.ok) throw new Error("veri yok");
+        d.byName = new Map(d.data.map((x) => [x.name, x]));
+        return d;
+      }).catch((e) => { cityWx = null; throw e; });
+    }
+    return cityWx;
+  };
+
   // deprem buyuklugu rengi (liste, kart ve harita ayni olcek)
   window.magTone = function magTone(m) {
     if (m >= 5) return "#ef4444";

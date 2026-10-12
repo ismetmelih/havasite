@@ -6,7 +6,6 @@
   const $ = (id) => document.getElementById(id);
   const esc = (s) => window.escapeHtml(String(s == null ? "" : s));
   const AY = ["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"];
-  const OM = "https://api.open-meteo.com/v1/forecast";
 
   // ortak veri (harita, pano ve onizleme ayni veriyi kullanir)
   const data = { temps: null, quakes: null, fires: null };
@@ -129,11 +128,9 @@
 
   /* ---------------- veri ---------------- */
   async function loadTemps() {
-    const cities = window.TR_CITIES || [];
-    if (!cities.length) return;
     try {
-      const d = await fetch(`${OM}?latitude=${cities.map((c) => c.lat).join(",")}&longitude=${cities.map((c) => c.lon).join(",")}&current=temperature_2m&timezone=Europe%2FIstanbul`).then((r) => r.json());
-      const arr = (Array.isArray(d) ? d : [d]).map((x, i) => ({ name: cities[i].name, t: x.current && x.current.temperature_2m })).filter((x) => Number.isFinite(x.t));
+      const d = await window.HavaCityWeather();
+      const arr = d.data.filter((x) => Number.isFinite(x.temp)).map((x) => ({ name: x.name, t: x.temp }));
       if (!arr.length) return;
       const hot = arr.reduce((a, b) => (b.t > a.t ? b : a)), cold = arr.reduce((a, b) => (b.t < a.t ? b : a));
       data.temps = { byName: new Map(arr.map((x) => [x.name, x.t])), hot, cold };
@@ -213,7 +210,8 @@
   async function loadModels() {
     if (!$("mcCard")) return;
     try {
-      const d = await fetch(`${OM}?latitude=39.92&longitude=32.85&daily=temperature_2m_max&models=${MODELS.map((m) => m[0]).join(",")}&timezone=Europe%2FIstanbul&forecast_days=3`).then((r) => r.json());
+      const d = await fetch("/api/weather/models").then((r) => r.json());
+      if (!d.ok) throw new Error("model yok");
       const vals = MODELS.map(([id, name, land]) => ({ name, land, v: (d.daily[`temperature_2m_max_${id}`] || [])[1] })).filter((m) => Number.isFinite(m.v));
       if (vals.length < 3) throw new Error("az model");
       const lo = Math.min(...vals.map((m) => m.v)), hi = Math.max(...vals.map((m) => m.v));
@@ -249,19 +247,18 @@
     list.classList.add("swap");
     setTimeout(() => { list.innerHTML = phData[PH_TABS[i]]; list.classList.remove("swap"); }, 230);
   }
-  const PH_CITIES = [["İstanbul", 41.01, 28.95], ["Ankara", 39.92, 32.85], ["İzmir", 38.42, 27.14], ["Antalya", 36.9, 30.71], ["Trabzon", 41.0, 39.72], ["Van", 38.5, 43.38]];
+  const PH_CITIES = ["İstanbul", "Ankara", "İzmir", "Antalya", "Trabzon", "Van"];
   async function loadPhoneWeather() {
     try {
-      const d = await fetch(`${OM}?latitude=${PH_CITIES.map((c) => c[1]).join(",")}&longitude=${PH_CITIES.map((c) => c[2]).join(",")}&current=temperature_2m,weather_code,is_day,relative_humidity_2m&timezone=Europe%2FIstanbul`).then((r) => r.json());
-      const arr = Array.isArray(d) ? d : [d];
-      phData.weather = arr.map((x, i) => {
-        const c = x.current; if (!c) return "";
-        const icon = window.WeatherWMO ? window.WeatherWMO.svg(c.weather_code, c.is_day === 1) : "";
-        const label = window.WeatherWMO ? window.WeatherWMO.label(c.weather_code) : "";
-        return `<div class="ph-item"><span class="ph-wx">${icon}</span><div><b>${PH_CITIES[i][0]}</b><span class="meta">${esc(label)} · nem %${Math.round(c.relative_humidity_2m)}</span></div><em class="ph-t">${Math.round(c.temperature_2m)}°</em></div>`;
+      const d = await window.HavaCityWeather();
+      phData.weather = PH_CITIES.map((name) => {
+        const c = d.byName.get(name); if (!c) return "";
+        const icon = window.WeatherWMO ? window.WeatherWMO.svg(c.code, c.isDay) : "";
+        const label = window.WeatherWMO ? window.WeatherWMO.label(c.code) : "";
+        return `<div class="ph-item"><span class="ph-wx">${icon}</span><div><b>${name}</b><span class="meta">${esc(label)} · nem %${Math.round(c.humidity)}</span></div><em class="ph-t">${Math.round(c.temp)}°</em></div>`;
       }).join("");
-      const ank = arr[1] && arr[1].current;
-      if (ank && $("pnWx") && window.WeatherWMO) $("pnWx").textContent = `${Math.round(ank.temperature_2m)}°C · ${window.WeatherWMO.label(ank.weather_code)}`;
+      const ank = d.byName.get("Ankara");
+      if (ank && $("pnWx") && window.WeatherWMO) $("pnWx").textContent = `${Math.round(ank.temp)}°C · ${window.WeatherWMO.label(ank.code)}`;
     } catch { /* sessiz */ }
   }
 })();
