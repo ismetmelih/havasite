@@ -283,7 +283,10 @@
     if (state.mapReady) { state.pm.invalidate(); return; }
     state.mapReady = true;
     state.pm = window.HavaProvMap.create({
-      el: "quakeMap", statsEl: "qMapStats", legendEl: "qMapLegend", kind: "quake",
+      el: "quakeMap", statsEl: "qMapStats", legendEl: "qMapLegend", kind: "quake", faults: true, noFill: true,
+      legendHtml: `<span class="ml-title">Büyüklük <small>nokta rengi ve boyutu</small></span>
+        <div class="ml-scale"><div class="ml-bar" style="background:linear-gradient(90deg, #34d399 0%, #22c55e 25%, #f5a524 50%, #f97316 75%, #ef4444 100%)"></div>
+        <div class="ml-ticks"><span style="left:0%">M1</span><span style="left:50%">M3</span><span style="left:100%">M5+</span></div></div>`,
       unit: "deprem", legendTitle: "Deprem sayısı",
       stops: [[0, [92, 64, 26]], [0.5, [245, 165, 36]], [1, [239, 68, 68]]],
     });
@@ -318,12 +321,9 @@
       if (newIds.has(q.id)) m.openPopup();
     });
     // sol ust ozet
-    const top = [...counts].sort((a, b) => b[1] - a[1])[0];
     const mx = list.length ? list.reduce((a, b) => (b.mag > a.mag ? b : a)) : null;
-    const tc = top && cityCenter(top[0]);
     state.pm.setStats(list.length ? `
       ${newest ? `<button type="button" class="ms-item ms-new" data-fly="${newest.lat},${newest.lon}"><span>Son deprem · ${window.escapeHtml(window.timeAgoTR(newest.date.replace(" ", "T")))}</span><b>${window.escapeHtml(provinceOf(newest) || newest.title)} <i style="color:${magColor(newest.mag)}">M${newest.mag.toFixed(1)}</i></b></button>` : ""}
-      ${top ? `<button type="button" class="ms-item"${tc ? ` data-fly="${tc.lat},${tc.lon}"` : ""}><span>En hareketli il</span><b>${window.escapeHtml(top[0])} <i style="color:var(--c-quake)">${top[1]}</i></b></button>` : ""}
       ${mx ? `<button type="button" class="ms-item" data-fly="${mx.lat},${mx.lon}"><span>En büyük</span><b>${window.escapeHtml(provinceOf(mx) || mx.title)} <i style="color:${magColor(mx.mag)}">M${mx.mag.toFixed(1)}</i></b></button>` : ""}
       <div class="ms-item"><span>Toplam</span><b>${list.length} deprem</b></div>
       <div class="ms-live"><i></i>Canlı · AFAD</div>` : `<div class="ms-item"><span>Seçili aralıkta</span><b>deprem yok</b></div>`);

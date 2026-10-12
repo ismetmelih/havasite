@@ -58,7 +58,7 @@
     const g = map.geo;
     box.innerHTML = `<svg viewBox="-6 -6 ${g.w + 12} ${g.h + 12}" preserveAspectRatio="xMidYMid meet">
       <g class="tm-provs">${g.p.map((p) => `<path d="${p.d}" data-n="${esc(p.n)}"></path>`).join("")}</g>
-      <g class="tm-fires"></g><g class="tm-quakes"></g>
+      <path class="tm-faults" d=""></path><g class="tm-fires"></g><g class="tm-quakes"></g>
     </svg>`;
     document.querySelectorAll(".tm-layers button").forEach((b) => b.addEventListener("click", () => { map.auto = false; setLayer(b.dataset.layer); }));
     map.timer = setInterval(() => {
@@ -68,6 +68,8 @@
     }, 6500);
     setLayer("temp");
     paintTemps(); drawQuakes(); drawFires();
+    // aktif fay hatlari (GEM, CC BY-SA 4.0): deprem katmaninda gorunur
+    fetch("/data/tr-faults-svg.json").then((r) => r.json()).then((f) => { const el = box.querySelector(".tm-faults"); if (el) el.setAttribute("d", f.d); }).catch(() => {});
   }
   const proj = (lat, lon) => { const g = map.geo; return [(lon - g.lon0) * g.k * g.c, (g.lat0 - lat) * g.k]; };
   function setLayer(l) {
@@ -85,7 +87,7 @@
       el.innerHTML = t ? `<b>81 ilin anlık sıcaklığı</b> · en sıcak ${esc(t.hot.name)} ${Math.round(t.hot.t)}°, en soğuk ${esc(t.cold.name)} ${Math.round(t.cold.t)}°` : "81 ilin sıcaklığı yükleniyor…";
     } else if (map.layer === "quake") {
       const q = data.quakes;
-      el.innerHTML = q ? `<b>Son 24 saatte ${q.day.length} deprem</b>${q.max ? ` · en büyüğü M${q.max.mag.toFixed(1)} ${esc(provinceOf(q.max))}` : ""}` : "Depremler yükleniyor…";
+      el.innerHTML = q ? `<b>Son 24 saatte ${q.day.length} deprem</b>${q.max ? ` · en büyüğü M${q.max.mag.toFixed(1)} ${esc(provinceOf(q.max))}` : ""} · <span class="tm-fault-key">kırmızı çizgiler: fay hatları</span>` : "Depremler yükleniyor…";
     } else {
       const f = data.fires;
       el.innerHTML = f ? `<b>Son 24 saatte ${f.count} ısı noktası</b>${f.top ? ` · en çok ${esc(f.top[0])} (${f.top[1]})` : ""}` : "Uydu verisi yükleniyor…";
