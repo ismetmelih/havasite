@@ -2,7 +2,7 @@
 // Sokak seviyesine kadar yakınlaşma; hava (il renkleri + değerler), deprem (noktalar + aktif faylar),
 // yangın (uydu ısı noktaları). Noktaya, fay hattına veya ile dokununca bilgi kartı.
 import { useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, View } from 'react-native';
+import { Animated, Pressable, ScrollView, View } from 'react-native';
 import MapView, { Circle, Marker, Polygon, Polyline, Region } from 'react-native-maps';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -148,6 +148,11 @@ export default function Harita() {
             );
           }) : null}
 
+          {panel === 'quake' && quakes[0] ? (
+            <Marker key={`latest-${quakes[0].id}`} coordinate={{ latitude: quakes[0].lat, longitude: quakes[0].lon }} anchor={{ x: 0.5, y: 0.5 }} tracksViewChanges zIndex={2000} onPress={() => pickQuake(quakes[0].id)}>
+              <LatestPin when={ago(quakeTime(quakes[0]))} />
+            </Marker>
+          ) : null}
           {panel === 'fire' ? L.points.map((p, i) => (
             <Circle key={`fi${i}`} center={{ latitude: p.lat, longitude: p.lon }} radius={fireR * (p.r / 9)} fillColor={p.color} strokeColor="rgba(255,90,40,0.6)" strokeWidth={1} />
           )) : null}
@@ -207,6 +212,30 @@ export default function Harita() {
         )}
         {L.legend && !sf && !faultHelp ? <MapLegend legend={L.legend} /> : null}
       </View>
+    </View>
+  );
+}
+
+// en son deprem: genişleyen halkalar + "SON DEPREM" etiketi
+function LatestPin({ when }: { when: string }) {
+  const [v] = useState(() => new Animated.Value(0));
+  useEffect(() => {
+    const loop = Animated.loop(Animated.timing(v, { toValue: 1, duration: 1800, useNativeDriver: true }));
+    loop.start();
+    return () => loop.stop();
+  }, [v]);
+  const ring = (d: number) => ({
+    position: 'absolute' as const, width: 22, height: 22, borderRadius: 11, borderWidth: 2.5, borderColor: '#fff', top: 49, left: 64,
+    opacity: v.interpolate({ inputRange: [0, 1], outputRange: [d ? 0.6 : 1, 0] }),
+    transform: [{ scale: v.interpolate({ inputRange: [0, 1], outputRange: [0.6 + d, 3 + d] }) }],
+  });
+  return (
+    <View style={{ width: 150, height: 120, alignItems: 'center' }} pointerEvents="none">
+      <View style={{ paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999, backgroundColor: '#fff', marginTop: 12 }}>
+        <T style={{ fontSize: 10, fontFamily: F.bold, color: '#0d0f13', letterSpacing: 0.6 }}>SON DEPREM · {when}</T>
+      </View>
+      <Animated.View style={ring(0)} />
+      <Animated.View style={ring(0.5)} />
     </View>
   );
 }

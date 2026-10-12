@@ -103,6 +103,8 @@ function sendJson(res, status, obj, extraHeaders) {
 // ---------- hiz sinirlama ----------
 const limiters = {
   admin: HttpLib.createRateLimiter({ windowMs: 15 * 60 * 1000, max: 5 }),
+  // tum IP'lerden toplam basarisiz admin denemesi (dagitik kaba kuvvete karsi)
+  adminAll: HttpLib.createRateLimiter({ windowMs: 15 * 60 * 1000, max: 30 }),
   pushSub: HttpLib.createRateLimiter({ windowMs: 60 * 60 * 1000, max: 30 }),
   pushTest: HttpLib.createRateLimiter({ windowMs: 15 * 60 * 1000, max: 5 }),
 };
@@ -209,7 +211,7 @@ function normalizeAfadQuake(item) {
     id: item.eventID,
     title: item.location || [item.district, item.province].filter(Boolean).join(", ") || "Türkiye",
     mag,
-    magType: item.type || null,
+    magType: /^[A-Za-z]{1,4}$/.test(String(item.type || "")) ? String(item.type) : null,
     depth: parseFloat(item.depth),
     date: dateStr,
     lat: Number.isFinite(lat) ? lat : null,
@@ -634,6 +636,7 @@ async function handlePushResubscribe(req, res) {
 }
 
 async function handlePushUnsubscribe(req, res) {
+  if (!checkLimit(res, limiters.pushSub, HttpLib.clientIp(req))) return;
   if (!(await requireDb(res))) return;
   let body;
   try { body = await readJsonBody(req, 4 * 1024); } catch { return sendJson(res, 400, { ok: false, reason: "bad_request", message: "Geçersiz istek." }); }
@@ -711,6 +714,7 @@ async function handleAdminLogin(req, res) {
   const emailOk = AuthLib.timingSafeEqualStr(email, expectedEmail);
   const passwordOk = AuthLib.timingSafeEqualStr(password, process.env.ADMIN_PASSWORD);
   if (!emailOk || !passwordOk) {
+    if (!checkLimit(res, limiters.adminAll, "all")) return;
     return sendJson(res, 401, { ok: false, reason: "invalid_credentials", message: "Yönetici e-postası veya şifresi hatalı." });
   }
   res.setHeader("Set-Cookie", AuthLib.createAdminSessionCookie(req));
@@ -915,14 +919,6 @@ function route(req, res) {
   if (pathname === "/api/push/resubscribe" && method === "POST") return handlePushResubscribe(req, res);
   if (pathname === "/api/push/test" && method === "POST") return handlePushTest(req, res);
   if (pathname === "/api/push/run" && method === "POST") return handlePushRun(req, res);
-  // GECICI teshis: vekil sunucularin eklendigi IP basliklari (cron anahtari gerekir); hemen kaldirilacak
-  if (pathname === "/api/_ipcheck" && method === "GET") {
-    const secret = process.env.PUSH_CRON_SECRET || "";
-    if (!secret || !AuthLib.timingSafeEqualStr(String(req.headers["x-cron-secret"] || ""), secret)) return sendJson(res, 404, { ok: false });
-    const pick = {};
-    for (const k of Object.keys(req.headers)) if (/forwarded|real-ip|client-ip|viewer|cloudfront|amzn|via/i.test(k)) pick[k] = req.headers[k];
-    return sendJson(res, 200, { ok: true, remote: req.socket.remoteAddress, headers: pick });
-  }
 
   // kullanici hesaplari kaldirildi: eski giris/sifre sayfasi baglantilari ana sayfaya gider
   if ((pathname === "/login.html" || pathname === "/sifre-sifirla.html") && (method === "GET" || method === "HEAD")) {

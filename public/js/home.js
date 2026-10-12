@@ -110,7 +110,8 @@
       const [x, y] = proj(q.lat, q.lon);
       const r = 4 + q.mag * 3;
       return `<circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="${r.toFixed(1)}" style="--m:${magColor(q.mag)}"></circle>`;
-    }).join("") + (latest ? (() => { const [x, y] = proj(latest.lat, latest.lon); return `<circle class="tm-ping" cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="10"></circle>`; })() : "");
+    }).join("") + (latest ? (() => { const [x, y] = proj(latest.lat, latest.lon); return `<circle class="tm-ping" cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="10"></circle><circle class="tm-ping d2" cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="10"></circle>
+      <g class="tm-latest" transform="translate(${x.toFixed(0)},${(y - 34).toFixed(0)})"><rect x="-38" y="-17" width="76" height="30" rx="15"></rect><text y="5" text-anchor="middle">SON</text></g>`; })() : "");
     caption();
   }
   function drawFires() {
@@ -150,12 +151,12 @@
     const ic = (n) => window.HavaIcon(n, { size: 13 });
 
     if (list) {
-      list.innerHTML = qs.slice(0, 5).map((q) => {
+      list.innerHTML = qs.slice(0, 5).map((q, i) => {
         const t = quakeTime(q);
-        return `<a class="lp-q" href="deprem.html?v=liste">
+        return `<a class="lp-q${i === 0 ? " q-latest" : ""}" href="deprem.html?v=liste">
           ${magSq(q.mag, q.magType)}
           <div class="lp-q-main">
-            <b>${esc(q.title)}</b>
+            <b>${i === 0 ? '<em class="q-new"><i></i>SON</em>' : ""}${esc(q.title)}</b>
             <div class="lp-q-meta">
               ${q.neighborhood ? `<span>${ic("home")} ${esc(q.neighborhood)} Mah.</span>` : ""}
               <span>${ic("ruler")} ${Number.isFinite(q.depth) ? `${Math.round(q.depth * 10) / 10} km derinlik` : "derinlik —"}</span>

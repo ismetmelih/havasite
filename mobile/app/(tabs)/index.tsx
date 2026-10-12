@@ -122,8 +122,8 @@ export default function Home() {
           <H2>Son depremler</H2>
           <Pressable onPress={() => router.navigate('/deprem')}><T style={{ color: C.accent, fontFamily: F.bold, fontSize: 14 }}>Tümü</T></Pressable>
         </View>
-        {(quakes.data?.data || []).slice(0, 5).map((q) => (
-          <QuakeRow key={q.id} q={q} onPress={() => router.push({ pathname: '/deprem-detay', params: { id: q.id } })} />
+        {(quakes.data?.data || []).slice(0, 5).map((q, i) => (
+          <QuakeRow key={q.id} q={q} latest={i === 0} onPress={() => router.push({ pathname: '/deprem-detay', params: { id: q.id } })} />
         ))}
         {quakes.error && !quakes.data ? <Muted>Deprem verisine şu an ulaşılamıyor; aşağı çekip yenile.</Muted> : null}
       </View>

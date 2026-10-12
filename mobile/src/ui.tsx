@@ -96,13 +96,30 @@ export function Chip({ label, on, onPress, tone = C.accent }: { label: string; o
 }
 
 /* ---------- deprem satırı (site ile aynı kart) ---------- */
-export function QuakeRow({ q, onPress, distKm }: { q: Quake; onPress?: () => void; distKm?: number | null }) {
+// en son deprem rozeti: yanıp sönen "SON"
+export function LatestBadge() {
+  const [v] = useState(() => new Animated.Value(0));
+  useEffect(() => {
+    const loop = Animated.loop(Animated.sequence([Animated.timing(v, { toValue: 1, duration: 700, useNativeDriver: true }), Animated.timing(v, { toValue: 0, duration: 700, useNativeDriver: true })]));
+    loop.start();
+    return () => loop.stop();
+  }, [v]);
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999, backgroundColor: C.critical }}>
+      <Animated.View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#fff', opacity: v.interpolate({ inputRange: [0, 1], outputRange: [1, 0.25] }) }} />
+      <Text style={{ color: '#fff', fontFamily: F.bold, fontSize: 10, letterSpacing: 0.8 }}>SON</Text>
+    </View>
+  );
+}
+
+export function QuakeRow({ q, onPress, distKm, latest }: { q: Quake; onPress?: () => void; distKm?: number | null; latest?: boolean }) {
   const t = quakeTime(q);
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [s.qrow, pressed && { opacity: 0.7 }]}>
+    <Pressable onPress={onPress} style={({ pressed }) => [s.qrow, latest && { borderColor: C.critical + '77', backgroundColor: '#1d1416' }, pressed && { opacity: 0.7 }]}>
       <MagSquare mag={q.mag} size={50} unit={q.magType || 'MAG'} />
       <View style={{ flex: 1, minWidth: 0 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          {latest ? <LatestBadge /> : null}
           <T style={{ fontFamily: F.bold, fontSize: 15, flexShrink: 1 }} numberOfLines={1}>{q.title}</T>
           {q.updated ? <T style={s.upd}>güncellendi</T> : null}
         </View>

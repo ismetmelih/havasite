@@ -79,8 +79,8 @@ export default function Deprem() {
         </>
       ) : (
         <View style={{ gap: 8 }}>
-          {list.slice(0, 150).map((x) => (
-            <QuakeRow key={x.id} q={x} distKm={me ? haversineKm(me, x) : null} onPress={() => router.push({ pathname: '/deprem-detay', params: { id: x.id } })} />
+          {list.slice(0, 150).map((x, i) => (
+            <QuakeRow key={x.id} q={x} latest={i === 0} distKm={me ? haversineKm(me, x) : null} onPress={() => router.push({ pathname: '/deprem-detay', params: { id: x.id } })} />
           ))}
           {!list.length && !q.loading ? <Muted style={{ textAlign: 'center', marginTop: 20 }}>Filtreye uyan deprem yok.</Muted> : null}
           {q.error && !q.data ? <Muted style={{ textAlign: 'center' }}>Deprem verisine ulaşılamadı; aşağı çekip yenile.</Muted> : null}

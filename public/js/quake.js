@@ -231,10 +231,12 @@
     const dist = state.userPos && q.lat != null ? `<span>${ic("navigation")} ${D.haversineKm(state.userPos, { lat: q.lat, lon: q.lon })} km uzakta</span>` : "";
     const [ymd, hms] = q.date.split(" ");
     const [, mo, d] = ymd.split("-");
-    return `<div class="lp-q q-row${flash ? " flash" : ""}" role="button" tabindex="0" style="--i:${Math.min(i, 14)}" data-id="${q.id}" data-lat="${q.lat}" data-lon="${q.lon}">
+    // liste yeniden eskiye sirali: ilk satir en son deprem
+    const latest = i === 0;
+    return `<div class="lp-q q-row${flash ? " flash" : ""}${latest ? " q-latest" : ""}" role="button" tabindex="0" style="--i:${Math.min(i, 14)}" data-id="${q.id}" data-lat="${q.lat}" data-lon="${q.lon}">
       <span class="mag-sq${q.mag >= 4 ? " m-strong" : ""}" style="--m:${magColor(q.mag)}">${q.mag.toFixed(1)}<small>${window.escapeHtml(q.magType || "MAG")}</small></span>
       <div class="lp-q-main">
-        <b>${window.escapeHtml(q.title)}${q.updated ? ' <em class="q-upd">güncellendi</em>' : ""}</b>
+        <b>${latest ? '<em class="q-new"><i></i>SON</em>' : ""}${window.escapeHtml(q.title)}${q.updated ? ' <em class="q-upd">güncellendi</em>' : ""}</b>
         <div class="lp-q-meta">${q.neighborhood ? `<span>${ic("home")} ${window.escapeHtml(q.neighborhood)} Mah.</span>` : ""}<span>${ic("ruler")} ${q.depth} km</span><span>${ic("clock")} ${window.timeAgoTR(q.date.replace(" ", "T"))}</span>${dist}<span class="lp-q-coord">${ic("map-pin")} ${q.lat.toFixed(2)}, ${q.lon.toFixed(2)}</span></div>
       </div>
       <div class="lp-q-time"><b>${(hms || "").slice(0, 5)}</b><span>${+d} ${AY[+mo - 1]}</span></div>
@@ -312,14 +314,22 @@
     [...list].sort((a, b) => a.mag - b.mag).forEach((q) => {
       const color = magColor(q.mag);
       const m = L.circleMarker([q.lat, q.lon], { pane: "points", radius: 3 + q.mag * 2.2, color: "#fff", weight: 1, opacity: 0.7, fillColor: color, fillOpacity: 0.85 }).addTo(state.layer);
-      m.bindPopup(`<div class="map-pop"><strong>${q.magType || "M"} ${q.mag.toFixed(1)} — ${window.escapeHtml(q.title)}</strong>${q.neighborhood ? `<br/>${window.escapeHtml(q.neighborhood)} Mah.` : ""}<br/>Derinlik: ${q.depth} km · ${window.escapeHtml(window.timeAgoTR(q.date.replace(" ", "T")))}<br/>${window.escapeHtml(q.date)}${q.updated ? " · AFAD güncelledi" : ""}</div>`);
+      m.bindPopup(`<div class="map-pop"><strong>${window.escapeHtml(q.magType || "M")} ${q.mag.toFixed(1)} — ${window.escapeHtml(q.title)}</strong>${q.neighborhood ? `<br/>${window.escapeHtml(q.neighborhood)} Mah.` : ""}<br/>Derinlik: ${q.depth} km · ${window.escapeHtml(window.timeAgoTR(q.date.replace(" ", "T")))}<br/>${window.escapeHtml(q.date)}${q.updated ? " · AFAD güncelledi" : ""}</div>`);
       m._qid = q.id;
-      if (q === newest || now - new Date(q.date.replace(" ", "T")).getTime() < 3600000) {
+      if (q !== newest && now - new Date(q.date.replace(" ", "T")).getTime() < 3600000) {
         const s = Math.round(10 + q.mag * 5);
         L.marker([q.lat, q.lon], { pane: "points", interactive: false, keyboard: false, icon: L.divIcon({ className: "", html: `<div class="pulse-marker"><div class="ring" style="width:${s}px;height:${s}px;border:1.5px solid ${color}"></div></div>`, iconSize: [0, 0] }) }).addTo(state.layer);
       }
       if (newIds.has(q.id)) m.openPopup();
     });
+    // en son deprem: dalga gibi genisleyen halkalar + "SON DEPREM" etiketi
+    if (newest) {
+      const c = magColor(newest.mag);
+      L.marker([newest.lat, newest.lon], {
+        pane: "points", interactive: false, keyboard: false, zIndexOffset: 1000,
+        icon: L.divIcon({ className: "", iconSize: [0, 0], html: `<div class="latest-mark" style="--lc:${c}"><i></i><i></i><i></i><b>SON DEPREM · ${window.escapeHtml(window.timeAgoTR(newest.date.replace(" ", "T")))}</b></div>` }),
+      }).addTo(state.layer);
+    }
     // sol ust ozet
     const mx = list.length ? list.reduce((a, b) => (b.mag > a.mag ? b : a)) : null;
     state.pm.setStats(list.length ? `
