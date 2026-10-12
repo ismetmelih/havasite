@@ -7,7 +7,7 @@ import { ago, getQuakes, haversineKm, provinceOf, quakeTime } from '@/src/api';
 import { useData } from '@/src/hooks';
 import { C, F, magTone, quakeHeat } from '@/src/theme';
 import { TurkeyMap } from '@/src/TurkeyMap';
-import { Card, Chip, H2, LiveDot, Muted, OfficialNote, QuakeRow, Screen, Segmented, T } from '@/src/ui';
+import { Card, Chip, ExpandMap, H2, LiveDot, Muted, OfficialNote, QuakeRow, Screen, Segmented, T } from '@/src/ui';
 
 type View_ = 'liste' | 'harita';
 const MAGS = [{ v: 0, l: 'Tümü' }, { v: 2, l: 'M2+' }, { v: 3, l: 'M3+' }, { v: 4, l: 'M4+' }];
@@ -68,6 +68,7 @@ export default function Deprem() {
       {view === 'harita' ? (
         <>
           <Card style={{ padding: 12, gap: 8 }}>
+            <ExpandMap layer="quake" />
             <TurkeyMap
               fillFor={(n) => { const c = counts.get(n); return c ? quakeHeat(Math.sqrt(c / peak)) : null; }}
               points={[...list].sort((a, b) => a.mag - b.mag).map((x) => ({ lat: x.lat, lon: x.lon, r: 5 + x.mag * 3.4, color: magTone(x.mag), opacity: 0.55, stroke: magTone(x.mag) }))}

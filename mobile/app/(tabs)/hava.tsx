@@ -8,7 +8,7 @@ import { getCityWeather, getForecast } from '@/src/api';
 import { Place, Prefs, useData } from '@/src/hooks';
 import { C, F, tempColor } from '@/src/theme';
 import { TurkeyMap } from '@/src/TurkeyMap';
-import { Card, H2, Muted, Screen, T } from '@/src/ui';
+import { Card, ExpandMap, H2, Muted, Screen, T } from '@/src/ui';
 import { TR_CITIES } from '@/src/data/cities';
 import { ICONS, wmoIcon, wmoLabel } from '@/src/wmo';
 
@@ -120,6 +120,7 @@ export default function Hava() {
 
       {/* 81 il haritası */}
       <Card style={{ padding: 12, gap: 8 }}>
+        <ExpandMap layer="temp" />
         <H2>Türkiye geneli</H2>
         <Muted style={{ marginTop: 0 }}>Bir ile dokun, o ilin havası açılsın.</Muted>
         <TurkeyMap active={place.name} onPressProvince={pickProvince} fillFor={wx.data ? (n) => { const c = wx.data!.byName.get(n); return c ? tempColor(c.temp) : null; } : undefined} />

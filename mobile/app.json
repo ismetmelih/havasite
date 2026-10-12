@@ -3,7 +3,7 @@
     "name": "TürkiyeCanlı",
     "slug": "turkiyecanli",
     "version": "1.0.0",
-    "orientation": "portrait",
+    "orientation": "default",
     "icon": "./assets/images/icon.png",
     "scheme": "turkiyecanli",
     "userInterfaceStyle": "dark",
@@ -12,7 +12,8 @@
       "bundleIdentifier": "com.turkiyecanli.app",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Hava durumunu ve depremlerin sana uzaklığını göstermek için konumunu kullanırız. Konumun cihazında kalır."
-      }
+      },
+      "requireFullScreen": true
     },
     "android": {
       "package": "com.turkiyecanli.app",
@@ -53,6 +54,12 @@
           "cameraPermission": "Acil durumda SOS ışık sinyali için telefonun fenerini yakmamız gerekiyor; kamera görüntüsü kullanılmaz ve kaydedilmez.",
           "microphonePermission": false,
           "recordAudioAndroid": false
+        }
+      ],
+      [
+        "expo-screen-orientation",
+        {
+          "initialOrientation": "PORTRAIT_UP"
         }
       ]
     ],

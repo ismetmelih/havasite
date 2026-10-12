@@ -156,6 +156,20 @@ export function OfficialNote({ compact }: { compact?: boolean }) {
   );
 }
 
+/* ---------- harita kartının köşesindeki büyütme düğmesi ---------- */
+export function ExpandMap({ layer, bottom }: { layer: 'temp' | 'quake' | 'fire'; bottom?: boolean }) {
+  return (
+    <Pressable
+      onPress={() => { Haptics.selectionAsync(); router.push({ pathname: '/harita', params: { layer } }); }}
+      accessibilityLabel="Haritayı tam ekran aç"
+      hitSlop={6}
+      style={({ pressed }) => ({ position: 'absolute', ...(bottom ? { bottom: 6 } : { top: 10 }), right: bottom ? 4 : 10, zIndex: 5, flexDirection: 'row', alignItems: 'center', gap: 5, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 999, backgroundColor: 'rgba(13,15,19,0.85)', borderWidth: 1, borderColor: C.borderStrong, opacity: pressed ? 0.7 : 1 })}>
+      <SymbolView name={{ ios: 'arrow.up.left.and.arrow.down.right', android: 'open_in_full', web: 'open_in_full' }} size={13} tintColor={C.text} />
+      <T style={{ fontSize: 12, fontFamily: F.bold }}>Büyüt</T>
+    </Pressable>
+  );
+}
+
 /* ---------- düğme ---------- */
 export function Btn({ label, onPress, ghost, tone = C.accent }: { label: string; onPress: () => void; ghost?: boolean; tone?: string }) {
   return (

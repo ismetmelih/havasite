@@ -28,29 +28,31 @@ function Ping({ x, y, color }: { x: number; y: number; color: string }) {
   );
 }
 
-function TurkeyMapBase({ fillFor, points = [], ping, glow, onPressProvince, active }: { fillFor?: (name: string) => string | null; points?: MapPoint[]; ping?: { lat: number; lon: number; color: string } | null; glow?: boolean; onPressProvince?: (name: string) => void; active?: string | null }) {
+// pointScale: yakınlaştırılmış haritada noktalar şişmesin diye yarıçap ve çizgi kalınlığı bölünür
+function TurkeyMapBase({ fillFor, points = [], ping, glow, onPressProvince, active, pointScale = 1 }: { fillFor?: (name: string) => string | null; points?: MapPoint[]; ping?: { lat: number; lon: number; color: string } | null; glow?: boolean; onPressProvince?: (name: string) => void; active?: string | null; pointScale?: number }) {
+  const k = 1 / pointScale;
   const pp = ping ? projTR(ping.lat, ping.lon) : null;
   return (
     <View style={{ width: '100%', aspectRatio: (GEO.w + 12) / (GEO.h + 12) }}>
       <Svg width="100%" height="100%" viewBox={`-6 -6 ${GEO.w + 12} ${GEO.h + 12}`}>
-        <G stroke={C.bg} strokeWidth={1.4} strokeLinejoin="round">
+        <G stroke={C.bg} strokeWidth={1.4 * k} strokeLinejoin="round">
           {GEO.p.map((p) => (
             <Path key={p.n} d={p.d} fill={(fillFor && fillFor(p.n)) || '#262b33'} onPress={onPressProvince ? () => onPressProvince(p.n) : undefined} />
           ))}
         </G>
-        {active ? (() => { const a = GEO.p.find((p) => p.n === active); return a ? <Path d={a.d} fill="none" stroke="#ffffff" strokeWidth={3} /> : null; })() : null}
+        {active ? (() => { const a = GEO.p.find((p) => p.n === active); return a ? <Path d={a.d} fill="none" stroke="#ffffff" strokeWidth={3 * k} /> : null; })() : null}
         {glow && (
           <G>
             {points.map((pt, i) => {
               const [x, y] = projTR(pt.lat, pt.lon);
-              return <Circle key={`g${i}`} cx={x} cy={y} r={pt.r * 2.6} fill={pt.color} fillOpacity={0.16} />;
+              return <Circle key={`g${i}`} cx={x} cy={y} r={pt.r * 2.6 * k} fill={pt.color} fillOpacity={0.16} />;
             })}
           </G>
         )}
         <G>
           {points.map((pt, i) => {
             const [x, y] = projTR(pt.lat, pt.lon);
-            return <Circle key={i} cx={x} cy={y} r={pt.r} fill={pt.color} fillOpacity={pt.opacity ?? 0.85} stroke={pt.stroke} strokeWidth={pt.stroke ? 1.5 : 0} />;
+            return <Circle key={i} cx={x} cy={y} r={pt.r * k} fill={pt.color} fillOpacity={pt.opacity ?? 0.85} stroke={pt.stroke} strokeWidth={pt.stroke ? 1.5 * k : 0} />;
           })}
         </G>
         {pp && <Ping x={pp[0]} y={pp[1]} color={ping!.color} />}

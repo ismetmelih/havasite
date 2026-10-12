@@ -4,7 +4,7 @@ import { fireTime, ago, getCityWeather, getFires } from '@/src/api';
 import { useData } from '@/src/hooks';
 import { C, F, fireHeat } from '@/src/theme';
 import { TurkeyMap } from '@/src/TurkeyMap';
-import { Btn, Card, H2, LiveDot, Muted, Screen, T } from '@/src/ui';
+import { Btn, Card, ExpandMap, H2, LiveDot, Muted, Screen, T } from '@/src/ui';
 import { TR_CITIES } from '@/src/data/cities';
 
 // Ege ve Akdeniz'de yangın riskinin hesaplandığı iller (site ile aynı)
@@ -63,6 +63,7 @@ export default function Yangin() {
       </View>
 
       <Card style={{ padding: 12, gap: 8 }}>
+        <ExpandMap layer="fire" />
         <TurkeyMap
           glow
           fillFor={(n) => { const c = counts.get(n); return c ? fireHeat(Math.sqrt(c / peak)) : null; }}

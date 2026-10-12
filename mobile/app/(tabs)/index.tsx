@@ -6,7 +6,7 @@ import { ago, getCityWeather, getFires, getQuakes, provinceOf, quakeTime } from 
 import { useData } from '@/src/hooks';
 import { C, F, magTone, tempColor } from '@/src/theme';
 import { TurkeyMap, MapPoint } from '@/src/TurkeyMap';
-import { Card, H1, H2, Label, LiveDot, Muted, QuakeRow, Screen, Segmented, T } from '@/src/ui';
+import { Card, ExpandMap, H1, H2, Label, LiveDot, Muted, QuakeRow, Screen, Segmented, T } from '@/src/ui';
 import { TR_CITIES } from '@/src/data/cities';
 import { ICONS, wmoLabel } from '@/src/wmo';
 
@@ -83,9 +83,14 @@ export default function Home() {
         <H1 accent="tek ekranda canlı.">{"Türkiye'nin nabzı,\n"}</H1>
       </View>
 
-      <Card style={{ padding: 12, gap: 10 }}>
+      <Card style={{ padding: 12, gap: 10, paddingTop: 12 }}>
         <Segmented items={LAYERS} value={layer} onChange={(k) => { auto.current = false; setLayer(k); }} />
-        <TurkeyMap fillFor={fillFor} points={points} glow={layer === 'fire'} ping={layer === 'quake' && latest ? { lat: latest.lat, lon: latest.lon, color: '#ffffff' } : null} />
+        <View>
+          <Pressable onPress={() => router.push({ pathname: '/harita', params: { layer } })} accessibilityLabel="Haritayı tam ekran aç">
+            <TurkeyMap fillFor={fillFor} points={points} glow={layer === 'fire'} ping={layer === 'quake' && latest ? { lat: latest.lat, lon: latest.lon, color: '#ffffff' } : null} />
+          </Pressable>
+          <ExpandMap layer={layer} bottom />
+        </View>
         <T style={{ fontSize: 13, color: C.text2 }}>{caption}</T>
       </Card>
 

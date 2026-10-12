@@ -1,4 +1,6 @@
 import { useFonts } from 'expo-font';
+import * as ScreenOrientation from 'expo-screen-orientation';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { DarkTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
@@ -10,6 +12,8 @@ export { ErrorBoundary } from 'expo-router';
 export const unstable_settings = { initialRouteName: '(tabs)' };
 
 SplashScreen.preventAutoHideAsync();
+// uygulama dikey; yalnızca tam ekran harita yan çevrilebilir
+ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP).catch(() => {});
 
 const theme = {
   ...DarkTheme,
@@ -34,6 +38,7 @@ export default function RootLayout() {
   if (!loaded) return null;
 
   return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
     <ThemeProvider value={theme}>
       <StatusBar style="light" />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: C.bg } }}>
@@ -41,7 +46,9 @@ export default function RootLayout() {
         <Stack.Screen name="acil" options={{ presentation: 'modal' }} />
         <Stack.Screen name="sehir" options={{ presentation: 'modal' }} />
         <Stack.Screen name="deprem-detay" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="harita" options={{ presentation: 'fullScreenModal', animation: 'fade' }} />
       </Stack>
     </ThemeProvider>
+    </GestureHandlerRootView>
   );
 }
