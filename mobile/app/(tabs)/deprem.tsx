@@ -5,9 +5,10 @@ import { router } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
 import { ago, getQuakes, haversineKm, provinceOf, quakeTime } from '@/src/api';
 import { useData } from '@/src/hooks';
-import { C, F, magTone, quakeHeat } from '@/src/theme';
+import { C, F, magTone } from '@/src/theme';
+import { MapLegend } from '@/src/MapParts';
 import { TurkeyMap } from '@/src/TurkeyMap';
-import { Card, Chip, ExpandMap, H2, LiveDot, Muted, OfficialNote, QuakeRow, Screen, Segmented, T } from '@/src/ui';
+import { Card, Chip, ExpandMap, LiveDot, Muted, OfficialNote, QuakeRow, Screen, Segmented, T } from '@/src/ui';
 
 type View_ = 'liste' | 'harita';
 const MAGS = [{ v: 0, l: 'Tümü' }, { v: 2, l: 'M2+' }, { v: 3, l: 'M3+' }, { v: 4, l: 'M4+' }];
@@ -25,13 +26,6 @@ export default function Deprem() {
     return (q.data?.data || []).filter((x) => x.mag >= minMag && quakeTime(x) >= cut).sort((a, b) => quakeTime(b) - quakeTime(a));
   }, [q.data, q.at, minMag, hours]);
   const max = list.length ? list.reduce((a, b) => (b.mag > a.mag ? b : a)) : null;
-  const counts = useMemo(() => {
-    const m = new Map<string, number>();
-    list.forEach((x) => { const p = provinceOf(x); m.set(p, (m.get(p) || 0) + 1); });
-    return m;
-  }, [list]);
-  const top = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6);
-  const peak = Math.max(1, ...counts.values());
 
   async function locate() {
     const { status } = await Location.requestForegroundPermissionsAsync();
@@ -67,27 +61,14 @@ export default function Deprem() {
 
       {view === 'harita' ? (
         <>
-          <Card style={{ padding: 12, gap: 8 }}>
+          <Card style={{ padding: 12, gap: 10 }}>
             <ExpandMap layer="quake" />
             <TurkeyMap
-              fillFor={(n) => { const c = counts.get(n); return c ? quakeHeat(Math.sqrt(c / peak)) : null; }}
-              points={[...list].sort((a, b) => a.mag - b.mag).map((x) => ({ lat: x.lat, lon: x.lon, r: 5 + x.mag * 3.4, color: magTone(x.mag), opacity: 0.55, stroke: magTone(x.mag) }))}
+              points={[...list].sort((a, b) => a.mag - b.mag).map((x) => ({ lat: x.lat, lon: x.lon, r: 5 + x.mag * 3.4, color: magTone(x.mag), opacity: 0.6, stroke: magTone(x.mag) }))}
               ping={list[0] ? { lat: list[0].lat, lon: list[0].lon, color: '#fff' } : null}
             />
-            <Muted style={{ marginTop: 0 }}>İller deprem sayısına göre renklenir; beyaz halka en son deprem. Kaynak: AFAD Deprem Dairesi Başkanlığı.</Muted>
-          </Card>
-          <Card style={{ gap: 10 }}>
-            <H2>En hareketli iller</H2>
-            {top.map(([name, n]) => (
-              <View key={name} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                <T style={{ width: 96 }} numberOfLines={1}>{name}</T>
-                <View style={{ flex: 1, height: 8, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.06)' }}>
-                  <View style={{ width: `${(n / peak) * 100}%`, height: 8, borderRadius: 4, backgroundColor: C.quake }} />
-                </View>
-                <T style={{ width: 28, textAlign: 'right', fontFamily: F.bold }}>{n}</T>
-              </View>
-            ))}
-            {!top.length ? <Muted>Bu aralıkta deprem yok.</Muted> : null}
+            <MapLegend legend={{ title: 'Büyüklük', unit: 'nokta rengi ve boyutu', colors: [magTone(1), magTone(2), magTone(3), magTone(4), magTone(5)], ticks: ['M1', 'M3', 'M5+'] }} />
+            <Muted style={{ marginTop: 0 }}>Beyaz halka en son deprem. Kaynak: AFAD Deprem Dairesi Başkanlığı.</Muted>
           </Card>
         </>
       ) : (

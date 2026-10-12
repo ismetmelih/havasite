@@ -2,7 +2,7 @@
 // il renkleri, noktalar, il etiketleri, özet ve renk ölçeği
 import { CityWx, Fire, Quake, provinceOf, quakeTime } from './api';
 import { TR_CITIES } from './data/cities';
-import { C, fireHeat, magTone, quakeHeat, scale, Stop } from './theme';
+import { C, fireHeat, magTone, scale, Stop } from './theme';
 import { wmoLabel } from './wmo';
 import type { MapLabel, MapPoint } from './TurkeyMap';
 
@@ -35,7 +35,6 @@ const WX: Record<WxVar, { title: string; unit: string; key: keyof CityWx; fmt: (
 // etiket önceliği: büyük şehirler önce yerleşir
 const PRIORITY = ['İstanbul', 'Ankara', 'İzmir', 'Antalya', 'Bursa', 'Adana', 'Konya', 'Gaziantep', 'Diyarbakır', 'Samsun', 'Trabzon', 'Erzurum', 'Van', 'Kayseri', 'Eskişehir', 'Mersin', 'Şanlıurfa', 'Malatya', 'Sivas', 'Edirne', 'Muğla', 'Kastamonu', 'Hatay'];
 const rankOf = (n: string) => { const i = PRIORITY.indexOf(n); return i === -1 ? 100 : i; };
-const center = (n: string) => TR_CITIES.find((c) => c.name === n);
 
 // yangın noktasını en yakın il merkezine bağla
 export function nearestCity(lat: number, lon: number) {
@@ -90,29 +89,26 @@ export function buildLayer(layer: Layer, d: LayerData): BuiltLayer {
   }
 
   if (layer === 'quake') {
+    // yalnızca depremlerin yeri: il boyaması ve sayı etiketi yok
     const day = (d.quakes || []).filter((q) => d.now - quakeTime(q) < 864e5 && q.lat != null);
-    const counts = new Map<string, Quake[]>();
-    day.forEach((q) => { const p = provinceOf(q); counts.set(p, [...(counts.get(p) || []), q]); });
-    const peak = Math.max(1, ...[...counts.values()].map((v) => v.length));
-    const top = [...counts.entries()].sort((a, b) => b[1].length - a[1].length)[0];
     const mx = day.length ? day.reduce((a, b) => (b.mag > a.mag ? b : a)) : null;
+    const near = (n: string) => day.filter((q) => provinceOf(q) === n);
     return {
-      fillFor: (n) => { const c = counts.get(n); return c ? quakeHeat(Math.sqrt(c.length / peak)) : null; },
+      fillFor: undefined,
       points: [...day].sort((a, b) => a.mag - b.mag).map((q) => ({ lat: q.lat, lon: q.lon, r: 5 + q.mag * 3.4, color: magTone(q.mag), opacity: 0.6, stroke: magTone(q.mag) })),
-      labels: [...counts.entries()].map(([n, c]) => { const cc = center(n); return cc ? { lat: cc.lat, lon: cc.lon, text: String(c.length), rank: 100 - c.length, color: C.quake, active: n === d.active } : null; }).filter(Boolean) as MapLabel[],
+      labels: [],
       info: (n) => {
-        const c = counts.get(n);
-        if (!c) return 'Son 24 saatte deprem yok';
+        const c = near(n);
+        if (!c.length) return 'Son 24 saatte bu ilde deprem yok';
         const m = c.reduce((a, b) => (b.mag > a.mag ? b : a));
-        return `Son 24 saatte ${c.length} deprem · en büyüğü ${m.magType || 'M'} ${m.mag.toFixed(1)} (${m.title})`;
+        return `En büyüğü ${m.magType || 'M'} ${m.mag.toFixed(1)} · ${m.title}`;
       },
       ping: day[0] ? { lat: day[0].lat, lon: day[0].lon, color: '#ffffff' } : null,
       stats: [
-        { label: 'Son 24 saat', value: `${day.length} deprem` },
-        { label: 'En büyük', value: mx ? `${mx.magType || 'M'} ${mx.mag.toFixed(1)} ${provinceOf(mx)}` : '—', color: mx ? magTone(mx.mag) : undefined, city: mx ? provinceOf(mx) : undefined },
-        { label: 'En hareketli il', value: top ? `${top[0]} · ${top[1].length}` : '—', color: C.quake, city: top?.[0] },
+        { label: 'Son deprem', value: day[0] ? `${day[0].magType || 'M'} ${day[0].mag.toFixed(1)} ${provinceOf(day[0])}` : '—', color: day[0] ? magTone(day[0].mag) : undefined, city: day[0] ? provinceOf(day[0]) : undefined },
+        { label: 'En büyük (24 sa)', value: mx ? `${mx.magType || 'M'} ${mx.mag.toFixed(1)} ${provinceOf(mx)}` : '—', color: mx ? magTone(mx.mag) : undefined, city: mx ? provinceOf(mx) : undefined },
       ],
-      legend: { title: 'Deprem sayısı', unit: 'il başına', colors: [quakeHeat(0), quakeHeat(0.5), quakeHeat(1)], ticks: ['1', String(Math.max(1, Math.round(peak / 4))), String(peak)] },
+      legend: { title: 'Büyüklük', unit: 'nokta rengi ve boyutu', colors: [magTone(1), magTone(2), magTone(3), magTone(4), magTone(5)], ticks: ['M1', 'M3', 'M5+'] },
     };
   }
 
