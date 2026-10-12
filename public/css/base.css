@@ -2007,9 +2007,17 @@ h3:has(> .h-icon) { display: flex; align-items: center; }
 
 /* menu ikonlari */
 .nav-links a { display: inline-flex; align-items: center; gap: 7px; }
-.nav-links .nav-ic { opacity: 0.75; transition: opacity 0.2s ease, transform 0.2s ease; }
-.nav-links a:hover .nav-ic, .nav-links a.active .nav-ic { opacity: 1; }
-.nav-links a.active .nav-ic { color: var(--accent); }
+/* her kategori kendi renginde: ikon renkli kutuda (kartlardaki gibi), secili olan o renge boyanir */
+.nav-links a { --nc: var(--accent); }
+.nav-links a[data-page="hava.html"] { --nc: var(--c-weather); }
+.nav-links a[data-page="deprem.html"] { --nc: var(--c-quake); }
+.nav-links a[data-page="yangin.html"] { --nc: var(--c-fire); }
+.nav-links a[data-page="uygulama.html"] { --nc: var(--tone-green, #34d399); }
+.nav-links .nav-ic { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 8px; color: var(--nc); background: color-mix(in srgb, var(--nc) 14%, transparent); border: 1px solid color-mix(in srgb, var(--nc) 26%, transparent); transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.25s ease; }
+.nav-links a:hover .nav-ic { transform: translateY(-1px) rotate(-6deg); }
+.nav-links a.active .nav-ic { background: color-mix(in srgb, var(--nc) 24%, transparent); }
+.nav-links a:hover, .nav-links a.active { color: color-mix(in srgb, var(--nc) 70%, var(--text-primary)); background: color-mix(in srgb, var(--nc) 11%, transparent); }
+.nav-links a::after { background: var(--nc); }
 
 /* ---- kurumsal alt bilgi ---- */
 .site-footer { padding: 46px 0 22px; border-top: 1px solid var(--border); background: color-mix(in srgb, var(--bg-alt) 70%, transparent); }
