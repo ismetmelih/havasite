@@ -28,7 +28,7 @@
    * }
    */
   function create(opts) {
-    const map = L.map(opts.el, { zoomControl: false, scrollWheelZoom: false, zoomSnap: 0.25, minZoom: 4.5, maxZoom: 12, maxBounds: [[32, 20], [46, 50]], maxBoundsViscosity: 0.8 });
+    const map = L.map(opts.el, { zoomControl: false, scrollWheelZoom: false, zoomSnap: 0.25, minZoom: 4.5, maxZoom: opts.maxZoom || 12, maxBounds: [[32, 20], [46, 50]], maxBoundsViscosity: 0.8 });
     L.control.zoom({ position: "topright", zoomInTitle: "Yakınlaştır", zoomOutTitle: "Uzaklaştır" }).addTo(map);
     const wide = () => window.innerWidth > 700;
     const fit = () => map.fitBounds(TR_BOUNDS, wide() ? { paddingTopLeft: [200, 10], paddingBottomRight: [10, 40] } : { padding: [6, 6] });
@@ -115,17 +115,47 @@
     }
   }
 
+  // fay turleri: renk ve aciklama (mobil uygulamayla ayni)
+  const FAULT_GROUPS = {
+    yanal: { label: "Yanal atımlı", color: "#ff5a4e", text: "İki kaya bloğu birbirine göre yatay kayar. Kuzey Anadolu Fayı (sağ yanal) ve Doğu Anadolu Fayı (sol yanal) bu türdendir." },
+    normal: { label: "Normal", color: "#b48cff", text: "Yer kabuğu gerilir ve bir blok aşağı düşer; Batı Anadolu'daki çöküntü ovaları (graben) bu faylarla oluşmuştur." },
+    ters: { label: "Ters (bindirme)", color: "#22d3ee", text: "Yer kabuğu sıkışır ve bir blok diğerinin üzerine çıkar; daha çok güneydoğuda, Bitlis-Zagros kuşağında görülür." },
+  };
+  const TYPE_TR = { Dextral: "Sağ yanal doğrultu atımlı", Sinistral: "Sol yanal doğrultu atımlı", Normal: "Normal fay (açılma)", Reverse: "Ters fay (sıkışma)", "Dextral-Normal": "Sağ yanal, normal bileşenli", "Sinistral-Normal": "Sol yanal, normal bileşenli", "Dextral-Reverse": "Sağ yanal, ters bileşenli", "Sinistral-Reverse": "Sol yanal, ters bileşenli" };
+  const groupOf = (t) => (String(t).startsWith("Normal") ? "normal" : String(t).startsWith("Reverse") ? "ters" : "yanal");
+  const faultColor = (t) => FAULT_GROUPS[groupOf(t)].color;
+  const FAULT_NAMES = [
+    { name: "Kuzey Anadolu Fayı", lat: 40.95, lon: 33.6 }, { name: "Kuzey Anadolu Fayı", lat: 39.95, lon: 38.6 },
+    { name: "Doğu Anadolu Fayı", lat: 38.3, lon: 38.75 }, { name: "Ölü Deniz Fay Zonu", lat: 35.9, lon: 36.15 },
+    { name: "Batı Anadolu grabenleri", lat: 38.15, lon: 28.4 }, { name: "Bitlis-Zagros Kuşağı", lat: 38.1, lon: 42.3 },
+  ];
+  function faultPopup(p) {
+    const g = FAULT_GROUPS[groupOf(p.slip_type)];
+    const m = /\(([\d.]+)?,([\d.]+)?,([\d.]+)?\)/.exec(p.net_slip_rate || "");
+    const rate = m && m[1] ? `Yılda yaklaşık <b>${m[1]} mm</b>${m[2] && m[3] && (m[2] !== m[1] || m[3] !== m[1]) ? ` (${m[2]}–${m[3]})` : ""} kayıyor. ` : "";
+    return `<div class="map-pop"><strong><i style="background:${g.color}"></i>${TYPE_TR[p.slip_type] || "Aktif fay"}</strong><br/>${rate}${g.text}<br/><small>Kaynak: GEM Küresel Aktif Faylar Veritabanı (EMME/SHARE). Resmî fay haritası için MTA'yı esas al.</small></div>`;
+  }
+
   // aktif fay hatlari: il boyamasinin ustunde, noktalarin altinda; sag ustte ac/kapa dugmesi
   let faultsPromise = null;
   const loadFaults = () => (faultsPromise = faultsPromise || fetch("/data/faults.geojson").then((r) => r.json()).catch(() => null));
   function addFaults(map) {
     map.createPane("faults");
     map.getPane("faults").style.zIndex = 430;
-    map.getPane("faults").style.pointerEvents = "none";
     let layer = null, on = true;
     loadFaults().then((geo) => {
       if (!geo) return;
-      layer = L.geoJSON(geo, { pane: "faults", interactive: false, style: { color: "#ff5a4e", weight: 1.4, opacity: 0.6 } });
+      layer = L.layerGroup([
+        L.geoJSON(geo, {
+          pane: "faults",
+          style: (f) => ({ color: faultColor(f.properties.slip_type), weight: 2, opacity: 0.75 }),
+          onEachFeature: (f, l) => {
+            l.bindPopup(() => faultPopup(f.properties), { className: "fault-pop" });
+            l.on({ mouseover: () => l.setStyle({ weight: 4, opacity: 1 }), mouseout: () => l.setStyle({ weight: 2, opacity: 0.75 }) });
+          },
+        }),
+        ...FAULT_NAMES.map((n) => L.marker([n.lat, n.lon], { pane: "faults", interactive: false, icon: L.divIcon({ className: "fault-name", html: `<span>${n.name}</span>`, iconSize: [0, 0] }) })),
+      ]);
       if (on) layer.addTo(map);
     });
     map.attributionControl.addAttribution('Faylar: <a href="https://github.com/GEMScienceTools/gem-global-active-faults" target="_blank" rel="noopener">GEM</a> (CC BY-SA 4.0)');

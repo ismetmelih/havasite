@@ -283,7 +283,7 @@
     if (state.mapReady) { state.pm.invalidate(); return; }
     state.mapReady = true;
     state.pm = window.HavaProvMap.create({
-      el: "quakeMap", statsEl: "qMapStats", legendEl: "qMapLegend", kind: "quake", faults: true, noFill: true,
+      el: "quakeMap", statsEl: "qMapStats", legendEl: "qMapLegend", kind: "quake", faults: true, noFill: true, maxZoom: 15,
       legendHtml: `<span class="ml-title">Büyüklük <small>nokta rengi ve boyutu</small></span>
         <div class="ml-scale"><div class="ml-bar" style="background:linear-gradient(90deg, #34d399 0%, #22c55e 25%, #f5a524 50%, #f97316 75%, #ef4444 100%)"></div>
         <div class="ml-ticks"><span style="left:0%">M1</span><span style="left:50%">M3</span><span style="left:100%">M5+</span></div></div>`,
