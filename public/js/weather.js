@@ -220,14 +220,20 @@
     const el = $("wcNext");
     if (!el) return;
     const items = [];
-    for (let i = ni; i < Math.min(ni + 8, h.time.length); i++) {
-      const pop = h.precipitation_probability ? h.precipitation_probability[i] : null;
-      items.push(`<div class="wx-nh${i === ni ? " now" : ""}">
-        <span class="nh-t">${i === ni ? "Şimdi" : fmtHM(h.time[i])}</span>
-        <span class="nh-ic">${window.WeatherWMO.svg(h.weather_code[i], h.is_day ? h.is_day[i] === 1 : true)}</span>
-        <b class="nh-v">${round(h.temperature_2m[i])}°</b>
+    const c = state.f.current;
+    // ilk kutu anlik olcum ("Simdi"), ardindan simdiden sonraki 7 tam saat
+    const nowT = new Date(c.time).getTime();
+    const first = new Date(h.time[ni]).getTime() > nowT ? ni : ni + 1;
+    const cell = (label, code, day, temp, pop, now) => `<div class="wx-nh${now ? " now" : ""}">
+        <span class="nh-t">${label}</span>
+        <span class="nh-ic">${window.WeatherWMO.svg(code, day)}</span>
+        <b class="nh-v">${round(temp)}°</b>
         <span class="nh-p">${pop >= 20 ? `%${pop}` : ""}</span>
-      </div>`);
+      </div>`;
+    const pp = h.precipitation_probability || [];
+    items.push(cell("Şimdi", c.weather_code, c.is_day === 1, c.temperature_2m, pp[ni], true));
+    for (let i = first; i < Math.min(first + 7, h.time.length); i++) {
+      items.push(cell(fmtHM(h.time[i]), h.weather_code[i], h.is_day ? h.is_day[i] === 1 : true, h.temperature_2m[i], pp[i], false));
     }
     el.innerHTML = items.join("");
     const sun = $("wcSun");
