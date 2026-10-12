@@ -55,6 +55,7 @@ export type BuiltLayer = {
   labels: MapLabel[];
   info: (n: string) => string;
   ping: { lat: number; lon: number; color: string } | null;
+  quakeById?: (id: string) => Quake | undefined;
   stats: Stat[];
   legend: Legend | null;
 };
@@ -95,7 +96,8 @@ export function buildLayer(layer: Layer, d: LayerData): BuiltLayer {
     const near = (n: string) => day.filter((q) => provinceOf(q) === n);
     return {
       fillFor: undefined,
-      points: [...day].sort((a, b) => a.mag - b.mag).map((q) => ({ lat: q.lat, lon: q.lon, r: 5 + q.mag * 3.4, color: magTone(q.mag), opacity: 0.6, stroke: magTone(q.mag) })),
+      points: [...day].sort((a, b) => a.mag - b.mag).map((q) => ({ lat: q.lat, lon: q.lon, r: 5 + q.mag * 3.4, color: magTone(q.mag), opacity: 0.6, stroke: magTone(q.mag), id: q.id })),
+      quakeById: (id) => day.find((q) => q.id === id),
       labels: [],
       info: (n) => {
         const c = near(n);

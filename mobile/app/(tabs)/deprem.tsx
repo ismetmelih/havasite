@@ -20,6 +20,7 @@ export default function Deprem() {
   const [minMag, setMinMag] = useState(0);
   const [hours, setHours] = useState(24);
   const [me, setMe] = useState<{ lat: number; lon: number } | null>(null);
+  const [showFaults, setShowFaults] = useState(true);
 
   const list = useMemo(() => {
     const cut = q.at - hours * 3600e3;
@@ -64,11 +65,16 @@ export default function Deprem() {
           <Card style={{ padding: 12, gap: 10 }}>
             <ExpandMap layer="quake" />
             <TurkeyMap
-              points={[...list].sort((a, b) => a.mag - b.mag).map((x) => ({ lat: x.lat, lon: x.lon, r: 5 + x.mag * 3.4, color: magTone(x.mag), opacity: 0.6, stroke: magTone(x.mag) }))}
+              faults={showFaults}
+              points={[...list].sort((a, b) => a.mag - b.mag).map((x) => ({ lat: x.lat, lon: x.lon, r: 5 + x.mag * 3.4, color: magTone(x.mag), opacity: 0.6, stroke: magTone(x.mag), id: x.id }))}
+              onPressPoint={(id) => router.push({ pathname: '/deprem-detay', params: { id } })}
               ping={list[0] ? { lat: list[0].lat, lon: list[0].lon, color: '#fff' } : null}
             />
+            <View style={{ flexDirection: 'row' }}>
+              <Chip tone="#ff5a4e" label={showFaults ? 'Fay hatları açık' : 'Fay hatları'} on={showFaults} onPress={() => setShowFaults((v) => !v)} />
+            </View>
             <MapLegend legend={{ title: 'Büyüklük', unit: 'nokta rengi ve boyutu', colors: [magTone(1), magTone(2), magTone(3), magTone(4), magTone(5)], ticks: ['M1', 'M3', 'M5+'] }} />
-            <Muted style={{ marginTop: 0 }}>Beyaz halka en son deprem. Kaynak: AFAD Deprem Dairesi Başkanlığı.</Muted>
+            <Muted style={{ marginTop: 0 }}>Bir depreme dokununca ayrıntısı açılır. Beyaz halka en son deprem; kırmızı çizgiler aktif fay hatları. Kaynak: AFAD Deprem Dairesi Başkanlığı · faylar: GEM Küresel Aktif Faylar Veritabanı (CC BY-SA 4.0).</Muted>
           </Card>
         </>
       ) : (

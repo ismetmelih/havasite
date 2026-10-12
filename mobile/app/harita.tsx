@@ -11,13 +11,13 @@ import { SymbolView } from 'expo-symbols';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
-import { getCityWeather, getFires, getQuakes } from '@/src/api';
+import { ago, getCityWeather, getFires, getQuakes, quakeTime } from '@/src/api';
 import { useData } from '@/src/hooks';
 import { buildLayer, isWx, Layer, PANELS, WX_VARS, WxVar } from '@/src/layers';
 import { MapLegend, MapStats } from '@/src/MapParts';
-import { C, F } from '@/src/theme';
+import { C, F, magTone } from '@/src/theme';
 import { TurkeyMap } from '@/src/TurkeyMap';
-import { Chip, Segmented, T } from '@/src/ui';
+import { Chip, MagSquare, Segmented, T } from '@/src/ui';
 
 const MAX_SCALE = 8;
 const MAX_RENDER = 4; // en fazla bu ölçekte yeniden çizilir (bellek)
@@ -31,6 +31,8 @@ export default function Harita() {
   const q = useData(() => getQuakes(300), 60_000);
   const f = useData(() => getFires(1), 5 * 60_000);
   const [picked, setPicked] = useState<string | null>(null);
+  const [selQuake, setSelQuake] = useState<string | null>(null);
+  const [showFaults, setShowFaults] = useState(true);
   const [render, setRender] = useState(1); // haritanın çizildiği ölçek
   const [box, setBox] = useState({ w: 0, h: 0 });
   // tam ekran pencerede SafeAreaView iOS'ta boşluğu sıfır ölçebiliyor; telefonun gerçek değerleri kullanılır
@@ -114,8 +116,20 @@ export default function Harita() {
     setBox({ w: width, h: height });
     scale.set(1); tx.set(0); ty.set(0); setRender(1);
   };
-  const pick = (n: string) => { Haptics.selectionAsync(); setPicked((p) => (p === n ? null : n)); };
-  const choosePanel = (k: 'wx' | 'quake' | 'fire') => { setPicked(null); setLayer(k === 'wx' ? lastWx : k); };
+  const pick = (n: string) => { Haptics.selectionAsync(); setSelQuake(null); setPicked((p) => (p === n ? null : n)); };
+  const pickQuake = (id: string) => { Haptics.selectionAsync(); setPicked(null); setSelQuake((p) => (p === id ? null : id)); };
+  const choosePanel = (k: 'wx' | 'quake' | 'fire') => { setPicked(null); setSelQuake(null); setLayer(k === 'wx' ? lastWx : k); };
+  const sq = selQuake && L.quakeById ? L.quakeById(selQuake) : undefined;
+
+  // + / − düğmeleri: ekranın ortasına göre yakınlaştır
+  const zoomBy = (f: number) => {
+    Haptics.selectionAsync();
+    const old = scale.get();
+    const s = Math.min(MAX_SCALE, Math.max(1, old * f));
+    const [x, y] = clampXY(s, tx.get() * (s / old), ty.get() * (s / old));
+    scale.set(withTiming(s)); tx.set(withTiming(x)); ty.set(withTiming(y));
+    setRender(Math.min(MAX_RENDER, Math.max(1, Math.round(s * 2) / 2)));
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg, paddingTop: Math.max(insets.top, 12), paddingBottom: Math.max(insets.bottom, 8), paddingLeft: insets.left, paddingRight: insets.right }}>
@@ -133,24 +147,52 @@ export default function Harita() {
           <SymbolView name={{ ios: 'xmark.circle.fill', android: 'close', web: 'close' }} size={28} tintColor={C.muted} />
         </Pressable>
       </View>
+      {panel === 'quake' ? (
+        <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 14, paddingBottom: 8 }}>
+          <Chip tone="#ff5a4e" label={showFaults ? 'Fay hatları açık' : 'Fay hatları'} on={showFaults} onPress={() => setShowFaults((v) => !v)} />
+        </View>
+      ) : null}
       {panel === 'wx' ? (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexGrow: 0 }} contentContainerStyle={{ gap: 8, paddingHorizontal: 14, paddingBottom: 8 }}>
           {WX_VARS.map((v) => <Chip key={v.key} tone={C.weather} label={v.label} on={layer === v.key} onPress={() => { setLayer(v.key); setLastWx(v.key); }} />)}
         </ScrollView>
       ) : null}
 
+      <View style={{ flex: 1 }}>
       <GestureDetector gesture={gesture}>
         <View style={{ flex: 1, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', backgroundColor: '#0c1118' }} onLayout={onLayout}>
           {mapW > 0 ? (
             <Animated.View style={[{ width: mapW * render, height: mapH * render }, style]}>
-              <TurkeyMap wide fit={fit} zoom={render} fillFor={L.fillFor} points={L.points} labels={L.labels} ping={L.ping} glow={layer === 'fire'} active={picked} onPressProvince={pick} />
+              <TurkeyMap wide fit={fit} zoom={render} fillFor={L.fillFor} points={L.points} labels={L.labels} ping={L.ping} glow={layer === 'fire'} active={picked} onPressProvince={pick}
+                faults={panel === 'quake' && showFaults} onPressPoint={panel === 'quake' ? pickQuake : undefined} selectedPoint={selQuake} />
             </Animated.View>
           ) : null}
         </View>
       </GestureDetector>
+      <View style={{ position: 'absolute', right: 12, bottom: 12, gap: 8 }}>
+        {[['+', 2], ['−', 0.5]].map(([lbl, f]) => (
+          <Pressable key={lbl} onPress={() => zoomBy(f as number)} accessibilityLabel={lbl === '+' ? 'Yakınlaştır' : 'Uzaklaştır'}
+            style={({ pressed }) => ({ width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(21,24,29,0.92)', borderWidth: 1, borderColor: C.borderStrong, opacity: pressed ? 0.7 : 1 })}>
+            <T style={{ fontFamily: F.bold, fontSize: 24, lineHeight: 28 }}>{lbl}</T>
+          </Pressable>
+        ))}
+      </View>
+      </View>
 
       <View style={{ paddingHorizontal: 14, paddingTop: 10, gap: 10 }}>
-        {picked ? (
+        {sq ? (
+          <Pressable onPress={() => router.push({ pathname: '/deprem-detay', params: { id: sq.id } })}
+            style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: 16, backgroundColor: C.surface, borderWidth: 1, borderColor: magTone(sq.mag) + '77', opacity: pressed ? 0.8 : 1 })}>
+            <MagSquare mag={sq.mag} size={46} unit={sq.magType || 'MAG'} />
+            <View style={{ flex: 1 }}>
+              <T style={{ fontFamily: F.bold, fontSize: 15 }} numberOfLines={1}>{sq.title}</T>
+              <T style={{ color: C.text2, fontSize: 12.5, marginTop: 3 }} numberOfLines={1}>
+                {sq.neighborhood ? `${sq.neighborhood} Mah. · ` : ''}{sq.depth} km derinlik · {ago(quakeTime(sq))} · saat {sq.date.slice(11, 16)}
+              </T>
+            </View>
+            <T style={{ color: C.accent, fontFamily: F.bold, fontSize: 13 }}>Ayrıntı ›</T>
+          </Pressable>
+        ) : picked ? (
           <View style={{ padding: 12, borderRadius: 16, backgroundColor: C.surface, borderWidth: 1, borderColor: tone + '55' }}>
             <T style={{ fontFamily: F.bold, fontSize: 16 }}>{picked}</T>
             <T style={{ color: C.text2, fontSize: 13, marginTop: 3 }}>{L.info(picked)}</T>
@@ -159,6 +201,7 @@ export default function Harita() {
           <MapStats stats={L.stats} onCity={pick} />
         )}
         {L.legend && box.h > 260 ? <MapLegend legend={L.legend} /> : null}
+        {panel === 'quake' && showFaults && box.h > 260 ? <T style={{ fontSize: 11, color: C.muted }}>Kırmızı çizgiler: aktif fay hatları · GEM Küresel Aktif Faylar Veritabanı (CC BY-SA 4.0)</T> : null}
       </View>
     </View>
   );

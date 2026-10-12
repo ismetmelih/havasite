@@ -1,6 +1,7 @@
 // Türkiye haritası (SVG): ayrıntılı il sınırları, komşu ülkeler ve deniz; iller renklendirilir,
 // üstüne olay noktaları ve il değer etiketleri (sığmayanlar gizlenir) çizilir.
-// Sınırlar: geoBoundaries (© OpenStreetMap katkıcıları, CC BY-SA); komşu ülkeler: Natural Earth (kamu malı)
+// Sınırlar: geoBoundaries (© OpenStreetMap katkıcıları, CC BY-SA); komşu ülkeler: Natural Earth (kamu malı);
+// aktif faylar: GEM Global Active Faults Database (Styron & Pagani 2020, CC BY-SA 4.0)
 import { memo, useEffect, useMemo, useState } from 'react';
 import { Animated, LayoutChangeEvent, View } from 'react-native';
 import Svg, { Circle, G, Path, Rect, Text as SvgText } from 'react-native-svg';
@@ -12,6 +13,7 @@ type MapData = {
   p: { n: string; d: string }[];
   nb: { n: string; d: string }[];
   labels: { t: string; x: number; y: number; sea: boolean }[];
+  faults: string;
 };
 const GEO = require('./data/tr-map.json') as MapData;
 
@@ -29,7 +31,7 @@ export function viewBoxOf(wide?: boolean, fit?: number) {
   return { x, y, w, h, aspect: w / h };
 }
 
-export type MapPoint = { lat: number; lon: number; r: number; color: string; opacity?: number; stroke?: string };
+export type MapPoint = { lat: number; lon: number; r: number; color: string; opacity?: number; stroke?: string; id?: string };
 // il üstü değer etiketi; rank küçük olan önce yerleşir (çakışanlar gizlenir)
 export type MapLabel = { lat: number; lon: number; text: string; rank: number; active?: boolean; color?: string };
 
@@ -64,9 +66,13 @@ type Props = {
   zoom?: number;
   wide?: boolean;
   fit?: number;
+  faults?: boolean;
+  // noktaya dokunma (id'li noktalar); küçük noktalar için geniş görünmez dokunma alanı
+  onPressPoint?: (id: string) => void;
+  selectedPoint?: string | null;
 };
 
-function TurkeyMapBase({ fillFor, points = [], labels = [], ping, glow, onPressProvince, active, zoom = 1, wide, fit }: Props) {
+function TurkeyMapBase({ fillFor, points = [], labels = [], ping, glow, onPressProvince, active, zoom = 1, wide, fit, faults, onPressPoint, selectedPoint }: Props) {
   const vb = viewBoxOf(wide, fit);
   const [w, setW] = useState(0);
   const onLayout = (e: LayoutChangeEvent) => setW(e.nativeEvent.layout.width);
@@ -111,6 +117,7 @@ function TurkeyMapBase({ fillFor, points = [], labels = [], ping, glow, onPressP
             <Path key={p.n} d={p.d} fill={(fillFor && fillFor(p.n)) || LAND_TR} onPress={onPressProvince ? () => onPressProvince(p.n) : undefined} />
           ))}
         </G>
+        {faults ? <Path d={GEO.faults} fill="none" stroke="#ff5a4e" strokeOpacity={0.45} strokeWidth={1.1 * tk} strokeLinecap="round" strokeLinejoin="round" /> : null}
         {active ? (() => { const a = GEO.p.find((p) => p.n === active); return a ? <Path d={a.d} fill="none" stroke="#ffffff" strokeWidth={2.5 * tk} /> : null; })() : null}
         {glow && (
           <G>
@@ -127,6 +134,21 @@ function TurkeyMapBase({ fillFor, points = [], labels = [], ping, glow, onPressP
           })}
         </G>
         {pp && <Ping x={pp[0]} y={pp[1]} color={ping!.color} k={pk} />}
+        {selectedPoint ? (() => {
+          const sp = points.find((p) => p.id === selectedPoint);
+          if (!sp) return null;
+          const [x, y] = projTR(sp.lat, sp.lon);
+          return <Circle cx={x} cy={y} r={sp.r * pk + 6 * tk} fill="none" stroke="#ffffff" strokeWidth={2.5 * tk} />;
+        })() : null}
+        {onPressPoint ? (
+          <G>
+            {points.map((pt, i) => {
+              if (!pt.id) return null;
+              const [x, y] = projTR(pt.lat, pt.lon);
+              return <Circle key={`h${i}`} cx={x} cy={y} r={Math.max(pt.r * pk, 16 * tk)} fill="#000" fillOpacity={0.001} onPress={() => onPressPoint(pt.id!)} />;
+            })}
+          </G>
+        ) : null}
         <G>
           {placed.map((l, i) => (
             <G key={i}>
