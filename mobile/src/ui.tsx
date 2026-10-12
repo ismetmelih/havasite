@@ -100,11 +100,14 @@ export function QuakeRow({ q, onPress, distKm }: { q: Quake; onPress?: () => voi
   const t = quakeTime(q);
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [s.qrow, pressed && { opacity: 0.7 }]}>
-      <MagSquare mag={q.mag} size={50} />
+      <MagSquare mag={q.mag} size={50} unit={q.magType || 'MAG'} />
       <View style={{ flex: 1, minWidth: 0 }}>
-        <T style={{ fontFamily: F.bold, fontSize: 15 }} numberOfLines={1}>{q.title}</T>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <T style={{ fontFamily: F.bold, fontSize: 15, flexShrink: 1 }} numberOfLines={1}>{q.title}</T>
+          {q.updated ? <T style={s.upd}>güncellendi</T> : null}
+        </View>
         <T style={s.meta} numberOfLines={1}>
-          {q.depth} km derinlik · {ago(t)}{distKm != null ? ` · ${Math.round(distKm)} km uzakta` : ''}
+          {q.neighborhood ? `${q.neighborhood} Mah. · ` : ''}{q.depth} km · {ago(t)}{distKm != null ? ` · ${Math.round(distKm)} km uzakta` : ''}
         </T>
       </View>
       <View style={{ alignItems: 'flex-end' }}>
@@ -163,6 +166,7 @@ export const s = StyleSheet.create({
   chip: { paddingVertical: 7, paddingHorizontal: 12, borderRadius: 999, borderWidth: 1, borderColor: C.border, backgroundColor: C.surface },
   qrow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 11, borderRadius: 16, borderWidth: 1, borderColor: C.border, backgroundColor: C.surface },
   meta: { color: C.muted, fontSize: 12.5, marginTop: 4 },
+  upd: { fontSize: 10, fontFamily: F.bold, color: C.warn, paddingHorizontal: 6, paddingVertical: 1, borderRadius: 6, borderWidth: 1, borderColor: C.warn + '66', backgroundColor: C.warn + '22', overflow: 'hidden' },
   head: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 6, paddingBottom: 10, gap: 12 },
   headTitle: { fontFamily: F.display, fontSize: 26, letterSpacing: -0.5, color: C.text },
   sos: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: C.critical, paddingVertical: 9, paddingHorizontal: 13, borderRadius: 999, shadowColor: C.critical, shadowOpacity: 0.5, shadowRadius: 10, shadowOffset: { width: 0, height: 4 } },

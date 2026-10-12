@@ -44,7 +44,7 @@
   const hhmm = (t) => new Date(t).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Istanbul" });
   const dayLabel = (t) => { const d = new Date(new Date(t).toLocaleString("en-US", { timeZone: "Europe/Istanbul" })); return `${d.getDate()} ${AY[d.getMonth()]}`; };
   const magColor = (m) => window.magTone(m);
-  const magSq = (m) => `<span class="mag-sq${m >= 4 ? " m-strong" : ""}" style="--m:${magColor(m)}">${m.toFixed(1)}<small>MAG</small></span>`;
+  const magSq = (m, type) => `<span class="mag-sq${m >= 4 ? " m-strong" : ""}" style="--m:${magColor(m)}">${m.toFixed(1)}<small>${esc(type || "MAG")}</small></span>`;
   const TEMP_STOPS = [[-10, [124, 92, 214]], [0, [64, 132, 232]], [8, [45, 182, 214]], [15, [72, 196, 140]], [21, [226, 206, 80]], [27, [242, 146, 52]], [34, [226, 64, 64]], [40, [168, 34, 74]]];
   function tempColor(v) {
     const s = TEMP_STOPS;
@@ -159,10 +159,11 @@
       list.innerHTML = qs.slice(0, 5).map((q) => {
         const t = quakeTime(q);
         return `<a class="lp-q" href="deprem.html?v=liste">
-          ${magSq(q.mag)}
+          ${magSq(q.mag, q.magType)}
           <div class="lp-q-main">
             <b>${esc(q.title)}</b>
             <div class="lp-q-meta">
+              ${q.neighborhood ? `<span>${ic("home")} ${esc(q.neighborhood)} Mah.</span>` : ""}
               <span>${ic("ruler")} ${Number.isFinite(q.depth) ? `${Math.round(q.depth * 10) / 10} km derinlik` : "derinlik —"}</span>
               <span>${ic("clock")} ${ago(t)}</span>
               <span class="lp-q-coord">${ic("map-pin")} ${q.lat.toFixed(2)}, ${q.lon.toFixed(2)}</span>
@@ -179,7 +180,7 @@
     $("puQuakeMax").textContent = max ? `M${max.mag.toFixed(1)} ${provinceOf(max)}` : "—";
     if ($("pnQuake")) $("pnQuake").textContent = `M${last.mag.toFixed(1)} · ${provinceOf(last)}`;
 
-    phData.quake = qs.slice(0, 6).map((q) => `<div class="ph-item">${magSq(q.mag)}<div><b>${esc(q.title)}</b><span class="meta">${Number.isFinite(q.depth) ? `${Math.round(q.depth)} km` : ""} · ${ago(quakeTime(q))}</span></div><em>${hhmm(quakeTime(q))}</em></div>`).join("");
+    phData.quake = qs.slice(0, 6).map((q) => `<div class="ph-item">${magSq(q.mag, q.magType)}<div><b>${esc(q.title)}</b><span class="meta">${Number.isFinite(q.depth) ? `${Math.round(q.depth)} km` : ""} · ${ago(quakeTime(q))}</span></div><em>${hhmm(quakeTime(q))}</em></div>`).join("");
     if (phTab === 0 && $("phList")) $("phList").innerHTML = phData.quake;
     drawQuakes();
   }

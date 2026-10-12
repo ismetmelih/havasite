@@ -167,11 +167,11 @@
     const q = [...state.raw].sort((a, b) => qTime(b) - qTime(a))[0];
     if (!q || !$("phQMag")) return;
     const m = $("phQMag");
-    m.innerHTML = `${q.mag.toFixed(1)}<small>MAG</small>`;
+    m.innerHTML = `${q.mag.toFixed(1)}<small>${window.escapeHtml(q.magType || "MAG")}</small>`;
     m.style.setProperty("--m", magColor(q.mag));
     m.classList.toggle("m-strong", q.mag >= 4);
     $("phQTitle").textContent = q.title;
-    $("phQSub").textContent = `Saat ${(q.date.split(" ")[1] || "").slice(0, 5)}${provinceOf(q) ? ` · ${provinceOf(q)}` : ""}`;
+    $("phQSub").textContent = `Saat ${(q.date.split(" ")[1] || "").slice(0, 5)}${q.neighborhood ? ` · ${q.neighborhood} Mah.` : provinceOf(q) ? ` · ${provinceOf(q)}` : ""}`;
     state.heroDate = q.date.replace(" ", "T");
     $("phQAgo").textContent = window.timeAgoTR(state.heroDate);
     $("phQDepth").textContent = `${q.depth} km derinlik`;
@@ -232,10 +232,10 @@
     const [ymd, hms] = q.date.split(" ");
     const [, mo, d] = ymd.split("-");
     return `<div class="lp-q q-row${flash ? " flash" : ""}" role="button" tabindex="0" style="--i:${Math.min(i, 14)}" data-id="${q.id}" data-lat="${q.lat}" data-lon="${q.lon}">
-      <span class="mag-sq${q.mag >= 4 ? " m-strong" : ""}" style="--m:${magColor(q.mag)}">${q.mag.toFixed(1)}<small>MAG</small></span>
+      <span class="mag-sq${q.mag >= 4 ? " m-strong" : ""}" style="--m:${magColor(q.mag)}">${q.mag.toFixed(1)}<small>${window.escapeHtml(q.magType || "MAG")}</small></span>
       <div class="lp-q-main">
-        <b>${window.escapeHtml(q.title)}</b>
-        <div class="lp-q-meta"><span>${ic("ruler")} ${q.depth} km</span><span>${ic("clock")} ${window.timeAgoTR(q.date.replace(" ", "T"))}</span>${dist}<span class="lp-q-coord">${ic("map-pin")} ${q.lat.toFixed(2)}, ${q.lon.toFixed(2)}</span></div>
+        <b>${window.escapeHtml(q.title)}${q.updated ? ' <em class="q-upd">güncellendi</em>' : ""}</b>
+        <div class="lp-q-meta">${q.neighborhood ? `<span>${ic("home")} ${window.escapeHtml(q.neighborhood)} Mah.</span>` : ""}<span>${ic("ruler")} ${q.depth} km</span><span>${ic("clock")} ${window.timeAgoTR(q.date.replace(" ", "T"))}</span>${dist}<span class="lp-q-coord">${ic("map-pin")} ${q.lat.toFixed(2)}, ${q.lon.toFixed(2)}</span></div>
       </div>
       <div class="lp-q-time"><b>${(hms || "").slice(0, 5)}</b><span>${+d} ${AY[+mo - 1]}</span></div>
     </div>`;
@@ -309,7 +309,7 @@
     [...list].sort((a, b) => a.mag - b.mag).forEach((q) => {
       const color = magColor(q.mag);
       const m = L.circleMarker([q.lat, q.lon], { pane: "points", radius: 3 + q.mag * 2.2, color: "#fff", weight: 1, opacity: 0.7, fillColor: color, fillOpacity: 0.85 }).addTo(state.layer);
-      m.bindPopup(`<div class="map-pop"><strong>M${q.mag.toFixed(1)} — ${window.escapeHtml(q.title)}</strong><br/>Derinlik: ${q.depth} km · ${window.escapeHtml(window.timeAgoTR(q.date.replace(" ", "T")))}<br/>${window.escapeHtml(q.date)}</div>`);
+      m.bindPopup(`<div class="map-pop"><strong>${q.magType || "M"} ${q.mag.toFixed(1)} — ${window.escapeHtml(q.title)}</strong>${q.neighborhood ? `<br/>${window.escapeHtml(q.neighborhood)} Mah.` : ""}<br/>Derinlik: ${q.depth} km · ${window.escapeHtml(window.timeAgoTR(q.date.replace(" ", "T")))}<br/>${window.escapeHtml(q.date)}${q.updated ? " · AFAD güncelledi" : ""}</div>`);
       m._qid = q.id;
       if (q === newest || now - new Date(q.date.replace(" ", "T")).getTime() < 3600000) {
         const s = Math.round(10 + q.mag * 5);

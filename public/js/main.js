@@ -290,7 +290,7 @@
         </nav>
         <nav class="footer-col" aria-label="Kaynaklar ve yasal">
           <h4>Kaynaklar</h4>
-          <a href="https://deprem.afad.gov.tr" target="_blank" rel="noopener">AFAD</a>
+          <a href="https://deprem.afad.gov.tr" target="_blank" rel="noopener">AFAD Deprem Dairesi Başkanlığı</a>
           <a href="https://firms.modaps.eosdis.nasa.gov" target="_blank" rel="noopener">NASA FIRMS</a>
           <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo (CC BY 4.0)</a>
           <a href="gizlilik.html">${ic("lock-key")} Gizlilik ve KVKK</a>

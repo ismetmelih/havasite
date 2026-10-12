@@ -121,14 +121,9 @@ function checkLimit(res, limiter, key) {
 }
 
 // ---------- /api/quakes ----------
-// Kaynak sirasi: (1) AFAD'in last-earthquakes.html sayfasina gomulu, gercekten
-// canli tablo (kendi resmi sitelerinde gosterdikleri veriyle birebir ayni,
-// Turkiye yerel saatiyle) (2) AFAD'in filter API'si (daha genis tarih araligi
-// sorgulanabilir ama UTC dondurur ve bizim ilk testimizde birkac saat "eski"
-// gorunmustu — asagida UTC->Turkiye saatine dogru cevriliyor) (3) EMSC (Avrupa-
-// Akdeniz Sismoloji Merkezi). Onceki kaynagimiz olan api.orhanaydogdu.com.tr'nin
-// Kandilli proxy'si, barindirma saglayicilarinin sunucu IP araliklarini
-// engelliyor gibi gorundugu icin birakildi.
+// Kaynak sirasi: (1) AFAD resmi acik API (servisnet apiv2): il/ilce/mahalle, buyukluk turu
+// (ML/MW) ve duzeltme bilgisi verir, UTC dondurur (Turkiye saatine cevrilir). (2) AFAD'in
+// last-earthquakes.html sayfasindaki canli tablo. (3) EMSC (Avrupa-Akdeniz Sismoloji Merkezi).
 const TURKEY_BBOX_QUAKE = { minlat: 35.5, maxlat: 42.5, minlon: 25.5, maxlon: 45 };
 
 function isoNoMs(d) {
@@ -214,12 +209,19 @@ function normalizeAfadQuake(item) {
     id: item.eventID,
     title: item.location || [item.district, item.province].filter(Boolean).join(", ") || "Türkiye",
     mag,
+    magType: item.type || null,
     depth: parseFloat(item.depth),
     date: dateStr,
     lat: Number.isFinite(lat) ? lat : null,
     lon: Number.isFinite(lon) ? lon : null,
     closestCity: item.province || null,
     epiCenter: item.location || null,
+    province: item.province || null,
+    district: item.district || null,
+    neighborhood: item.neighborhood || null,
+    // AFAD buyukluk/konumu sonradan duzelttiyse
+    updated: item.isEventUpdate === true,
+    source: "afad",
   };
 }
 
@@ -277,7 +279,7 @@ async function handleQuakes(req, res, query) {
   sendJson(res, 200, payload);
 }
 
-// Son depremler (AFAD canli tablo -> AFAD API -> EMSC sirasiyla); 25 sn onbellekli.
+// Son depremler (AFAD resmi API -> AFAD canli tablo -> EMSC sirasiyla); 25 sn onbellekli.
 // Hem /api/quakes hem de deprem bildirimleri (/api/push/run) kullanir.
 async function getLatestQuakes(limit) {
   const cacheKey = `quakes:${limit}`;
@@ -287,20 +289,22 @@ async function getLatestQuakes(limit) {
   let result;
   let source;
   try {
-    // (1) en guncel ~100 olay: AFAD'in kendi canli sayfasiyla birebir ayni
-    result = (await fetchAfadLiveTable())
-      .sort((a, b) => new Date(b.date) - new Date(a.date))
+    // (1) AFAD resmi acik API: il/ilce/mahalle, buyukluk turu ve duzeltme bilgisi; canli tabloda
+    // henuz gorunmeyen olaylari da iceriyor (2026-10-12 karsilastirmasi)
+    const end = new Date(Date.now() + 60000);
+    const start = new Date(end.getTime() - 3 * 86400000);
+    result = (await fetchAfadQuakes(start, end, 1000))
+      .sort((a, b) => (a.date < b.date ? 1 : -1))
       .slice(0, limit);
-    source = "afad-live";
+    if (!result.length) throw new Error("afad api bos");
+    source = "afad";
   } catch (err) {
     try {
-      // (2) yedek: AFAD filter API (daha genis pencere, dakika hassasiyeti biraz dusuk olabilir)
-      const end = new Date();
-      const start = new Date(end.getTime() - 5 * 86400000);
-      result = (await fetchAfadQuakes(start, end, 1000))
+      // (2) yedek: AFAD'in kendi "son depremler" sayfasindaki canli tablo
+      result = (await fetchAfadLiveTable())
         .sort((a, b) => new Date(b.date) - new Date(a.date))
         .slice(0, limit);
-      source = "afad-api";
+      source = "afad-live";
     } catch (err2) {
       try {
         // (3) son care: EMSC

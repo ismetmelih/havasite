@@ -59,7 +59,7 @@ export default function Ayarlar() {
       <Card style={{ gap: 8 }}>
         <H2>Hakkında</H2>
         <Muted style={{ marginTop: 0, lineHeight: 19 }}>
-          TürkiyeCanlı bağımsız bir projedir; AFAD, MGM veya NASA ile bağlantısı yoktur ve resmî uyarı sistemi değildir. Veriler: AFAD ve EMSC (deprem), NASA FIRMS (yangın), Open-Meteo (hava). Üyelik ve reklam yok.
+          TürkiyeCanlı bağımsız bir projedir; AFAD, MGM veya NASA ile bağlantısı yoktur ve resmî uyarı sistemi değildir. Deprem verileri: T.C. İçişleri Bakanlığı Afet ve Acil Durum Yönetimi Başkanlığı (AFAD) Deprem Dairesi Başkanlığı; yedek kaynak EMSC. Yangın: NASA FIRMS. Hava: Open-Meteo. Üyelik ve reklam yok.
         </Muted>
         <Muted style={{ marginTop: 4 }}>Sürüm {Constants.expoConfig?.version || '1.0.0'}</Muted>
       </Card>

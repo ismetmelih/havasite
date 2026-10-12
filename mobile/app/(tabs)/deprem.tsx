@@ -73,7 +73,7 @@ export default function Deprem() {
               points={[...list].sort((a, b) => a.mag - b.mag).map((x) => ({ lat: x.lat, lon: x.lon, r: 5 + x.mag * 3.4, color: magTone(x.mag), opacity: 0.55, stroke: magTone(x.mag) }))}
               ping={list[0] ? { lat: list[0].lat, lon: list[0].lon, color: '#fff' } : null}
             />
-            <Muted style={{ marginTop: 0 }}>İller deprem sayısına göre renklenir; beyaz halka en son deprem.</Muted>
+            <Muted style={{ marginTop: 0 }}>İller deprem sayısına göre renklenir; beyaz halka en son deprem. Kaynak: AFAD Deprem Dairesi Başkanlığı.</Muted>
           </Card>
           <Card style={{ gap: 10 }}>
             <H2>En hareketli iller</H2>

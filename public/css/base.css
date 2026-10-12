@@ -2438,3 +2438,5 @@ button.ms-item:hover { background: var(--surface-hover); }
 .ms-new { background: color-mix(in srgb, var(--page-tone, var(--accent)) 12%, transparent); }
 .em-app { display: block; margin-bottom: 12px; padding: 10px 14px; border-radius: 12px; background: rgba(34, 211, 238, 0.1); border: 1px solid rgba(34, 211, 238, 0.35); color: #cffafe; font-size: 0.84rem; line-height: 1.5; text-decoration: none; }
 .em-app b { color: #fff; }
+.q-upd { font-style: normal; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.04em; padding: 2px 7px; margin-left: 6px; border-radius: 6px; vertical-align: 2px; color: var(--status-warning); background: color-mix(in srgb, var(--status-warning) 14%, transparent); border: 1px solid color-mix(in srgb, var(--status-warning) 35%, transparent); }
+.src-note { margin: 18px 0 0; font-size: 0.78rem; color: var(--text-muted); line-height: 1.6; }

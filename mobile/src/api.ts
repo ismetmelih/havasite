@@ -1,7 +1,13 @@
 // Veri: sitenin API'leri (önbellekli) + seçili şehrin tahmini için Open-Meteo
 export const SITE = 'https://turkiyecanli.com';
 
-export type Quake = { id: string; title: string; mag: number; depth: number; date: string; lat: number; lon: number; closestCity?: string };
+export type Quake = {
+  id: string; title: string; mag: number; depth: number; date: string; lat: number; lon: number; closestCity?: string;
+  // AFAD resmi API alanlari (yedek kaynaklarda bos olabilir)
+  magType?: string | null; province?: string | null; district?: string | null; neighborhood?: string | null; updated?: boolean;
+};
+
+export const AFAD_SOURCE = 'T.C. İçişleri Bakanlığı Afet ve Acil Durum Yönetimi Başkanlığı (AFAD) Deprem Dairesi Başkanlığı';
 export type Fire = { lat: number; lon: number; frp: number; confidence: string; date: string; time: string; daynight: string };
 export type CityWx = { name: string; lat: number; lon: number; temp: number; code: number; humidity: number; wind: number; cloud: number; isDay: boolean };
 
