@@ -71,23 +71,9 @@
     <dl>{{FACTS}}</dl>
   </section>
 
-  <section class="dash-card">
-    <div class="ar-map-wrap">
-      <div class="il-map ar-map" id="arMap"></div>
-      <div class="ar-player" id="arPlayer" hidden>
-        <button type="button" class="btn btn-primary btn-sm" id="arPlay"><span class="ic" data-icon="play" data-icon-size="14"></span> <span id="arPlayLabel">Canlandır</span></button>
-        <div class="ar-time"><b id="arClock">Hazır</b><span id="arCount"></span></div>
-        <div class="ar-bar" aria-hidden="true"><i id="arProg"></i></div>
-      </div>
-    </div>
-    <p class="field-hint ar-map-note">{{MAP_NOTE}}</p>
-    <p class="field-hint ar-data-note" id="arDataNote" hidden></p>
-  </section>
+  {{HARITA}}
 
-  <section class="dash-card ar-sahne-card">
-    <div class="dash-head"><div><h2 class="il-h"><span class="h-icon ic" data-icon="play" data-icon-size="17"></span>Temsilî canlandırma</h2><p class="field-hint">Bu olayın kendisini değil, bu tür bir afette genel olarak neler yaşandığını ve nasıl korunulacağını gösterir.</p></div></div>
-    <div class="sahne" data-sahne="{{TYPE}}"></div>
-  </section>
+  {{SAHNE}}
 
   <article class="ar-body">
     <h2>Ne oldu?</h2>
@@ -121,7 +107,7 @@
 <script src="/js/cities.js"></script>
 <script src="/js/main.js"></script>
 <script src="/js/provmap.js"></script>
-<script src="/js/sahne.js"></script>
 <script src="/js/arsiv.js"></script>
+<script type="module" src="/js/olay3d.js"></script>
 </body>
 </html>

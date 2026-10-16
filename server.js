@@ -1080,6 +1080,13 @@ const AR_ADVICE = {
   sel: "Sel uyarısında: dere yatağından, alt geçitlerden ve bodrum katlardan uzak dur; akan suyun içinden yürüyerek ya da araçla geçmeye çalışma; yüksek bir yere çık. Acil durumda 112.",
   yangin: "Duman ya da alev görürsen hemen 177'yi ara. Rüzgârın estiği yönden uzaklaş, yetkililerin tahliye talimatlarına uy. Ormanda ateş yakma, cam ve sigara atma.",
 };
+// gercek veriyle 3B canlandirmasi olmayan yazilarda ayni turden ornek olay gosterilir
+const AR_ORNEK = { deprem: "2023-kahramanmaras-depremleri", sel: "2021-bati-karadeniz-selleri", yangin: "2021-akdeniz-ege-orman-yanginlari" };
+const AR_OLAY_HINT = {
+  deprem: "Gerçek arazi üzerinde fayın kırılması, sarsıntı dalgaları ve kayıtlı artçılar.",
+  sel: "Gerçek arazi üzerinde, sel sonrası uydu görüntüsündeki ize göre taşkın alanı.",
+  yangin: "Gerçek arazi üzerinde, uydunun tespit ettiği ısı noktalarına göre yangının saat saat yayılışı.",
+};
 const arYear = (a) => a.date.slice(0, 4);
 const arSorted = () => [...Arsiv.ARSIV].sort((a, b) => (a.date < b.date ? 1 : -1));
 const arCard = (a) => `<a class="ar-card ar-${a.type}" href="/arsiv/${a.slug}"><span class="ar-card-type">${escHtml(Arsiv.TYPES[a.type])} · ${escHtml(a.dateText)}</span><b>${escHtml(a.title)}</b><p>${escHtml(a.summary)}</p><span class="ar-card-more">Oku <span class="ic" data-icon="arrow-right" data-icon-size="14"></span></span></a>`;
@@ -1111,7 +1118,6 @@ function handleArsivYazi(req, res, slug) {
     TITLE_SHORT: a.title, DESC: a.summary, SUMMARY: a.summary, PATH: `/arsiv/${slug}`, OGTYPE: "article",
     TYPE: a.type, TYPE_LABEL: Arsiv.TYPES[a.type], DATE_TEXT: a.dateText, LAT: a.lat, LON: a.lon, SLUG: slug, IL_LIST: a.il.join("|"),
     ANNIV: today ? `Bugün ${years}. yıl dönümü. Hayatını kaybedenleri saygıyla anıyoruz.` : `${years} yıl önce · Hayatını kaybedenleri saygıyla anıyoruz.`,
-    MAP_NOTE: a.type === "deprem" ? `${a.place} · kırmızı çizgiler: bugünkü aktif fay hatları` : a.place,
   }, {
     FACTS: a.facts.map(([k, v]) => `<div><dt>${escHtml(k)}</dt><dd>${escHtml(v)}</dd></div>`).join(""),
     BODY: a.body.map((p) => `<p>${escHtml(p)}</p>`).join("\n    "),
@@ -1119,6 +1125,28 @@ function handleArsivYazi(req, res, slug) {
     ADVICE: `<span class="ic" data-icon="shield-check" data-icon-size="18"></span><p><b>Bugün ne yapmalı?</b> ${escHtml(AR_ADVICE[a.type])}</p>`,
     SOURCES: a.sources.map(([name, url]) => `<li><a href="${escHtml(url)}" target="_blank" rel="noopener">${escHtml(name)}</a></li>`).join(""),
     IL_LINKS: ilLinks,
+    // gercek veriyle 3B canlandirmasi olan yazida harita ve "Canlandir" gosterilmez
+    HARITA: a.olay3d ? "" : `<section class="dash-card">
+    <div class="ar-map-wrap">
+      <div class="il-map ar-map" id="arMap"></div>
+      <div class="ar-player" id="arPlayer" hidden>
+        <button type="button" class="btn btn-primary btn-sm" id="arPlay"><span class="ic" data-icon="play" data-icon-size="14"></span> <span id="arPlayLabel">Canlandır</span></button>
+        <div class="ar-time"><b id="arClock">Hazır</b><span id="arCount"></span></div>
+        <div class="ar-bar" aria-hidden="true"><i id="arProg"></i></div>
+      </div>
+    </div>
+    <p class="field-hint ar-map-note">${escHtml(a.type === "deprem" ? `${a.place} · kırmızı çizgiler: bugünkü aktif fay hatları` : a.place)}</p>
+    <p class="field-hint ar-data-note" id="arDataNote" hidden></p>
+  </section>`,
+    SAHNE: a.olay3d
+      ? `<section class="dash-card ar-sahne-card">
+    <div class="dash-head"><div><h2 class="il-h"><span class="h-icon ic" data-icon="play" data-icon-size="17"></span>Uydu verisiyle canlandırma</h2><p class="field-hint">${escHtml(AR_OLAY_HINT[a.type])}</p></div></div>
+    <div class="olay3d" data-olay="${escHtml(a.olay3d)}"></div>
+  </section>`
+      : `<section class="dash-card ar-sahne-card">
+    <div class="dash-head"><div><h2 class="il-h"><span class="h-icon ic" data-icon="play" data-icon-size="17"></span>Bu tür bir afette neler olur?</h2><p class="field-hint">Gerçek bir örnek üzerinden: ${escHtml(Arsiv.bySlug.get(AR_ORNEK[a.type]).title)}</p></div><a class="btn btn-ghost btn-sm" href="/arsiv/${AR_ORNEK[a.type]}">Yazıya git <span class="ic" data-icon="arrow-right" data-icon-size="14"></span></a></div>
+    <div class="olay3d" data-olay="${escHtml(Arsiv.bySlug.get(AR_ORNEK[a.type]).olay3d)}"></div>
+  </section>`,
     OTHERS: arSorted().filter((x) => x.slug !== slug).slice(0, 3).map(arCard).join(""),
   }, req, res);
 }

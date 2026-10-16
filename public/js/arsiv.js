@@ -15,7 +15,7 @@
 
   function setup() {
     main = $("arMain");
-    if (!main || !window.L || !window.HavaProvMap) return;
+    if (!main || !$("arMap") || !window.L || !window.HavaProvMap) return;
     const lat = Number(main.dataset.lat), lon = Number(main.dataset.lon);
     type = main.dataset.type; slug = main.dataset.slug; ilNames = (main.dataset.il || "").split("|").filter(Boolean);
     color = COLOR[type] || "#22d3ee";

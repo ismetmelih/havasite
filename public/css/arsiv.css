@@ -54,21 +54,50 @@
 .ar-map { height: 420px; }
 @media (max-width: 640px) { .ar-map { height: 340px; } }
 
-/* temsili canlandirma sahnesi */
-.sahne-host { position: relative; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--border); background: #0f1620; }
-.sahne-stage { position: relative; width: 100%; aspect-ratio: 16 / 9; background: radial-gradient(ellipse at 50% 30%, #1c2638, #0b1018); overflow: hidden; }
-.sahne-stage canvas { display: block; width: 100%; height: 100%; cursor: grab; }
-.sahne-stage canvas:active { cursor: grabbing; }
-.sahne-poster { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: #9fb0c4; font-size: 0.92rem; }
-.sahne-ui { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px 14px; padding: 12px 14px; border-top: 1px solid var(--border); background: var(--surface); }
-.sahne-tag { position: absolute; top: 10px; right: 10px; padding: 4px 10px; border-radius: 999px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; color: #e5e7eb; background: rgba(10, 14, 20, 0.7); border: 1px solid rgba(255, 255, 255, 0.15); }
-.sahne-cap { margin: 0; min-height: 2.8em; display: flex; align-items: center; font-size: 0.95rem; line-height: 1.45; color: var(--text-primary); }
-.sahne-ctrl { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
-.sahne-ctrl .btn { white-space: nowrap; }
 .ar-sahne-hero { margin-bottom: 22px; }
 .ar-sahne-tabs { margin-top: 0; }
+
+/* gercek veriyle 3B canlandirma (olay3d.js) */
+.olay3d { position: relative; }
+.olay-stage { position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--border); background: #0c1118; }
+.olay-stage canvas { display: block; width: 100%; height: 100%; cursor: grab; touch-action: none; }
+.olay-stage canvas:active { cursor: grabbing; }
+.olay-poster { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: #9fb0c4; font-size: 0.92rem; text-align: center; padding: 0 16px; }
+.olay-hud { position: absolute; top: 12px; left: 12px; display: flex; flex-direction: column; gap: 2px; padding: 8px 12px; border-radius: var(--radius-sm); background: rgba(10, 14, 20, 0.72); border: 1px solid rgba(255, 255, 255, 0.12); color: #e5e7eb; pointer-events: none; }
+.olay-clock { font-size: 1rem; font-variant-numeric: tabular-nums; }
+.olay-count { font-size: 0.8rem; color: #aab4c0; font-variant-numeric: tabular-nums; }
+.olay-legend { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 0 0 8px; font-size: 0.8rem; color: var(--text-secondary); }
+.olay-legend span { display: flex; align-items: center; gap: 7px; }
+.olay-legend i { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.olay-legend .lg-front { width: 16px; height: 4px; border-radius: 2px; background: #ff6a1a; }
+.olay-legend .lg-hot { background: #ffb347; box-shadow: 0 0 5px #ff6a1a; }
+.olay-legend .lg-burn { background: #5a3b2c; border-radius: 2px; }
+.olay-legend .lg-rupture { width: 16px; height: 4px; border-radius: 2px; background: #ff3b1f; box-shadow: 0 0 5px #ff3b1f; }
+.olay-legend .lg-fault { width: 16px; height: 2px; border-radius: 1px; background: #e8c070; }
+.olay-legend .lg-quake { background: #ff9426; }
+.olay-legend .lg-wave { background: transparent; border: 2px solid #ffa060; }
+.olay-legend .lg-flood { background: #6b5136; border-radius: 2px; }
+.olay-legend .lg-rain { width: 3px; height: 12px; border-radius: 2px; background: #b8c4d4; transform: rotate(12deg); }
+.olay-label-strong { font-size: 0.82rem; font-weight: 700; color: #fff; }
+.olay-label-strong::before { background: #ff4060; width: 7px; height: 7px; left: -9px; top: 5px; }
+.olay-labels { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.olay-label { position: absolute; left: 0; top: 0; margin: -9px 0 0 6px; font-size: 0.74rem; font-weight: 600; color: #f3f4f6; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9), 0 0 8px rgba(0, 0, 0, 0.6); white-space: nowrap; }
+.olay-label::before { content: ""; position: absolute; left: -7px; top: 6px; width: 5px; height: 5px; border-radius: 50%; background: #f3f4f6; box-shadow: 0 0 3px rgba(0, 0, 0, 0.9); }
+.olay-ui { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 14px; padding: 14px 2px 4px; }
+.olay-ui .btn { white-space: nowrap; min-width: 132px; justify-content: center; }
+.olay-track { position: relative; padding-top: 26px; }
+.olay-hist { position: absolute; left: 0; right: 0; top: 0; width: 100%; height: 24px; }
+.olay-range { display: block; width: 100%; margin: 0; accent-color: var(--c-fire); }
+.olay-ticks { position: relative; height: 16px; margin-top: 2px; font-size: 0.7rem; color: var(--text-muted); }
+.olay-ticks span { position: absolute; top: 0; transform: translateX(-50%); white-space: nowrap; }
+.olay-cap { margin: 10px 0 4px; min-height: 2.9em; font-size: 0.95rem; line-height: 1.45; color: var(--text-primary); }
+.olay-credit { margin: 0; }
 @media (max-width: 640px) {
-  .sahne-ui { grid-template-columns: 1fr; }
-  .sahne-ctrl { justify-content: flex-start; }
-  .sahne-cap { font-size: 0.88rem; }
+  .olay-stage { aspect-ratio: 4 / 3; }
+  .olay-hud { top: 8px; left: 8px; padding: 6px 9px; }
+  .olay-clock { font-size: 0.86rem; }
+  .olay-ui { grid-template-columns: 1fr; gap: 8px; }
+  .olay-ticks .odd { display: none; }
+  .olay-ui .btn { justify-self: start; }
+  .olay-cap { font-size: 0.88rem; }
 }

@@ -68,14 +68,14 @@
 <main class="container il-main">
   <section class="dash-card ar-sahne-card ar-sahne-hero">
     <div class="dash-head">
-      <div><h2 class="il-h"><span class="h-icon ic" data-icon="play" data-icon-size="17"></span>Afet anında neler olur?</h2><p class="field-hint">Temsilî canlandırmalar: ne olur, nasıl korunulur.</p></div>
+      <div><h2 class="il-h"><span class="h-icon ic" data-icon="play" data-icon-size="17"></span>Afet anında neler olur?</h2><p class="field-hint">Gerçek olaylardan: arazi, uydu görüntüsü ve kayıtlarla canlandırma; altında ne yapmalı.</p></div>
       <div class="ar-filters ar-sahne-tabs" role="tablist" aria-label="Canlandırma türü">
-        <button type="button" class="ar-filter on" data-sahne-tab="deprem" data-target="arSahne">Deprem</button>
-        <button type="button" class="ar-filter" data-sahne-tab="sel" data-target="arSahne">Sel</button>
-        <button type="button" class="ar-filter" data-sahne-tab="yangin" data-target="arSahne">Orman yangını</button>
+        <button type="button" class="ar-filter on" role="tab" aria-selected="true" data-olay-tab="kahramanmaras-2023" data-target="arSahne">Deprem</button>
+        <button type="button" class="ar-filter" role="tab" aria-selected="false" data-olay-tab="bozkurt-2021" data-target="arSahne">Sel</button>
+        <button type="button" class="ar-filter" role="tab" aria-selected="false" data-olay-tab="manavgat-2021" data-target="arSahne">Orman yangını</button>
       </div>
     </div>
-    <div class="sahne" id="arSahne" data-sahne="deprem"></div>
+    <div class="olay3d" id="arSahne" data-olay="kahramanmaras-2023"></div>
   </section>
 
   <div class="ar-list">{{LIST}}</div>
@@ -91,6 +91,6 @@
 
 <script src="/js/cities.js"></script>
 <script src="/js/main.js"></script>
-<script src="/js/sahne.js"></script>
+<script type="module" src="/js/olay3d.js"></script>
 </body>
 </html>
