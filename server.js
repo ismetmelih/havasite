@@ -941,11 +941,9 @@ function trLocative(name) {
 async function handleIlPage(req, res, slug) {
   const il = ilData().get(slug);
   if (!il) return serveStatic(req, res, "/" + slug);
-  const [wx, quakes, fires] = await Promise.all([
-    getCityWeather().catch(() => null),
-    getLatestQuakes(150).catch(() => null),
-    getFires("VIIRS_SNPP_NRT", 1).catch(() => null),
-  ]);
+  // dis kaynak yavaslarsa sayfa beklemesin: 3,5 sn'de gelmeyen bilgi ozetten cikar (liste ve harita tarayicida yuklenir)
+  const quick = (p) => Promise.race([p.catch(() => null), new Promise((r) => setTimeout(() => r(null), 3500))]);
+  const [wx, quakes, fires] = await Promise.all([quick(getCityWeather()), quick(getLatestQuakes(150)), quick(getFires("VIIRS_SNPP_NRT", 1))]);
   const loc = trLocative(il.name);
   const w = wx && wx.ok ? wx.data.find((x) => x.name === il.name) : null;
   const dayAgo = Date.now() - 864e5;
