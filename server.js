@@ -107,6 +107,7 @@ const limiters = {
   adminAll: HttpLib.createRateLimiter({ windowMs: 15 * 60 * 1000, max: 30 }),
   pushSub: HttpLib.createRateLimiter({ windowMs: 60 * 60 * 1000, max: 30 }),
   pushTest: HttpLib.createRateLimiter({ windowMs: 15 * 60 * 1000, max: 5 }),
+  hit: HttpLib.createRateLimiter({ windowMs: 60 * 1000, max: 60 }),
 };
 
 // sinir asildiysa 429 yazar ve false doner
@@ -510,8 +511,8 @@ async function openMeteo(params) {
   if (!r.ok) throw new Error(`open-meteo ${r.status}`);
   return r.json();
 }
-async function handleWeatherCities(req, res) {
-  const out = await cachedFetch("cities", 10 * 60 * 1000, async () => {
+const getCityWeather = () =>
+  cachedFetch("cities", 10 * 60 * 1000, async () => {
     const cities = trCityList();
     const j = await openMeteo({
       latitude: cities.map((c) => c.lat).join(","), longitude: cities.map((c) => c.lon).join(","),
@@ -525,6 +526,8 @@ async function handleWeatherCities(req, res) {
     if (data.length < 40) throw new Error("eksik veri");
     return { ok: true, updated: new Date().toISOString(), data };
   });
+async function handleWeatherCities(req, res) {
+  const out = await getCityWeather();
   // gecici hata yaniti onbellege alinmasin (CloudFront/tarayici 5 dk boyunca bos harita gosterirdi)
   sendJson(res, 200, out, { "Cache-Control": out.ok ? "public, max-age=300" : "no-store" });
 }
@@ -681,14 +684,58 @@ async function handlePushRun(req, res) {
   try { result.fire = await Push.runFirePush(pool, () => getFires("VIIRS_SNPP_NRT", 1)); } catch (err) { result.fire = { ok: false, error: String(err.message).slice(0, 120) }; }
   const noisy = Object.values(result).some((r) => r && (r.sent || r.removed || r.failed || r.error));
   if (noisy) console.log("[push] calisma:", JSON.stringify(result));
+  await recordPushRun(pool, result).catch((err) => console.error("[push] kayit:", String(err.message).slice(0, 120)));
   sendJson(res, 200, { ok: true, ...result });
 }
 
+// admin paneli icin: son calisma zamani, hatalar ve son 14 gunun gonderim sayilari
+async function recordPushRun(pool, result) {
+  const sum = (k) => Object.values(result).reduce((n, r) => n + ((r && r[k]) || 0), 0);
+  const errors = Object.entries(result)
+    .filter(([, r]) => r && (r.ok === false || r.error || /unavailable/.test(r.reason || "")))
+    .map(([name, r]) => `${name}: ${r.error || r.reason || "hata"}`);
+  const st = await pool.query("SELECT v FROM app_state WHERE k = 'push_log'");
+  const prev = (st.rows[0] && st.rows[0].v) || {};
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Istanbul" }).format(new Date());
+  const days = prev.days || {};
+  const d = days[today] || { sent: 0, failed: 0, removed: 0 };
+  d.sent += sum("sent");
+  d.failed += sum("failed");
+  d.removed += sum("removed");
+  days[today] = d;
+  const keep = Object.keys(days).sort().slice(-14);
+  const now = new Date().toISOString();
+  const v = { lastRunAt: now, lastErrors: errors, lastSendAt: sum("sent") ? now : prev.lastSendAt || null, days: Object.fromEntries(keep.map((k) => [k, days[k]])) };
+  await pool.query("INSERT INTO app_state (k, v) VALUES ('push_log', $1::jsonb) ON CONFLICT (k) DO UPDATE SET v = EXCLUDED.v, updated_at = now()", [JSON.stringify(v)]);
+}
+
+// ---------- kimliksiz ziyaret sayaci ----------
+// IP adresi, cerez ya da cihaz kimligi saklanmaz; yalnizca zaman, sayfa, gelinen site (alan adi),
+// cihaz turu ve ulke (CloudFront basligi). Botlar ve admin sayfasi sayilmaz.
+const VISIT_PAGES = new Set(["/", "/hava.html", "/deprem.html", "/yangin.html", "/uygulama.html", "/gizlilik.html", "/ayarlar.html"]);
+const BOT_UA = /bot|crawl|spider|slurp|headless|lighthouse|preview|facebookexternalhit|embedly|curl|wget|python|node-fetch|go-http/i;
+async function handleHit(req, res) {
+  if (!checkLimit(res, limiters.hit, HttpLib.clientIp(req))) return;
+  let body;
+  try { body = await readJsonBody(req, 1024); } catch { return sendJson(res, 400, { ok: false, reason: "bad_request" }); }
+  const ua = String(req.headers["user-agent"] || "");
+  const page = String(body.p || "") === "/index.html" ? "/" : String(body.p || "");
+  if (!ua || BOT_UA.test(ua) || !VISIT_PAGES.has(page)) return sendJson(res, 200, { ok: true, counted: false });
+  if (!(await requireDb(res))) return;
+  const refRaw = String(body.r || "").toLowerCase().replace(/^www\./, "");
+  const ref = /^[a-z0-9.-]{1,80}$/.test(refRaw) ? refRaw : null;
+  const device = /ipad|tablet/i.test(ua) ? "tablet" : /mobi|android|iphone/i.test(ua) ? "mobil" : "masaüstü";
+  const cc = String(req.headers["cloudfront-viewer-country"] || "").toUpperCase();
+  const pool = getPool();
+  await pool.query("INSERT INTO site_visits (path, ref, device, country, entry, app) VALUES ($1, $2, $3, $4, $5, $6)", [page, ref, device, /^[A-Z]{2}$/.test(cc) ? cc : null, !!body.e, !!body.a]);
+  if (Math.random() < 0.005) pool.query("DELETE FROM site_visits WHERE at < now() - interval '180 days'").catch(() => {});
+  sendJson(res, 200, { ok: true });
+}
+
 // ---------- admin ----------
-// Admin, normal kullanici hesaplarindan tamamen bagimsizdir: musteri kayit/giris
-// sistemiyle hicbir iliskisi yoktur. Site sahibi AWS Amplify'da (veya yerelde .env icinde)
-// ADMIN_EMAIL ve ADMIN_PASSWORD ortam degiskenlerini tanimlar; admin.html'deki
-// giris formu bu bilgilerle dogrulanir ve ayri, kisa omurlu bir oturum cerezi alir.
+// Sitede kullanici hesabi yok; tek giris admin icindir. Site sahibi AWS Amplify'da (veya yerelde
+// .env icinde) ADMIN_EMAIL ve ADMIN_PASSWORD ortam degiskenlerini tanimlar; admin.html'deki
+// giris formu bu bilgilerle dogrulanir ve kisa omurlu bir oturum cerezi alir.
 function adminCredentialsConfigured() {
   return !!(process.env.ADMIN_EMAIL && process.env.ADMIN_PASSWORD);
 }
@@ -743,21 +790,64 @@ async function requireAdmin(req, res) {
 async function handleAdminStats(req, res) {
   if (!(await requireAdmin(req, res))) return;
   if (!(await requireDb(res))) return;
+  const TZ = "'Europe/Istanbul'";
+  const WEEK = "at > now() - interval '7 days'";
   try {
     const pool = getPool();
-    const pushRes = await pool.query("SELECT COUNT(*)::int AS n FROM push_subscriptions");
+    const [push, log, totals, daily, hourly, pages, refs, devices, countries, recent] = await Promise.all([
+      pool.query(`SELECT count(*)::int AS total, count(*) FILTER (WHERE quake_on)::int AS quake, count(*) FILTER (WHERE wx_daily)::int AS wx_daily,
+        count(*) FILTER (WHERE wx_alerts)::int AS wx_alerts, count(*) FILTER (WHERE fire_on)::int AS fire, count(*) FILTER (WHERE lat IS NOT NULL)::int AS located,
+        count(*) FILTER (WHERE created_at > now() - interval '7 days')::int AS new7 FROM push_subscriptions`),
+      pool.query("SELECT v FROM app_state WHERE k = 'push_log'"),
+      pool.query(`SELECT count(*) FILTER (WHERE entry AND at > now() - interval '1 day')::int AS v1, count(*) FILTER (WHERE at > now() - interval '1 day')::int AS p1,
+        count(*) FILTER (WHERE entry AND ${WEEK})::int AS v7, count(*) FILTER (WHERE ${WEEK})::int AS p7,
+        count(*) FILTER (WHERE entry)::int AS v30, count(*)::int AS p30 FROM site_visits WHERE at > now() - interval '30 days'`),
+      pool.query(`SELECT to_char(at AT TIME ZONE ${TZ}, 'YYYY-MM-DD') AS d, count(*) FILTER (WHERE entry)::int AS v, count(*)::int AS p
+        FROM site_visits WHERE at > now() - interval '15 days' GROUP BY 1 ORDER BY 1`),
+      pool.query(`SELECT extract(hour FROM at AT TIME ZONE ${TZ})::int AS h, count(*) FILTER (WHERE entry)::int AS v FROM site_visits
+        WHERE (at AT TIME ZONE ${TZ})::date = (now() AT TIME ZONE ${TZ})::date GROUP BY 1`),
+      pool.query(`SELECT path, count(*)::int AS n FROM site_visits WHERE ${WEEK} GROUP BY 1 ORDER BY 2 DESC LIMIT 8`),
+      pool.query(`SELECT coalesce(ref, '') AS ref, count(*)::int AS n FROM site_visits WHERE entry AND ${WEEK} GROUP BY 1 ORDER BY 2 DESC LIMIT 8`),
+      pool.query(`SELECT device, count(*)::int AS n FROM site_visits WHERE entry AND ${WEEK} GROUP BY 1 ORDER BY 2 DESC`),
+      pool.query(`SELECT coalesce(country, '') AS country, count(*)::int AS n FROM site_visits WHERE entry AND ${WEEK} GROUP BY 1 ORDER BY 2 DESC LIMIT 8`),
+      pool.query("SELECT at, path, ref, device, country, entry, app FROM site_visits ORDER BY at DESC LIMIT 30"),
+    ]);
     sendJson(res, 200, {
       ok: true,
       stats: {
-        pushSubscribers: pushRes.rows[0].n,
-        firmsKeyConfigured: !!(CONFIG.FIRMS_MAP_KEY && CONFIG.FIRMS_MAP_KEY !== "BURAYA_KENDI_ANAHTARINI_YAZ"),
+        push: { ...push.rows[0], configured: Push.pushConfigured(), log: (log.rows[0] && log.rows[0].v) || null },
+        visits: { totals: totals.rows[0], daily: daily.rows, hourly: hourly.rows, pages: pages.rows, refs: refs.rows, devices: devices.rows, countries: countries.rows, recent: recent.rows },
         nodeVersion: process.version,
         uptimeSeconds: Math.round(process.uptime()),
       },
     });
   } catch (err) {
+    console.error("[admin] istatistik:", String(err.message).slice(0, 160));
     sendJson(res, 500, { ok: false, reason: "server_error", message: "İstatistikler alınamadı." });
   }
+}
+
+// veri kaynaklarinin canli durumu: her kaynak gercekten sorgulanir (onbellek varsa onu kullanir)
+async function handleAdminHealth(req, res) {
+  if (!(await requireAdmin(req, res))) return;
+  const timed = async (fn) => { const t = Date.now(); try { return { ...(await fn()), ms: Date.now() - t }; } catch (err) { return { ok: false, error: String(err.message || err).slice(0, 120), ms: Date.now() - t }; } };
+  const [quakes, fires, wx, db] = await Promise.all([
+    timed(() => getLatestQuakes(150)),
+    timed(() => getFires("VIIRS_SNPP_NRT", 1)),
+    timed(() => getCityWeather()),
+    timed(async () => { if (!(await ensureSchema())) return { ok: false, error: "bağlantı yok" }; await getPool().query("SELECT 1"); return { ok: true }; }),
+  ]);
+  const newestFire = (fires.data || []).reduce((m, f) => { const t = Date.parse(`${f.date}T${String(f.time).padStart(4, "0").replace(/(\d\d)(\d\d)/, "$1:$2")}:00Z`); return t > m ? t : m; }, 0);
+  sendJson(res, 200, {
+    ok: true,
+    sources: {
+      afad: { ok: !!quakes.ok, source: quakes.source || null, count: quakes.count || 0, newest: quakes.data && quakes.data[0] ? quakes.data[0].date : null, ms: quakes.ms, error: quakes.reason || quakes.error || null },
+      firms: { ok: !!fires.ok, count: fires.data ? fires.data.length : 0, newest: newestFire ? new Date(newestFire).toISOString() : null, ms: fires.ms, error: fires.reason || fires.error || null },
+      openMeteo: { ok: !!wx.ok, updated: wx.updated || null, stale: !!wx.stale, count: wx.data ? wx.data.length : 0, ms: wx.ms, error: wx.reason || wx.error || null },
+      db: { ok: !!db.ok, ms: db.ms, error: db.error || null },
+      push: { ok: Push.pushConfigured() },
+    },
+  }, { "Cache-Control": "no-store" });
 }
 
 // ---------- sitenin tam adresi (paylasim etiketleri, sitemap) ----------
@@ -912,6 +1002,8 @@ function route(req, res) {
   if (pathname === "/api/admin/logout" && method === "POST") return handleAdminLogout(req, res);
   if (pathname === "/api/admin/session" && method === "GET") return handleAdminSession(req, res);
   if (pathname === "/api/admin/stats" && method === "GET") return handleAdminStats(req, res);
+  if (pathname === "/api/admin/health" && method === "GET") return handleAdminHealth(req, res);
+  if (pathname === "/api/hit" && method === "POST") return handleHit(req, res);
 
   if (pathname === "/api/status" && method === "GET") return handleStatus(req, res);
   if (pathname === "/api/push/key" && method === "GET") return handlePushKey(req, res);

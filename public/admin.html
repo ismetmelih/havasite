@@ -49,11 +49,11 @@
   </div>
   <div class="container page-head-row">
     <div class="page-head-title">
-      <div class="page-icon icon-admin-wrap"><img class="icon-3d" src="img/3d/shield.png" alt="" draggable="false" /></div>
+      <div class="page-icon icon-admin-wrap"><span class="ic" data-icon="shield-check" data-icon-size="24"></span></div>
       <div>
         <span class="eyebrow">ADMİN</span>
         <h1>Yönetim paneli</h1>
-        <p class="page-sub">Bu giriş, normal kullanıcı hesaplarından tamamen ayrıdır.</p>
+        <p class="page-sub">Ziyaretçiler, bildirimler ve veri kaynakları tek ekranda.</p>
       </div>
     </div>
     <span class="badge badge-live" id="adminLogoutWrap" hidden>
@@ -71,15 +71,11 @@
       <div class="card admin-login-card reveal" id="adminLoginCard">
         <div class="admin-lock-badge" data-icon="lock" data-icon-size="22"></div>
         <h3 style="margin-top:0;text-align:center">Admin girişi</h3>
-        <p class="field-hint" style="margin-bottom:18px;text-align:center">
-          Buradaki e-posta ve şifre, sitedeki normal kullanıcı hesaplarıyla ilgisizdir;
-          yalnızca sunucuda tanımlı <code>ADMIN_EMAIL</code> / <code>ADMIN_PASSWORD</code>
-          ile eşleşen bilgilerle giriş yapılabilir.
-        </p>
+        <p class="field-hint" style="margin-bottom:18px;text-align:center">Yalnızca site yöneticisi içindir.</p>
         <form id="adminLoginForm" class="auth-form" novalidate>
           <label class="field">
             <span>Admin e-postası</span>
-            <input type="email" id="adminEmail" placeholder="admin@site.com" autocomplete="username" required />
+            <input type="email" id="adminEmail" placeholder="ornek@turkiyecanli.com" autocomplete="username" required />
             <small class="field-error"></small>
           </label>
           <label class="field">
@@ -100,33 +96,81 @@
   <!-- ---- Panel (giris yapinca gorunur) ---- -->
   <div id="adminDashboard" hidden>
 
-    <div class="stat-tiles admin-stat-tiles reveal">
-      <div class="stat-tile">
-        <span class="stat-tile-icon" data-icon="bell"></span>
-        <span class="stat-label">Bildirim Abonesi</span>
-        <span class="stat-value" id="statPush">—</span>
-        <span class="stat-sub">deprem bildirimi açık cihaz</span>
-      </div>
-      <div class="stat-tile">
-        <span class="stat-tile-icon" data-icon="clock"></span>
-        <span class="stat-label">Sunucu Çalışma Süresi</span>
-        <span class="stat-value" id="statUptime">—</span>
-        <span class="stat-sub" id="statNode">—</span>
-      </div>
+    <div class="ad-toolbar">
+      <span class="ad-updated" id="adUpdated">—</span>
+      <button type="button" class="btn btn-ghost btn-sm" id="adRefresh"><span class="ic" data-icon="refresh-cw" data-icon-size="15"></span> Yenile</button>
     </div>
 
-    <div class="card admin-status-card reveal">
-      <h3 style="margin-top:0"><span class="h-icon ic" data-icon="cpu" data-icon-size="17"></span>Servis durumu</h3>
-      <div class="admin-status-row">
-        <span><span class="ic" data-icon="key" data-icon-size="15"></span> NASA FIRMS anahtarı</span>
-        <span class="badge" id="statFirms">—</span>
+    <!-- Ziyaretciler -->
+    <section class="ad-section">
+      <div class="ad-head">
+        <h3><span class="h-icon ic" data-icon="users" data-icon-size="17"></span>Ziyaretçiler</h3>
+        <span class="ad-note"><span class="ic" data-icon="lock" data-icon-size="13"></span> Kimliksiz sayım: IP, çerez ya da cihaz kimliği tutulmaz.</span>
       </div>
-      <div class="admin-status-row">
-        <span><span class="ic" data-icon="database" data-icon-size="15"></span> Veritabanı bağlantısı</span>
-        <span class="badge badge-live"><span class="live-blip"></span> bağlı</span>
+      <div class="stat-tiles admin-stat-tiles reveal">
+        <div class="stat-tile"><span class="stat-tile-icon" data-icon="clock"></span><span class="stat-label">Son 24 saat</span><span class="stat-value" id="vV1">—</span><span class="stat-sub" id="vP1">—</span></div>
+        <div class="stat-tile"><span class="stat-tile-icon" data-icon="calendar"></span><span class="stat-label">Son 7 gün</span><span class="stat-value" id="vV7">—</span><span class="stat-sub" id="vP7">—</span></div>
+        <div class="stat-tile"><span class="stat-tile-icon" data-icon="bar-chart"></span><span class="stat-label">Son 30 gün</span><span class="stat-value" id="vV30">—</span><span class="stat-sub" id="vP30">—</span></div>
+        <div class="stat-tile"><span class="stat-tile-icon" data-icon="layers"></span><span class="stat-label">Ziyaret başına</span><span class="stat-value" id="vPer">—</span><span class="stat-sub">sayfa (son 7 gün)</span></div>
       </div>
-    </div>
+      <div class="ad-grid">
+        <div class="card ad-card">
+          <h4>Günlük ziyaret <small>son 14 gün</small></h4>
+          <div class="ad-chart" id="vDaily"></div>
+        </div>
+        <div class="card ad-card">
+          <h4>Bugün saat saat <small>ziyaret</small></h4>
+          <div class="ad-chart ad-chart-hours" id="vHourly"></div>
+        </div>
+      </div>
+      <div class="ad-grid ad-grid-4">
+        <div class="card ad-card"><h4>En çok bakılan <small>7 gün · görüntüleme</small></h4><div class="ad-list" id="vPages"></div></div>
+        <div class="card ad-card"><h4>Nereden geldiler <small>7 gün · ziyaret</small></h4><div class="ad-list" id="vRefs"></div></div>
+        <div class="card ad-card"><h4>Cihaz <small>7 gün · ziyaret</small></h4><div class="ad-list" id="vDevices"></div></div>
+        <div class="card ad-card"><h4>Ülke <small>7 gün · ziyaret</small></h4><div class="ad-list" id="vCountries"></div></div>
+      </div>
+      <div class="card ad-card">
+        <h4>Son ziyaretler <small>son 30 sayfa görüntüleme</small></h4>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead><tr><th>Zaman</th><th>Sayfa</th><th>Nereden</th><th>Cihaz</th><th>Ülke</th></tr></thead>
+            <tbody id="vRecent"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
 
+    <!-- Bildirimler -->
+    <section class="ad-section">
+      <div class="ad-head">
+        <h3><span class="h-icon ic" data-icon="bell" data-icon-size="17"></span>Bildirimler</h3>
+        <button type="button" class="btn btn-ghost btn-sm" id="adTestPush"><span class="ic" data-icon="bell" data-icon-size="15"></span> Bu cihaza test bildirimi gönder</button>
+      </div>
+      <div class="stat-tiles admin-stat-tiles reveal">
+        <div class="stat-tile"><span class="stat-tile-icon" data-icon="smartphone"></span><span class="stat-label">Abone cihaz</span><span class="stat-value" id="pTotal">—</span><span class="stat-sub" id="pNew">—</span></div>
+        <div class="stat-tile"><span class="stat-tile-icon" data-icon="wave"></span><span class="stat-label">Deprem bildirimi</span><span class="stat-value" id="pQuake">—</span><span class="stat-sub">açık</span></div>
+        <div class="stat-tile"><span class="stat-tile-icon" data-icon="cloud-sun"></span><span class="stat-label">Hava bildirimi</span><span class="stat-value" id="pWx">—</span><span class="stat-sub" id="pWxSub">—</span></div>
+        <div class="stat-tile"><span class="stat-tile-icon" data-icon="flame"></span><span class="stat-label">Yangın bildirimi</span><span class="stat-value" id="pFire">—</span><span class="stat-sub">açık</span></div>
+      </div>
+      <div class="card ad-card">
+        <h4>Gönderimler <small>son 7 gün</small></h4>
+        <div class="admin-table-wrap">
+          <table class="admin-table ad-table-sm">
+            <thead><tr><th>Gün</th><th>Gönderilen</th><th>Başarısız</th><th>Silinen abonelik</th></tr></thead>
+            <tbody id="pDays"></tbody>
+          </table>
+        </div>
+        <p class="ad-foot" id="pLast">—</p>
+      </div>
+    </section>
+
+    <!-- Veri kaynaklari -->
+    <section class="ad-section">
+      <div class="ad-head">
+        <h3><span class="h-icon ic" data-icon="activity" data-icon-size="17"></span>Veri kaynakları ve sistem</h3>
+      </div>
+      <div class="card ad-card ad-health" id="hRows"><p class="ad-empty">Kontrol ediliyor…</p></div>
+    </section>
 
   </div>
 

@@ -230,6 +230,17 @@
     },
   };
 
+  // kimliksiz ziyaret sayaci: yalnizca sayfa, gelinen site (alan adi) ve "siteye yeni mi girdi" bilgisi
+  // gider; cerez, IP kaydi ya da cihaz kimligi yok (bkz. gizlilik.html)
+  function countVisit() {
+    if (navigator.webdriver || /\/admin/.test(location.pathname) || !navigator.sendBeacon) return;
+    let ref = "";
+    try { ref = document.referrer ? new URL(document.referrer).hostname : ""; } catch {}
+    const internal = ref === location.hostname;
+    const body = JSON.stringify({ p: location.pathname, r: internal ? "" : ref, e: !internal, a: isStandalone() });
+    try { navigator.sendBeacon("/api/hit", new Blob([body], { type: "application/json" })); } catch {}
+  }
+
   function setupPWA() {
     if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
       navigator.serviceWorker.register("/sw.js").catch(() => {});
@@ -335,6 +346,7 @@
     setupThemeToggle();
     setupEmergencyMode();
     setupPWA();
+    countVisit();
     markActiveLink();
 
     setupNavAction();
