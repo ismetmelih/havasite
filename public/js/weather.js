@@ -63,6 +63,14 @@
       }, { once: true });
     }
 
+    // il sayfalarindaki ilce baglantilari: hava.html?yer=Karsiyaka&bolge=Izmir&lat=..&lon=..
+    const up = new URLSearchParams(location.search);
+    const qLat = parseFloat(up.get("lat")), qLon = parseFloat(up.get("lon"));
+    if (up.get("yer") && Math.abs(qLat) <= 90 && Math.abs(qLon) <= 180) {
+      state.loc = { name: up.get("yer").slice(0, 60), lat: qLat, lon: qLon };
+      if (up.get("bolge")) state.loc.region = up.get("bolge").slice(0, 60);
+    }
+
     const wantView = (new URLSearchParams(location.search).get("v") || location.hash.slice(1) || "").toLowerCase();
     if (["genel", "saatlik", "ayrinti", "harita", "aylik", "egilim", "modeller"].includes(wantView)) state.view = wantView;
 

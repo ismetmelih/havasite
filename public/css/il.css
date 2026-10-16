@@ -1,0 +1,68 @@
+/* ================= Il sayfasi (/izmir gibi) ================= */
+.il-ph { padding-bottom: 18px; }
+.il-crumbs { display: flex; gap: 8px; align-items: center; font-size: 0.84rem; color: var(--text-muted); margin-bottom: 14px; }
+.il-crumbs a { color: var(--text-secondary); }
+.il-crumbs a:hover { color: var(--text-primary); }
+.il-crumbs b { color: var(--text-primary); font-weight: 600; }
+.il-ph h1 { margin: 14px 0 10px; }
+.il-summary { max-width: 860px; margin: 14px 0 0; padding: 14px 16px; border-left: 3px solid var(--accent); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; background: var(--surface); color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6; }
+.il-summary:empty { display: none; }
+.il-stats { margin-top: 26px; }
+
+.il-main { padding-bottom: 40px; }
+.il-h { font-size: 1.05rem; margin: 0; display: flex; align-items: center; gap: 8px; }
+.il-empty { color: var(--text-muted); font-size: 0.9rem; margin: 6px 0; }
+
+/* hava */
+.il-now { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 4px 0 16px; border-bottom: 1px solid var(--border); }
+.il-now-main { display: flex; align-items: center; gap: 14px; }
+.il-now-ic { color: var(--c-weather); display: inline-flex; }
+.il-now-main > b { font-size: 3rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1; }
+.il-now-main strong { display: block; font-size: 1.05rem; }
+.il-now-main div span { font-size: 0.86rem; color: var(--text-muted); }
+.il-now-facts { display: flex; flex-wrap: wrap; gap: 8px; }
+.il-now-facts span { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 999px; background: var(--surface-2); font-size: 0.84rem; color: var(--text-secondary); }
+.il-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-top: 16px; }
+.il-day { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 6px; border-radius: var(--radius-sm); background: var(--surface-2); color: var(--c-weather); }
+.il-day-name { font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); text-transform: capitalize; }
+.il-day b { font-size: 1.05rem; color: var(--text-primary); }
+.il-day-min { font-size: 0.82rem; color: var(--text-muted); margin-top: -4px; }
+.il-day small { font-size: 0.74rem; color: var(--text-muted); }
+
+/* harita + depremler */
+.il-2col { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 18px; align-items: start; }
+.il-2col > .dash-card { margin-bottom: 18px; min-width: 0; }
+.il-map { height: 460px; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--border); }
+.il-legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 12px; font-size: 0.8rem; color: var(--text-muted); }
+.il-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.lg-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--c); border: 1px solid rgba(0, 0, 0, 0.4); }
+.lg-dot.lg-fire { background: #fb923c; }
+.lg-line { width: 16px; height: 2px; border-radius: 2px; background: #ff5a4e; }
+.il-quakes { display: flex; flex-direction: column; gap: 8px; }
+.il-quakes .lp-q { cursor: default; }
+.il-more-note { font-size: 0.82rem; color: var(--text-muted); margin: 6px 0 0; }
+.il-more { margin-top: 14px; }
+
+/* yanginlar */
+.il-fire-sum { color: var(--text-secondary); font-size: 0.9rem; margin: 0 0 14px; line-height: 1.55; }
+.il-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+.il-table th { text-align: left; padding: 10px 12px; background: var(--bg-alt); color: var(--text-muted); font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 1px solid var(--border); }
+.il-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+.il-table tr:last-child td { border-bottom: none; }
+
+/* ilceler */
+.il-districts { display: flex; flex-wrap: wrap; gap: 8px; }
+.il-districts a { padding: 7px 13px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface-2); font-size: 0.86rem; color: var(--text-secondary); transition: border-color 0.2s ease, color 0.2s ease; }
+.il-districts a:hover { border-color: var(--border-strong); color: var(--text-primary); }
+
+.il-note { font-size: 0.8rem; color: var(--text-muted); margin: 8px 0 0; }
+
+@media (max-width: 900px) {
+  .il-2col { grid-template-columns: 1fr; }
+  .il-map { height: 380px; }
+}
+@media (max-width: 640px) {
+  .il-days { grid-template-columns: repeat(4, 1fr); }
+  .il-now-main > b { font-size: 2.5rem; }
+  .il-map { height: 320px; }
+}

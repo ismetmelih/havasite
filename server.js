@@ -888,9 +888,96 @@ function handleRobots(req, res) {
 function handleSitemap(req, res) {
   const origin = siteOrigin(req);
   const today = new Date().toISOString().slice(0, 10);
-  const urls = SITEMAP_PAGES.map((p) => `  <url><loc>${origin}${p}</loc><lastmod>${today}</lastmod><changefreq>${p === "/" ? "daily" : "hourly"}</changefreq></url>`).join("\n");
+  const urls = [...SITEMAP_PAGES, ...[...IL_ENABLED].map((s) => `/${s}`)].map((p) => `  <url><loc>${origin}${p}</loc><lastmod>${today}</lastmod><changefreq>${p === "/" ? "daily" : "hourly"}</changefreq></url>`).join("\n");
   const body = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`;
   HttpLib.send(req, res, 200, { ...HttpLib.securityHeaders(false), "Content-Type": "application/xml; charset=utf-8", "Cache-Control": "public, max-age=3600" }, body);
+}
+
+// ---------- il sayfalari (/izmir gibi) ----------
+// Google'da "Izmir hava durumu", "Izmir deprem" gibi aramalar icin her ilin kendi adresi olur.
+// Sayfa sunucuda doldurulur (baslik, aciklama, guncel ozet, ilceler); harita ve listeler tarayicida yuklenir.
+const IL_TEMPLATE = path.join(__dirname, "lib", "templates", "il.html");
+const IL_ENABLED = new Set(["izmir"]); // once tek ornek; begenilirse 81 il acilacak
+const trSlug = (s) => s.toLocaleLowerCase("tr").replace(/ı/g, "i").replace(/ğ/g, "g").replace(/ü/g, "u").replace(/ş/g, "s")
+  .replace(/ö/g, "o").replace(/ç/g, "c").replace(/â/g, "a").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+const escHtml = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+let IL_DATA = null;
+function ilData() {
+  if (IL_DATA) return IL_DATA;
+  const places = JSON.parse(fs.readFileSync(path.join(PUBLIC_DIR, "data", "iller.json"), "utf8"));
+  const geo = JSON.parse(fs.readFileSync(path.join(PUBLIC_DIR, "data", "tr-iller.geojson"), "utf8"));
+  const shapes = new Map(geo.features.map((f) => [f.properties.n, f.geometry]));
+  IL_DATA = new Map(trCityList().map((c) => {
+    const p = places.find((x) => x.n === c.name);
+    return [trSlug(c.name), { name: c.name, lat: c.lat, lon: c.lon, districts: p ? p.d : [], shape: shapes.get(c.name) }];
+  }));
+  return IL_DATA;
+}
+function inRing(lon, lat, ring) {
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const [xi, yi] = ring[i], [xj, yj] = ring[j];
+    if ((yi > lat) !== (yj > lat) && lon < ((xj - xi) * (lat - yi)) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+}
+function inShape(lon, lat, g) {
+  if (!g || !Number.isFinite(lon) || !Number.isFinite(lat)) return false;
+  const polys = g.type === "Polygon" ? [g.coordinates] : g.coordinates;
+  return polys.some((rings) => inRing(lon, lat, rings[0]) && !rings.slice(1).some((h) => inRing(lon, lat, h)));
+}
+// "Izmir'de", "Ankara'da", "Mus'ta": son unluye ve son harfe gore bulunma eki
+function trLocative(name) {
+  const vowels = name.toLocaleLowerCase("tr").match(/[aeıioöuü]/g) || ["e"];
+  const front = "eiöü".includes(vowels[vowels.length - 1]);
+  const hard = "fstkçşhp".includes(name.slice(-1).toLocaleLowerCase("tr"));
+  return `${name}'${hard ? "t" : "d"}${front ? "e" : "a"}`;
+}
+
+async function handleIlPage(req, res, slug) {
+  const il = ilData().get(slug);
+  if (!il) return serveStatic(req, res, "/" + slug);
+  const [wx, quakes, fires] = await Promise.all([
+    getCityWeather().catch(() => null),
+    getLatestQuakes(150).catch(() => null),
+    getFires("VIIRS_SNPP_NRT", 1).catch(() => null),
+  ]);
+  const loc = trLocative(il.name);
+  const w = wx && wx.ok ? wx.data.find((x) => x.name === il.name) : null;
+  const dayAgo = Date.now() - 864e5;
+  const qs = quakes && quakes.ok
+    ? quakes.data.filter((q) => (q.province === il.name || inShape(q.lon, q.lat, il.shape)) && Date.parse(String(q.date).replace(" ", "T") + "+03:00") > dayAgo)
+    : null;
+  const fireN = fires && fires.ok ? fires.data.filter((f) => inShape(f.lon, f.lat, il.shape)).length : null;
+
+  const parts = [];
+  if (w) parts.push(`${loc} şu an hava ${Math.round(w.temp)}°C ve ${(Push.WMO_TR[w.code] || "değişken").toLocaleLowerCase("tr")}; nem %${Math.round(w.humidity)}, rüzgâr ${Math.round(w.wind)} km/s.`);
+  if (qs) {
+    const max = qs.reduce((a, b) => (!a || b.mag > a.mag ? b : a), null);
+    parts.push(qs.length ? `Son 24 saatte ${loc} ${qs.length} deprem kaydedildi; en büyüğü ${max.magType || "M"} ${max.mag.toFixed(1)} (${max.title}).` : `Son 24 saatte ${loc} deprem kaydedilmedi.`);
+  }
+  if (fireN != null) parts.push(fireN ? `NASA uyduları son 24 saatte il sınırları içinde ${fireN} ısı noktası tespit etti.` : `NASA uyduları son 24 saatte il sınırları içinde ısı noktası tespit etmedi.`);
+
+  const enc = encodeURIComponent;
+  const districts = [...il.districts].sort((a, b) => a[0].localeCompare(b[0], "tr"))
+    .map(([d, lat, lon]) => `<a href="/hava.html?yer=${enc(d)}&amp;bolge=${enc(il.name)}&amp;lat=${lat}&amp;lon=${lon}">${escHtml(d)}</a>`).join("");
+  const fill = {
+    TITLE: `${il.name} Hava Durumu, Son Depremler ve Yangınlar | TürkiyeCanlı`,
+    DESC: `${il.name} için anlık hava durumu ve 16 günlük tahmin, ${il.name} ve çevresindeki son depremler (AFAD), aktif fay hatları ve uydudan orman yangını tespitleri. Ücretsiz, reklamsız.`,
+    IL: il.name, SLUG: slug, LAT: il.lat, LON: il.lon,
+    TEMP: w ? `${Math.round(w.temp)}°` : "—",
+    SUMMARY: parts.join(" "),
+    WX_LINK: `/hava.html?yer=${enc(il.name)}&lat=${il.lat}&lon=${il.lon}`,
+    DISTRICT_COUNT: il.districts.length,
+  };
+  let html = fs.readFileSync(IL_TEMPLATE, "utf8");
+  for (const [k, v] of Object.entries(fill)) html = html.split(`{{${k}}}`).join(escHtml(v));
+  html = html.split("{{DISTRICTS}}").join(districts);
+  HttpLib.send(req, res, 200, {
+    ...HttpLib.securityHeaders(true),
+    "Content-Type": "text/html; charset=utf-8",
+    "Cache-Control": "public, max-age=120",
+  }, fillPlaceholders(html, req));
 }
 
 // ---------- statik dosya sunumu ----------
@@ -1026,6 +1113,8 @@ function route(req, res) {
   if (method !== "GET" && method !== "HEAD") {
     return HttpLib.send(req, res, 405, { "Content-Type": "text/plain; charset=utf-8", Allow: "GET, HEAD" }, "Bu yöntem desteklenmiyor.");
   }
+  const ilMatch = /^\/([a-z-]{3,20})$/.exec(pathname);
+  if (ilMatch && IL_ENABLED.has(ilMatch[1])) return handleIlPage(req, res, ilMatch[1]);
   return serveStatic(req, res, pathname);
 }
 
