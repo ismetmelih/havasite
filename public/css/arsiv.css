@@ -53,3 +53,19 @@
 .ar-data-note { margin: 6px 0 0; }
 .ar-map { height: 420px; }
 @media (max-width: 640px) { .ar-map { height: 340px; } }
+
+/* temsili canlandirma sahnesi */
+.sahne-host { position: relative; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--border); background: #0f1620; }
+.sahne-host > svg { display: block; width: 100%; height: auto; aspect-ratio: 800 / 360; }
+.sahne-ui { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px 14px; padding: 12px 14px; border-top: 1px solid var(--border); background: var(--surface); }
+.sahne-tag { position: absolute; top: 10px; right: 10px; padding: 4px 10px; border-radius: 999px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; color: #e5e7eb; background: rgba(10, 14, 20, 0.7); border: 1px solid rgba(255, 255, 255, 0.15); }
+.sahne-cap { margin: 0; min-height: 2.8em; display: flex; align-items: center; font-size: 0.95rem; line-height: 1.45; color: var(--text-primary); }
+.sahne-ctrl { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.sahne-ctrl .btn { white-space: nowrap; }
+.ar-sahne-hero { margin-bottom: 22px; }
+.ar-sahne-tabs { margin-top: 0; }
+@media (max-width: 640px) {
+  .sahne-ui { grid-template-columns: 1fr; }
+  .sahne-ctrl { justify-content: flex-start; }
+  .sahne-cap { font-size: 0.88rem; }
+}

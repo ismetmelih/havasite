@@ -66,6 +66,18 @@
 </header>
 
 <main class="container il-main">
+  <section class="dash-card ar-sahne-card ar-sahne-hero">
+    <div class="dash-head">
+      <div><h2 class="il-h"><span class="h-icon ic" data-icon="play" data-icon-size="17"></span>Afet anında neler olur?</h2><p class="field-hint">Temsilî canlandırmalar: ne olur, nasıl korunulur.</p></div>
+      <div class="ar-filters ar-sahne-tabs" role="tablist" aria-label="Canlandırma türü">
+        <button type="button" class="ar-filter on" data-sahne-tab="deprem" data-target="arSahne">Deprem</button>
+        <button type="button" class="ar-filter" data-sahne-tab="sel" data-target="arSahne">Sel</button>
+        <button type="button" class="ar-filter" data-sahne-tab="yangin" data-target="arSahne">Orman yangını</button>
+      </div>
+    </div>
+    <div class="sahne" id="arSahne" data-sahne="deprem"></div>
+  </section>
+
   <div class="ar-list">{{LIST}}</div>
   <p class="il-note">Rakamlar resmî açıklamalara ve her yazının altında gösterilen kaynaklara dayanır; kaynaklar arasında fark olduğunda yazıda belirtilmiştir.</p>
 </main>
@@ -79,5 +91,6 @@
 
 <script src="/js/cities.js"></script>
 <script src="/js/main.js"></script>
+<script src="/js/sahne.js"></script>
 </body>
 </html>
