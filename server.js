@@ -888,7 +888,7 @@ function handleRobots(req, res) {
 function handleSitemap(req, res) {
   const origin = siteOrigin(req);
   const today = new Date().toISOString().slice(0, 10);
-  const urls = [...SITEMAP_PAGES, ...[...IL_ENABLED].map((s) => `/${s}`)].map((p) => `  <url><loc>${origin}${p}</loc><lastmod>${today}</lastmod><changefreq>${p === "/" ? "daily" : "hourly"}</changefreq></url>`).join("\n");
+  const urls = [...SITEMAP_PAGES, "/iller", ...[...ilData().keys()].map((s) => `/${s}`)].map((p) => `  <url><loc>${origin}${p}</loc><lastmod>${today}</lastmod><changefreq>${p === "/" ? "daily" : "hourly"}</changefreq></url>`).join("\n");
   const body = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`;
   HttpLib.send(req, res, 200, { ...HttpLib.securityHeaders(false), "Content-Type": "application/xml; charset=utf-8", "Cache-Control": "public, max-age=3600" }, body);
 }
@@ -897,7 +897,6 @@ function handleSitemap(req, res) {
 // Google'da "Izmir hava durumu", "Izmir deprem" gibi aramalar icin her ilin kendi adresi olur.
 // Sayfa sunucuda doldurulur (baslik, aciklama, guncel ozet, ilceler); harita ve listeler tarayicida yuklenir.
 const IL_TEMPLATE = path.join(__dirname, "lib", "templates", "il.html");
-const IL_ENABLED = new Set(["izmir"]); // once tek ornek; begenilirse 81 il acilacak
 const trSlug = (s) => s.toLocaleLowerCase("tr").replace(/ı/g, "i").replace(/ğ/g, "g").replace(/ü/g, "u").replace(/ş/g, "s")
   .replace(/ö/g, "o").replace(/ç/g, "c").replace(/â/g, "a").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 const escHtml = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -954,11 +953,15 @@ async function handleIlPage(req, res, slug) {
   if (w) parts.push(`${loc} şu an hava ${Math.round(w.temp)}°C ve ${(Push.WMO_TR[w.code] || "değişken").toLocaleLowerCase("tr")}; nem %${Math.round(w.humidity)}, rüzgâr ${Math.round(w.wind)} km/s.`);
   if (qs) {
     const max = qs.reduce((a, b) => (!a || b.mag > a.mag ? b : a), null);
-    parts.push(qs.length ? `Son 24 saatte ${loc} ${qs.length} deprem kaydedildi; en büyüğü ${max.magType || "M"} ${max.mag.toFixed(1)} (${max.title}).` : `Son 24 saatte ${loc} deprem kaydedilmedi.`);
+    parts.push(qs.length ? `Son 24 saatte ${il.name} ve çevresinde ${qs.length} deprem kaydedildi; en büyüğü ${max.magType || "M"} ${max.mag.toFixed(1)} (${max.title}).` : `Son 24 saatte ${il.name} ve çevresinde deprem kaydedilmedi.`);
   }
   if (fireN != null) parts.push(fireN ? `NASA uyduları son 24 saatte il sınırları içinde ${fireN} ısı noktası tespit etti.` : `NASA uyduları son 24 saatte il sınırları içinde ısı noktası tespit etmedi.`);
 
   const enc = encodeURIComponent;
+  const nearby = [...ilData()].filter(([s]) => s !== slug)
+    .map(([s, x]) => [s, x.name, Push.haversineKm(il.lat, il.lon, x.lat, x.lon)])
+    .sort((a, b) => a[2] - b[2]).slice(0, 8)
+    .map(([s, n]) => `<a href="/${s}">${escHtml(n)}</a>`).join("");
   const districts = [...il.districts].sort((a, b) => a[0].localeCompare(b[0], "tr"))
     .map(([d, lat, lon]) => `<a href="/hava.html?yer=${enc(d)}&amp;bolge=${enc(il.name)}&amp;lat=${lat}&amp;lon=${lon}">${escHtml(d)}</a>`).join("");
   const fill = {
@@ -972,11 +975,27 @@ async function handleIlPage(req, res, slug) {
   };
   let html = fs.readFileSync(IL_TEMPLATE, "utf8");
   for (const [k, v] of Object.entries(fill)) html = html.split(`{{${k}}}`).join(escHtml(v));
-  html = html.split("{{DISTRICTS}}").join(districts);
+  html = html.split("{{DISTRICTS}}").join(districts).split("{{NEARBY}}").join(nearby);
   HttpLib.send(req, res, 200, {
     ...HttpLib.securityHeaders(true),
     "Content-Type": "text/html; charset=utf-8",
     "Cache-Control": "public, max-age=120",
+  }, fillPlaceholders(html, req));
+}
+
+// tum iller: anlik sicaklikla alfabetik liste (il sayfalarina giris kapisi)
+async function handleIllerPage(req, res) {
+  const wx = await getCityWeather().catch(() => null);
+  const byName = new Map(wx && wx.ok ? wx.data.map((x) => [x.name, x]) : []);
+  const list = [...ilData()].sort((a, b) => a[1].name.localeCompare(b[1].name, "tr")).map(([s, x]) => {
+    const w = byName.get(x.name);
+    return `<a class="iller-item" href="/${s}"><b>${escHtml(x.name)}</b><span>${w ? `${Math.round(w.temp)}° · ${escHtml(Push.WMO_TR[w.code] || "")}` : ""}</span></a>`;
+  }).join("");
+  const html = fs.readFileSync(path.join(__dirname, "lib", "templates", "iller.html"), "utf8").split("{{LIST}}").join(list);
+  HttpLib.send(req, res, 200, {
+    ...HttpLib.securityHeaders(true),
+    "Content-Type": "text/html; charset=utf-8",
+    "Cache-Control": "public, max-age=300",
   }, fillPlaceholders(html, req));
 }
 
@@ -1113,8 +1132,9 @@ function route(req, res) {
   if (method !== "GET" && method !== "HEAD") {
     return HttpLib.send(req, res, 405, { "Content-Type": "text/plain; charset=utf-8", Allow: "GET, HEAD" }, "Bu yöntem desteklenmiyor.");
   }
+  if (pathname === "/iller") return handleIllerPage(req, res);
   const ilMatch = /^\/([a-z-]{3,20})$/.exec(pathname);
-  if (ilMatch && IL_ENABLED.has(ilMatch[1])) return handleIlPage(req, res, ilMatch[1]);
+  if (ilMatch && ilData().has(ilMatch[1])) return handleIlPage(req, res, ilMatch[1]);
   return serveStatic(req, res, pathname);
 }
 

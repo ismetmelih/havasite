@@ -56,7 +56,7 @@
 
 <header class="ph il-ph">
   <div class="container">
-    <nav class="il-crumbs" aria-label="Konum"><a href="/">Ana Sayfa</a><span>›</span><span>İller</span><span>›</span><b>{{IL}}</b></nav>
+    <nav class="il-crumbs" aria-label="Konum"><a href="/">Ana Sayfa</a><span>›</span><a href="/iller">İller</a><span>›</span><b>{{IL}}</b></nav>
     <span class="pill-label">CANLI · HAVA · DEPREM · YANGIN</span>
     <h1>{{IL}}</h1>
     <p class="ph-lead">{{IL}} için anlık hava durumu ve tahmin, il ve çevresindeki son depremler, aktif fay hatları ve uydudan orman yangını tespitleri tek sayfada.</p>
@@ -122,6 +122,15 @@
       <div><h2 class="il-h"><span class="h-icon ic" data-icon="map-pin" data-icon-size="17"></span>{{IL}} ilçelerinde hava durumu</h2><p class="field-hint">{{DISTRICT_COUNT}} ilçe · ilçeye dokun, hava durumu açılsın</p></div>
     </div>
     <div class="il-districts">{{DISTRICTS}}</div>
+  </section>
+
+  <!-- Yakindaki iller -->
+  <section class="dash-card">
+    <div class="dash-head">
+      <div><h2 class="il-h"><span class="h-icon ic" data-icon="compass" data-icon-size="17"></span>Yakındaki iller</h2></div>
+      <a class="btn btn-ghost btn-sm" href="/iller">Tüm iller <span class="ic" data-icon="arrow-right" data-icon-size="14"></span></a>
+    </div>
+    <div class="il-districts">{{NEARBY}}</div>
   </section>
 
   <p class="il-note">Deprem büyüklüğü ve şiddetini resmî olarak yalnızca AFAD duyurur (4 sayılı CBK m.36/2). Acil durumda 112'yi ara.</p>

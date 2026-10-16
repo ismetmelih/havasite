@@ -129,8 +129,8 @@
       if (!arr.length) return;
       const hot = arr.reduce((a, b) => (b.t > a.t ? b : a)), cold = arr.reduce((a, b) => (b.t < a.t ? b : a));
       data.temps = { byName: new Map(arr.map((x) => [x.name, x.t])), hot, cold };
-      $("puHot").textContent = `${hot.name} ${Math.round(hot.t)}°`;
-      $("puCold").textContent = `${cold.name} ${Math.round(cold.t)}°`;
+      $("puHot").innerHTML = window.ilLinkHtml(hot.name, `${hot.name} ${Math.round(hot.t)}°`);
+      $("puCold").innerHTML = window.ilLinkHtml(cold.name, `${cold.name} ${Math.round(cold.t)}°`);
       paintTemps();
     } catch { /* sessiz */ }
   }
@@ -171,8 +171,8 @@
     }
 
     const last = qs[0];
-    $("puQuake").innerHTML = `M${last.mag.toFixed(1)} ${esc(provinceOf(last))}<small>${ago(quakeTime(last))}</small>`;
-    $("puQuakeMax").textContent = max ? `M${max.mag.toFixed(1)} ${provinceOf(max)}` : "—";
+    $("puQuake").innerHTML = `M${last.mag.toFixed(1)} ${window.ilLinkHtml(provinceOf(last), provinceOf(last))}<small>${ago(quakeTime(last))}</small>`;
+    $("puQuakeMax").innerHTML = max ? `M${max.mag.toFixed(1)} ${window.ilLinkHtml(provinceOf(max), provinceOf(max))}` : "—";
     if ($("pnQuake")) $("pnQuake").textContent = `M${last.mag.toFixed(1)} · ${provinceOf(last)}`;
 
     drawQuakes();
@@ -187,7 +187,7 @@
       d.data.forEach((f) => { const n = window.nearestCity && window.nearestCity(f.lat, f.lon); if (n) cc.set(n.city.name, (cc.get(n.city.name) || 0) + 1); });
       const top = [...cc.entries()].sort((a, b) => b[1] - a[1]);
       data.fires = { count: d.count, points: d.data, top: top[0] || null };
-      $("puFire").textContent = top[0] ? `${top[0][0]} · ${top[0][1]} nokta` : "tespit yok";
+      $("puFire").innerHTML = top[0] ? window.ilLinkHtml(top[0][0], `${top[0][0]} · ${top[0][1]} nokta`) : "tespit yok";
       drawFires();
     } catch {
       if ($("pnFire")) $("pnFire").textContent = "—";

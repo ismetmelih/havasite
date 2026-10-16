@@ -66,3 +66,10 @@
   .il-now-main > b { font-size: 2.5rem; }
   .il-map { height: 320px; }
 }
+
+/* tum iller dizini */
+.iller-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
+.iller-item { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface); transition: border-color 0.2s ease, transform 0.2s ease; }
+.iller-item:hover { border-color: var(--border-strong); transform: translateY(-1px); }
+.iller-item b { color: var(--text-primary); font-size: 0.98rem; }
+.iller-item span { color: var(--text-muted); font-size: 0.82rem; min-height: 1em; }

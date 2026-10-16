@@ -291,6 +291,7 @@
           <a href="deprem.html">${ic("wave")} Depremler</a>
           <a href="yangin.html">${ic("flame")} Yangınlar</a>
           <a href="hava.html?v=modeller">${ic("layers")} Tahmin modelleri</a>
+          <a href="/iller">${ic("map-pin")} İl sayfaları</a>
         </nav>
         <nav class="footer-col" aria-label="Uygulama">
           <h4>Uygulama</h4>
@@ -711,6 +712,15 @@
     return String(str).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   }
   window.escapeHtml = escapeHtml;
+
+  // il adini il sayfasi baglantisina cevir (/izmir gibi); il degilse duz yazi doner
+  const trSlug = (s) => s.toLocaleLowerCase("tr").replace(/ı/g, "i").replace(/ğ/g, "g").replace(/ü/g, "u").replace(/ş/g, "s")
+    .replace(/ö/g, "o").replace(/ç/g, "c").replace(/â/g, "a").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  window.ilHref = (name) => ((window.TR_CITIES || []).some((c) => c.name === name) ? `/${trSlug(name)}` : null);
+  window.ilLinkHtml = (name, text) => {
+    const h = window.ilHref(name);
+    return h ? `<a class="il-link" href="${h}">${escapeHtml(text)}</a>` : escapeHtml(text);
+  };
 
   // 81 ilin anlik havasi: sunucudaki ortak onbellekten (Open-Meteo'ya kullanici basina istek gitmez).
   // Ayni sayfadaki tum parcalar tek istegi paylasir; 5 dakikadan eskiyse yenilenir.
