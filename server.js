@@ -14,6 +14,7 @@ const AuthLib = require("./lib/auth");
 const HttpLib = require("./lib/http");
 const Push = require("./lib/push");
 const OgCard = require("./lib/ogcard");
+const Arsiv = require("./lib/arsiv");
 
 // Varsa .env dosyasindaki ortam degiskenlerini yukle (yerel gelistirme ve AWS Amplify:
 // Amplify ortam degiskenleri calisma aninda sunucuya ulasmadigi icin build sirasinda .env'e yazilir).
@@ -893,7 +894,7 @@ function handleRobots(req, res) {
 function handleSitemap(req, res) {
   const origin = siteOrigin(req);
   const today = new Date().toISOString().slice(0, 10);
-  const urls = [...SITEMAP_PAGES, "/iller", ...[...ilData().keys()].map((s) => `/${s}`)].map((p) => `  <url><loc>${origin}${p}</loc><lastmod>${today}</lastmod><changefreq>${p === "/" ? "daily" : "hourly"}</changefreq></url>`).join("\n");
+  const urls = [...SITEMAP_PAGES, "/iller", ...[...ilData().keys()].map((s) => `/${s}`), "/arsiv", ...Arsiv.ARSIV.map((a) => `/arsiv/${a.slug}`)].map((p) => `  <url><loc>${origin}${p}</loc><lastmod>${today}</lastmod><changefreq>${p === "/" ? "daily" : "hourly"}</changefreq></url>`).join("\n");
   const body = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`;
   HttpLib.send(req, res, 200, { ...HttpLib.securityHeaders(false), "Content-Type": "application/xml; charset=utf-8", "Cache-Control": "public, max-age=3600" }, body);
 }
@@ -978,7 +979,11 @@ async function handleIlPage(req, res, slug) {
   };
   let html = fs.readFileSync(IL_TEMPLATE, "utf8");
   for (const [k, v] of Object.entries(fill)) html = html.split(`{{${k}}}`).join(escHtml(v));
-  html = html.split("{{DISTRICTS}}").join(districts).split("{{NEARBY}}").join(nearby);
+  const related = arSorted().filter((a) => a.il.includes(il.name));
+  const arsivHtml = related.length
+    ? `<section class="dash-card"><div class="dash-head"><div><h2 class="il-h"><span class="h-icon ic" data-icon="clock" data-icon-size="17"></span>${escHtml(il.name)} ve büyük afetler</h2><p class="field-hint">Afet arşivinden</p></div><a class="btn btn-ghost btn-sm" href="/arsiv">Afet arşivi <span class="ic" data-icon="arrow-right" data-icon-size="14"></span></a></div><div class="ar-list ar-list-sm">${related.map(arCard).join("")}</div></section>`
+    : "";
+  html = html.split("{{DISTRICTS}}").join(districts).split("{{NEARBY}}").join(nearby).split("{{ARSIV}}").join(arsivHtml);
   HttpLib.send(req, res, 200, {
     ...HttpLib.securityHeaders(true),
     "Content-Type": "text/html; charset=utf-8",
@@ -1067,6 +1072,55 @@ async function handleQuakeOg(req, res, id) {
     if (ogCache.size > 200) ogCache.delete(ogCache.keys().next().value);
   }
   HttpLib.send(req, res, 200, { ...HttpLib.securityHeaders(false), "Content-Type": "image/png", "Cache-Control": "public, max-age=3600" }, png);
+}
+
+// ---------- afet arsivi (/arsiv, /arsiv/<yazi>) ----------
+const AR_ADVICE = {
+  deprem: "Deprem anında: Çök, kapan, tutun. Sarsıntı bitince sakin şekilde, merdivenle çık; asansör kullanma. Hasar gören binaya, yetkililer izin vermeden geri girme. Acil durumda 112.",
+  sel: "Sel uyarısında: dere yatağından, alt geçitlerden ve bodrum katlardan uzak dur; akan suyun içinden yürüyerek ya da araçla geçmeye çalışma; yüksek bir yere çık. Acil durumda 112.",
+  yangin: "Duman ya da alev görürsen hemen 177'yi ara. Rüzgârın estiği yönden uzaklaş, yetkililerin tahliye talimatlarına uy. Ormanda ateş yakma, cam ve sigara atma.",
+};
+const arYear = (a) => a.date.slice(0, 4);
+const arSorted = () => [...Arsiv.ARSIV].sort((a, b) => (a.date < b.date ? 1 : -1));
+const arCard = (a) => `<a class="ar-card ar-${a.type}" href="/arsiv/${a.slug}"><span class="ar-card-type">${escHtml(Arsiv.TYPES[a.type])} · ${escHtml(a.dateText)}</span><b>${escHtml(a.title)}</b><p>${escHtml(a.summary)}</p><span class="ar-card-more">Oku <span class="ic" data-icon="arrow-right" data-icon-size="14"></span></span></a>`;
+function arPage(file, fill, raw, req, res) {
+  let html = fs.readFileSync(path.join(__dirname, "lib", "templates", file), "utf8");
+  for (const [k, v] of Object.entries(fill)) html = html.split(`{{${k}}}`).join(escHtml(v));
+  for (const [k, v] of Object.entries(raw)) html = html.split(`{{${k}}}`).join(v);
+  HttpLib.send(req, res, 200, { ...HttpLib.securityHeaders(true), "Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=600" }, fillPlaceholders(html, req));
+}
+function handleArsivIndex(req, res, query) {
+  const tur = Arsiv.TYPES[query.tur] ? query.tur : "";
+  const list = arSorted().filter((a) => !tur || a.type === tur);
+  const filters = [["", "Tümü"], ...Object.entries(Arsiv.TYPES)].map(([k, label]) => `<a class="ar-filter${k === tur ? " on" : ""}" href="/arsiv${k ? `?tur=${k}` : ""}">${escHtml(label)}</a>`).join("");
+  arPage("arsiv.html", {
+    TITLE: "Afet Arşivi: Türkiye'nin Büyük Depremleri, Selleri ve Orman Yangınları | TürkiyeCanlı",
+    DESC: "Türkiye'de yaşanan büyük depremler, seller ve orman yangınları: tarih, yer, rakamlar, neler değişti ve bugün ne yapmalı. Kaynaklarıyla.",
+    PATH: "/arsiv", OGTYPE: "website",
+  }, { FILTERS: filters, LIST: list.map(arCard).join("") }, req, res);
+}
+function handleArsivYazi(req, res, slug) {
+  const a = Arsiv.bySlug.get(slug);
+  const [y, m, d] = a.date.split("-").map(Number);
+  const now = new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Istanbul" }));
+  const years = now.getFullYear() - y - (now.getMonth() + 1 < m || (now.getMonth() + 1 === m && now.getDate() < d) ? 1 : 0);
+  const today = now.getMonth() + 1 === m && now.getDate() === d;
+  const ilLinks = a.il.map((n) => (ilData().has(trSlug(n)) ? `<a href="/${trSlug(n)}">${escHtml(n)}</a>` : "")).join("");
+  arPage("arsiv-yazi.html", {
+    TITLE: `${a.title} | TürkiyeCanlı Afet Arşivi`,
+    TITLE_SHORT: a.title, DESC: a.summary, SUMMARY: a.summary, PATH: `/arsiv/${slug}`, OGTYPE: "article",
+    TYPE: a.type, TYPE_LABEL: Arsiv.TYPES[a.type], DATE_TEXT: a.dateText, LAT: a.lat, LON: a.lon,
+    ANNIV: today ? `Bugün ${years}. yıl dönümü. Hayatını kaybedenleri saygıyla anıyoruz.` : `${years} yıl önce · Hayatını kaybedenleri saygıyla anıyoruz.`,
+    MAP_NOTE: a.type === "deprem" ? `${a.place} · kırmızı çizgiler: bugünkü aktif fay hatları` : a.place,
+  }, {
+    FACTS: a.facts.map(([k, v]) => `<div><dt>${escHtml(k)}</dt><dd>${escHtml(v)}</dd></div>`).join(""),
+    BODY: a.body.map((p) => `<p>${escHtml(p)}</p>`).join("\n    "),
+    LESSONS: a.lessons.map((l) => `<li>${escHtml(l)}</li>`).join(""),
+    ADVICE: `<span class="ic" data-icon="shield-check" data-icon-size="18"></span><p><b>Bugün ne yapmalı?</b> ${escHtml(AR_ADVICE[a.type])}</p>`,
+    SOURCES: a.sources.map(([name, url]) => `<li><a href="${escHtml(url)}" target="_blank" rel="noopener">${escHtml(name)}</a></li>`).join(""),
+    IL_LINKS: ilLinks,
+    OTHERS: arSorted().filter((x) => x.slug !== slug).slice(0, 3).map(arCard).join(""),
+  }, req, res);
 }
 
 // ---------- statik dosya sunumu ----------
@@ -1180,6 +1234,7 @@ function route(req, res) {
   if (pathname === "/api/admin/stats" && method === "GET") return handleAdminStats(req, res);
   if (pathname === "/api/admin/health" && method === "GET") return handleAdminHealth(req, res);
   if (pathname === "/api/hit" && method === "POST") return handleHit(req, res);
+  if (pathname === "/api/arsiv" && method === "GET") return sendJson(res, 200, { ok: true, data: Arsiv.ARSIV.map(({ slug, type, title, date }) => ({ slug, type, title, date })) }, { "Cache-Control": "public, max-age=3600" });
 
   if (pathname === "/api/status" && method === "GET") return handleStatus(req, res);
   if (pathname === "/api/push/key" && method === "GET") return handlePushKey(req, res);
@@ -1203,6 +1258,9 @@ function route(req, res) {
     return HttpLib.send(req, res, 405, { "Content-Type": "text/plain; charset=utf-8", Allow: "GET, HEAD" }, "Bu yöntem desteklenmiyor.");
   }
   if (pathname === "/iller") return handleIllerPage(req, res);
+  if (pathname === "/arsiv") return handleArsivIndex(req, res, query);
+  const arMatch = /^\/arsiv\/([a-z0-9-]{3,80})$/.exec(pathname);
+  if (arMatch && Arsiv.bySlug.has(arMatch[1])) return handleArsivYazi(req, res, arMatch[1]);
   const qdMatch = /^\/deprem\/([A-Za-z0-9_-]{3,40})$/.exec(pathname);
   if (qdMatch) return handleQuakePage(req, res, qdMatch[1]);
   const ogMatch = /^\/og\/deprem\/([A-Za-z0-9_-]{3,40})\.png$/.exec(pathname);

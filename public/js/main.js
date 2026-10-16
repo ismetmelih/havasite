@@ -292,6 +292,7 @@
           <a href="/yangin.html">${ic("flame")} Yangınlar</a>
           <a href="/hava.html?v=modeller">${ic("layers")} Tahmin modelleri</a>
           <a href="/iller">${ic("map-pin")} İl sayfaları</a>
+          <a href="/arsiv">${ic("clock")} Afet arşivi</a>
         </nav>
         <nav class="footer-col" aria-label="Uygulama">
           <h4>Uygulama</h4>

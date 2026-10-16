@@ -44,8 +44,28 @@
     document.addEventListener("click", (e) => { if (!e.target.closest(".il-search")) close(); });
   }
 
+  // Tarihte bugun: afet arsivindeki bir olayin yil donumuyse ana sayfada saygiyla anilir
+  async function loadAnniversary() {
+    const el = $("tarihteBugun");
+    if (!el) return;
+    try {
+      const d = await fetch("/api/arsiv").then((r) => r.json());
+      const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Istanbul" }).format(new Date());
+      const hit = (d.data || []).find((a) => a.date.slice(5) === today.slice(5));
+      if (!hit) return;
+      const years = Number(today.slice(0, 4)) - Number(hit.date.slice(0, 4));
+      el.href = `/arsiv/${hit.slug}`;
+      // ilgi eki son unluye gore: Depremi'nin, Yanginlari'nin degil Yanginlari'nin -> 'nın
+      const v = (hit.title.toLocaleLowerCase("tr").match(/[aeıioöuü]/g) || ["i"]).pop();
+      const ek = { a: "nın", ı: "nın", o: "nun", u: "nun", e: "nin", i: "nin", ö: "nün", ü: "nün" }[v];
+      el.innerHTML = `<span class="tb-label">Tarihte bugün</span><span>${esc(hit.title)}'${ek} ${years}. yıl dönümü. Hayatını kaybedenleri saygıyla anıyoruz.</span><span class="tb-more">Oku ${window.HavaIcon("arrow-right", { size: 14 })}</span>`;
+      el.hidden = false;
+    } catch { /* sessiz */ }
+  }
+
   document.addEventListener("DOMContentLoaded", () => {
     setupIlSearch();
+    loadAnniversary();
     initMap();
     loadTemps();
     loadQuakes();

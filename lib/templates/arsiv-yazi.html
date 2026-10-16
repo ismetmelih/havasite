@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<script src="/js/theme-init.js"></script>
+<title>{{TITLE}}</title>
+<meta name="description" content="{{DESC}}" />
+<link rel="canonical" href="{{ORIGIN}}{{PATH}}" />
+<meta property="og:type" content="{{OGTYPE}}" />
+<meta property="og:site_name" content="TürkiyeCanlı" />
+<meta property="og:locale" content="tr_TR" />
+<meta property="og:title" content="{{TITLE}}" />
+<meta property="og:description" content="{{DESC}}" />
+<meta property="og:url" content="{{ORIGIN}}{{PATH}}" />
+<meta property="og:image" content="{{ORIGIN}}/img/og-card.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="{{TITLE}}" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="icon" href="/favicon.ico" sizes="32x32" />
+<link rel="icon" type="image/svg+xml" href="/img/logo.svg" />
+<link rel="manifest" href="/manifest.webmanifest" />
+<meta name="theme-color" content="#0d0f13" />
+<link rel="apple-touch-icon" href="/img/app/apple-touch-icon.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="TürkiyeCanlı" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<link rel="preload" href="/fonts/satoshi-400.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="stylesheet" href="/css/base.css" />
+<link rel="stylesheet" href="/css/dash.css" />
+<link rel="stylesheet" href="/css/il.css" />
+<link rel="stylesheet" href="/css/arsiv.css" />
+</head>
+<body class="il-body">
+
+<nav class="site-nav">
+  <a class="brand" href="/"><img src="/img/logo.svg" class="brand-logo" alt="" /> Türkiye<span class="text-quake">Canlı</span></a>
+  <button class="hamburger" aria-label="Menü"><span></span><span></span><span></span></button>
+  <div class="nav-links">
+    <a href="/" data-page="index.html"><span class="ic nav-ic" data-icon="home" data-icon-size="16"></span>Ana Sayfa</a>
+    <a href="/hava.html" data-page="hava.html"><span class="ic nav-ic" data-icon="cloud-sun" data-icon-size="16"></span>Hava Durumu</a>
+    <a href="/deprem.html" data-page="deprem.html"><span class="ic nav-ic" data-icon="wave" data-icon-size="16"></span>Depremler</a>
+    <a href="/yangin.html" data-page="yangin.html"><span class="ic nav-ic" data-icon="flame" data-icon-size="16"></span>Yangınlar</a>
+    <a href="/uygulama.html" data-page="uygulama.html"><span class="ic nav-ic" data-icon="smartphone" data-icon-size="16"></span>Uygulama</a>
+  </div>
+  <div class="nav-account">
+    <div class="nav-actions">
+      <button class="icon-btn" id="themeToggle" type="button" aria-label="Açık/Koyu tema" title="Açık/Koyu tema"><span data-theme-icon></span></button>
+      <a class="icon-btn icon-settings" href="/ayarlar.html" aria-label="Ayarlar" title="Ayarlar"><span class="ic" data-icon="settings" data-icon-size="18"></span></a>
+    </div>
+    <div class="nav-user" id="navUser"></div>
+  </div>
+</nav>
+
+<header class="ph il-ph">
+  <div class="container ar-narrow">
+    <nav class="il-crumbs" aria-label="Konum"><a href="/">Ana Sayfa</a><span>›</span><a href="/arsiv">Afet Arşivi</a><span>›</span><b>{{TITLE_SHORT}}</b></nav>
+    <span class="pill-label ar-type ar-{{TYPE}}">{{TYPE_LABEL}} · {{DATE_TEXT}}</span>
+    <h1>{{TITLE_SHORT}}</h1>
+    <p class="ph-lead">{{SUMMARY}}</p>
+    <p class="ar-anniv">{{ANNIV}}</p>
+  </div>
+</header>
+
+<main class="container il-main ar-narrow" id="arMain" data-lat="{{LAT}}" data-lon="{{LON}}" data-type="{{TYPE}}">
+  <section class="dash-card ar-facts">
+    <dl>{{FACTS}}</dl>
+  </section>
+
+  <section class="dash-card">
+    <div class="il-map ar-map" id="arMap"></div>
+    <p class="field-hint ar-map-note">{{MAP_NOTE}}</p>
+  </section>
+
+  <article class="ar-body">
+    <h2>Ne oldu?</h2>
+    {{BODY}}
+    <h2>Neler değişti, ne öğrendik?</h2>
+    <ul>{{LESSONS}}</ul>
+    <div class="ar-advice">{{ADVICE}}</div>
+    <h2>Kaynaklar</h2>
+    <ol class="ar-sources">{{SOURCES}}</ol>
+  </article>
+
+  <section class="dash-card">
+    <div class="dash-head"><div><h2 class="il-h"><span class="h-icon ic" data-icon="map-pin" data-icon-size="17"></span>İlgili il sayfaları</h2></div></div>
+    <div class="il-districts">{{IL_LINKS}}</div>
+  </section>
+
+  <section class="dash-card">
+    <div class="dash-head"><div><h2 class="il-h"><span class="h-icon ic" data-icon="layers" data-icon-size="17"></span>Arşivdeki diğer yazılar</h2></div><a class="btn btn-ghost btn-sm" href="/arsiv">Tümü <span class="ic" data-icon="arrow-right" data-icon-size="14"></span></a></div>
+    <div class="ar-list ar-list-sm">{{OTHERS}}</div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div>© <span id="year"></span> TürkiyeCanlı — afet arşivi.</div>
+    <div class="sources"><a href="/hava.html">Hava</a><a href="/deprem.html">Deprem</a><a href="/yangin.html">Yangın</a><a href="/gizlilik.html">Gizlilik ve KVKK</a></div>
+  </div>
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="/js/cities.js"></script>
+<script src="/js/main.js"></script>
+<script src="/js/provmap.js"></script>
+<script src="/js/arsiv.js"></script>
+</body>
+</html>
