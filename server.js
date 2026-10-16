@@ -525,7 +525,8 @@ async function handleWeatherCities(req, res) {
     if (data.length < 40) throw new Error("eksik veri");
     return { ok: true, updated: new Date().toISOString(), data };
   });
-  sendJson(res, 200, out, { "Cache-Control": "public, max-age=300" });
+  // gecici hata yaniti onbellege alinmasin (CloudFront/tarayici 5 dk boyunca bos harita gosterirdi)
+  sendJson(res, 200, out, { "Cache-Control": out.ok ? "public, max-age=300" : "no-store" });
 }
 const HOME_MODELS = ["ecmwf_ifs025", "gfs_seamless", "icon_seamless", "meteofrance_seamless", "gem_seamless", "ukmo_seamless"];
 async function handleWeatherModels(req, res) {
@@ -533,7 +534,7 @@ async function handleWeatherModels(req, res) {
     const j = await openMeteo({ latitude: "39.92", longitude: "32.85", daily: "temperature_2m_max", models: HOME_MODELS.join(","), timezone: "Europe/Istanbul", forecast_days: "3" });
     return { ok: true, updated: new Date().toISOString(), daily: j.daily };
   });
-  sendJson(res, 200, out, { "Cache-Control": "public, max-age=900" });
+  sendJson(res, 200, out, { "Cache-Control": out.ok ? "public, max-age=900" : "no-store" });
 }
 
 // ---------- sistem durumu (alt bilgideki canli gosterge) ----------
