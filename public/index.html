@@ -84,6 +84,7 @@
       </div>
       <div class="tm-map" id="tmMap" aria-hidden="true"></div>
       <figcaption class="tm-cap" id="tmCap">Türkiye haritası yükleniyor…</figcaption>
+      <p class="tm-hint"><span class="ic" data-icon="map-pin" data-icon-size="13"></span> İline dokun, il sayfası açılsın</p>
     </figure>
   </div>
 </header>
@@ -98,6 +99,29 @@
         <div class="pulse-item" style="--c: var(--c-quake)"><span>Son deprem</span><b id="puQuake">—</b></div>
         <div class="pulse-item" style="--c: var(--tone-amber)"><span>24 saatin en büyüğü</span><b id="puQuakeMax">—</b></div>
         <div class="pulse-item" style="--c: var(--c-fire)"><span>En çok yangın tespiti</span><b id="puFire">—</b></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section il-pick-sec" id="iller" aria-label="İl sayfaları">
+    <div class="container">
+      <div class="il-pick">
+        <div class="il-pick-copy">
+          <span class="pill-label">81 il</span>
+          <h2>İlinin <span class="accent-text">sayfası</span></h2>
+          <p>Hava durumu ve tahmin, il ve çevresindeki son depremler, aktif fay hatları ve uydudan yangın tespitleri; her il için tek sayfada.</p>
+        </div>
+        <div class="il-pick-box">
+          <div class="il-search">
+            <span class="ic" data-icon="map-pin" data-icon-size="18"></span>
+            <input id="ilSearch" type="search" placeholder="İl ara… (ör. İzmir)" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="false" aria-controls="ilResults" aria-label="İl ara" />
+            <ul id="ilResults" class="il-results" role="listbox" hidden></ul>
+          </div>
+          <div class="il-popular">
+            <a href="/istanbul">İstanbul</a><a href="/ankara">Ankara</a><a href="/izmir">İzmir</a><a href="/bursa">Bursa</a><a href="/antalya">Antalya</a>
+            <a class="il-all" href="/iller">Tüm iller <span class="ic" data-icon="arrow-right" data-icon-size="14"></span></a>
+          </div>
+        </div>
       </div>
     </div>
   </section>

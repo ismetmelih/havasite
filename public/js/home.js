@@ -10,7 +10,42 @@
   // ortak veri (harita, pano ve onizleme ayni veriyi kullanir)
   const data = { temps: null, quakes: null, fires: null };
 
+  // "Ilinin sayfasi": yazdikca suzulen il listesi (Turkce harfler olmadan da bulur: "mugla" -> Mugla)
+  function setupIlSearch() {
+    const input = $("ilSearch"), list = $("ilResults");
+    if (!input || !list) return;
+    const fold = (s) => s.toLocaleLowerCase("tr").replace(/ı/g, "i").replace(/ğ/g, "g").replace(/ü/g, "u").replace(/ş/g, "s").replace(/ö/g, "o").replace(/ç/g, "c").replace(/â/g, "a");
+    const all = (window.TR_CITIES || []).map((c) => ({ name: c.name, key: fold(c.name) }));
+    let items = [], active = -1;
+    const close = () => { list.hidden = true; input.setAttribute("aria-expanded", "false"); active = -1; };
+    function render() {
+      const q = fold(input.value.trim());
+      if (!q) return close();
+      items = all.filter((c) => c.key.startsWith(q)).concat(all.filter((c) => !c.key.startsWith(q) && c.key.includes(q))).slice(0, 7);
+      list.innerHTML = items.length
+        ? items.map((c, i) => `<li role="option" id="ilOpt${i}" class="${i === active ? "on" : ""}"><a href="${window.ilHref(c.name)}">${esc(c.name)}</a></li>`).join("")
+        : '<li class="il-none">Böyle bir il bulunamadı</li>';
+      list.hidden = false;
+      input.setAttribute("aria-expanded", "true");
+      input.setAttribute("aria-activedescendant", active >= 0 ? `ilOpt${active}` : "");
+    }
+    input.addEventListener("input", () => { active = -1; render(); });
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        if (!items.length) return;
+        e.preventDefault();
+        active = (active + (e.key === "ArrowDown" ? 1 : -1) + items.length) % items.length;
+        render();
+      } else if (e.key === "Enter") {
+        const pick = items[active >= 0 ? active : 0];
+        if (pick && !list.hidden) { e.preventDefault(); location.href = window.ilHref(pick.name); }
+      } else if (e.key === "Escape") close();
+    });
+    document.addEventListener("click", (e) => { if (!e.target.closest(".il-search")) close(); });
+  }
+
   document.addEventListener("DOMContentLoaded", () => {
+    setupIlSearch();
     initMap();
     loadTemps();
     loadQuakes();
@@ -61,6 +96,12 @@
       <path class="tm-faults" d=""></path><g class="tm-fires"></g><g class="tm-quakes"></g>
     </svg>`;
     document.querySelectorAll(".tm-layers button").forEach((b) => b.addEventListener("click", () => { map.auto = false; setLayer(b.dataset.layer); }));
+    // ile dokununca il sayfasi acilir
+    document.querySelector("#tmMap .tm-provs").addEventListener("click", (e) => {
+      const p = e.target.closest("path[data-n]");
+      const href = p && window.ilHref(p.dataset.n);
+      if (href) location.href = href;
+    });
     map.timer = setInterval(() => {
       if (!map.auto) return clearInterval(map.timer);
       const order = ["temp", "quake", "fire"];
