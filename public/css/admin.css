@@ -50,9 +50,11 @@
   justify-content: center;
   padding: 20px 0 10px;
 }
+.admin-login-card-wrap { width: 100%; max-width: 420px; }
 .admin-login-card {
   max-width: 420px;
   width: 100%;
+  padding: 32px 30px 28px;
 }
 .admin-login-card code {
   background: var(--bg-alt);
