@@ -45,11 +45,25 @@
   }
 
   // Tarihte bugun: afet arsivindeki bir olayin yil donumuyse ana sayfada saygiyla anilir
+  // ana sayfadaki "Afet arsivi" bolumu: her turden en yeni yazi + bir buyuk deprem
+  const AR_TYPE = { deprem: "Deprem", sel: "Sel", yangin: "Orman yangını" };
+  function renderArsivHome(list) {
+    const box = $("arHome");
+    if (!box || !list.length) return;
+    const byDate = [...list].sort((a, b) => (a.date < b.date ? 1 : -1));
+    const pick = [];
+    ["deprem", "sel", "yangin"].forEach((t) => { const x = byDate.find((a) => a.type === t); if (x) pick.push(x); });
+    const old = byDate.find((a) => a.slug === "1999-golcuk-marmara-depremi") || byDate.find((a) => a.type === "deprem" && !pick.includes(a) && a.date < "2000");
+    if (old) pick.push(old);
+    box.innerHTML = pick.map((a) => `<a class="ar-card ar-${a.type}" href="/arsiv/${a.slug}"><span class="ar-card-type">${esc(AR_TYPE[a.type])} · ${esc(a.dateText)}</span><b>${esc(a.title)}</b><p>${esc(a.summary)}</p><span class="ar-card-more">Oku ${window.HavaIcon("arrow-right", { size: 14 })}</span></a>`).join("");
+  }
+
   async function loadAnniversary() {
     const el = $("tarihteBugun");
-    if (!el) return;
     try {
       const d = await fetch("/api/arsiv").then((r) => r.json());
+      renderArsivHome(d.data || []);
+      if (!el) return;
       const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Istanbul" }).format(new Date());
       const hit = (d.data || []).find((a) => a.date.slice(5) === today.slice(5));
       if (!hit) return;

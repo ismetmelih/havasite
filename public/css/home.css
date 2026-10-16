@@ -396,3 +396,9 @@ a.flow-node:hover { border-color: color-mix(in srgb, var(--c, var(--accent)) 45%
 .tb-note:hover { border-color: var(--border-strong); }
 .tb-label { font-size: 0.74rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
 .tb-more { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; font-weight: 600; color: var(--text-primary); }
+
+/* ana sayfa: afet arsivi bolumu */
+.ar-home { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.ar-home-more { display: flex; justify-content: center; margin-top: 22px; }
+@media (max-width: 1100px) { .ar-home { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 640px) { .ar-home { grid-template-columns: 1fr; } }

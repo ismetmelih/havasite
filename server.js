@@ -1109,7 +1109,7 @@ function handleArsivYazi(req, res, slug) {
   arPage("arsiv-yazi.html", {
     TITLE: `${a.title} | TürkiyeCanlı Afet Arşivi`,
     TITLE_SHORT: a.title, DESC: a.summary, SUMMARY: a.summary, PATH: `/arsiv/${slug}`, OGTYPE: "article",
-    TYPE: a.type, TYPE_LABEL: Arsiv.TYPES[a.type], DATE_TEXT: a.dateText, LAT: a.lat, LON: a.lon,
+    TYPE: a.type, TYPE_LABEL: Arsiv.TYPES[a.type], DATE_TEXT: a.dateText, LAT: a.lat, LON: a.lon, SLUG: slug, IL_LIST: a.il.join("|"),
     ANNIV: today ? `Bugün ${years}. yıl dönümü. Hayatını kaybedenleri saygıyla anıyoruz.` : `${years} yıl önce · Hayatını kaybedenleri saygıyla anıyoruz.`,
     MAP_NOTE: a.type === "deprem" ? `${a.place} · kırmızı çizgiler: bugünkü aktif fay hatları` : a.place,
   }, {
@@ -1234,7 +1234,7 @@ function route(req, res) {
   if (pathname === "/api/admin/stats" && method === "GET") return handleAdminStats(req, res);
   if (pathname === "/api/admin/health" && method === "GET") return handleAdminHealth(req, res);
   if (pathname === "/api/hit" && method === "POST") return handleHit(req, res);
-  if (pathname === "/api/arsiv" && method === "GET") return sendJson(res, 200, { ok: true, data: Arsiv.ARSIV.map(({ slug, type, title, date }) => ({ slug, type, title, date })) }, { "Cache-Control": "public, max-age=3600" });
+  if (pathname === "/api/arsiv" && method === "GET") return sendJson(res, 200, { ok: true, data: Arsiv.ARSIV.map(({ slug, type, title, date, dateText, summary }) => ({ slug, type, title, date, dateText, summary })) }, { "Cache-Control": "public, max-age=3600" });
 
   if (pathname === "/api/status" && method === "GET") return handleStatus(req, res);
   if (pathname === "/api/push/key" && method === "GET") return handlePushKey(req, res);
