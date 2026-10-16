@@ -1,0 +1,26 @@
+/* ================= Deprem sayfasi (/deprem/<id>) ================= */
+.qd-hero { display: flex; align-items: center; gap: 22px; margin-top: 6px; }
+.qd-hero h1 { margin: 10px 0 6px; font-size: clamp(1.7rem, 3.6vw, 2.6rem); line-height: 1.15; }
+.qd-mag { flex: none; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 112px; height: 112px; border-radius: 26px;
+  background: color-mix(in srgb, var(--m) 14%, transparent); border: 1px solid color-mix(in srgb, var(--m) 45%, transparent); color: var(--m); }
+.qd-mag b { font-size: 2.9rem; font-weight: 800; line-height: 1; letter-spacing: -0.03em; }
+.qd-mag small { font-size: 0.82rem; font-weight: 700; color: var(--text-secondary); margin-top: 4px; }
+.qd-when { color: var(--text-secondary); margin: 0; }
+.qd-stats { margin-top: 26px; }
+.qd-stats dt { font-size: 1.35rem; }
+.qd-share { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 22px; }
+.qd-share-label { font-size: 0.86rem; color: var(--text-muted); margin-right: 4px; }
+.qd-sh { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); color: var(--text-primary); font: inherit; font-size: 0.86rem; font-weight: 600; cursor: pointer; transition: border-color 0.2s ease, background 0.2s ease; }
+.qd-sh:hover { border-color: var(--border-strong); background: var(--surface-2); }
+.qd-native { border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+.qd-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.il-quakes a.lp-q { color: inherit; }
+
+@media (max-width: 640px) {
+  .qd-stats { display: grid; grid-template-columns: 1fr 1fr; row-gap: 16px; }
+  .qd-stats > div:nth-child(3) { border-left: none; padding-left: 0; }
+  .qd-stats dt { font-size: 1.1rem; }
+  .qd-hero { gap: 14px; }
+  .qd-mag { width: 84px; height: 84px; border-radius: 20px; }
+  .qd-mag b { font-size: 2.1rem; }
+}

@@ -13,6 +13,7 @@ const { getPool, ensureSchema } = require("./lib/db");
 const AuthLib = require("./lib/auth");
 const HttpLib = require("./lib/http");
 const Push = require("./lib/push");
+const OgCard = require("./lib/ogcard");
 
 // Varsa .env dosyasindaki ortam degiskenlerini yukle (yerel gelistirme ve AWS Amplify:
 // Amplify ortam degiskenleri calisma aninda sunucuya ulasmadigi icin build sirasinda .env'e yazilir).
@@ -329,9 +330,13 @@ async function getLatestQuakes(limit) {
 // Son N gunu tek bir tarih-araligi sorgusuyla ceker (zaman tuneli / 3D glob icin).
 async function handleQuakeHistory(req, res, query) {
   const days = Math.min(Math.max(parseInt(query.days, 10) || 30, 1), 30);
+  sendJson(res, 200, await getQuakeHistory(days));
+}
+// deprem sayfasi (/deprem/<id>) da kullanir
+async function getQuakeHistory(days) {
   const cacheKey = `quake-history:${days}`;
   const cached = getCache(cacheKey);
-  if (cached) return sendJson(res, 200, cached);
+  if (cached) return cached;
 
   const end = new Date();
   const start = new Date(end.getTime() - days * 86400000);
@@ -359,14 +364,14 @@ async function handleQuakeHistory(req, res, query) {
       source = "emsc";
     } catch (err2) {
       console.error("[deprem gecmisi] alinamadi:", String(err2.message || err2));
-      return sendJson(res, 200, { ok: false, reason: "fetch_failed", data: [] });
+      return { ok: false, reason: "fetch_failed", data: [] };
     }
   }
 
   result.sort((a, b) => new Date(a.date) - new Date(b.date));
   const payload = { ok: true, updated: new Date().toISOString(), days, count: result.length, source, data: result };
   setCache(cacheKey, payload, 20 * 60 * 1000); // 20 dk (arsiv verisi sik degismez)
-  sendJson(res, 200, payload);
+  return payload;
 }
 
 // ---------- /api/fires ----------
@@ -999,6 +1004,73 @@ async function handleIllerPage(req, res) {
   }, fillPlaceholders(html, req));
 }
 
+// ---------- deprem sayfasi (/deprem/<id>) ve paylasim gorseli (/og/deprem/<id>.png) ----------
+// Her depremin kalici adresi olur; WhatsApp/X/LinkedIn'de paylasilinca buyukluk, yer ve haritali onizleme cikar.
+async function findQuake(id) {
+  const latest = await getLatestQuakes(150).catch(() => null);
+  const hit = latest && latest.ok ? latest.data.find((x) => String(x.id) === id) : null;
+  if (hit) return hit;
+  const hist = await getQuakeHistory(30).catch(() => null);
+  return (hist && hist.ok && hist.data.find((x) => String(x.id) === id)) || null;
+}
+const magToneSrv = (m) => (m >= 5 ? "#ef4444" : m >= 4 ? "#f97316" : m >= 3 ? "#f5a524" : m >= 2 ? "#22c55e" : "#34d399");
+
+async function handleQuakePage(req, res, id) {
+  const q = await findQuake(id);
+  if (!q) return serveStatic(req, res, "/deprem-bulunamadi");
+  const t = Date.parse(String(q.date).replace(" ", "T") + "+03:00");
+  const when = new Intl.DateTimeFormat("tr-TR", { timeZone: "Europe/Istanbul", day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" }).format(t);
+  const mins = Math.max(1, Math.round((Date.now() - t) / 60000));
+  const ago = mins < 60 ? `${mins} dk önce` : mins < 1440 ? `${Math.round(mins / 60)} sa önce` : `${Math.round(mins / 1440)} gün önce`;
+  const type = q.magType || "M";
+  const mag = q.mag.toFixed(1);
+  const place = q.title || "Türkiye";
+  const prov = q.province || String(q.closestCity || "").replace(/\s*yakını$/, "").trim();
+  const ilSlug = prov && ilData().has(trSlug(prov)) ? trSlug(prov) : null;
+  const url = `${siteOrigin(req)}/deprem/${encodeURIComponent(id)}`;
+  const shareText = `${type} ${mag} deprem — ${place} (${when})`;
+  const enc = encodeURIComponent;
+  const fill = {
+    TITLE: `${type} ${mag} deprem — ${place} | TürkiyeCanlı`,
+    DESC: `${when} tarihinde ${place} merkezli ${type} ${mag} büyüklüğünde deprem${Number.isFinite(q.depth) ? `; derinlik ${q.depth} km` : ""}. Haritada yeri, aktif fay hatları ve yakınındaki depremler. Kaynak: AFAD.`,
+    ID: id, LAT: q.lat, LON: q.lon, MAG: mag, MAGTYPE: type, PLACE: place, WHEN: when, AGO: ago, TIME: t, TONE: magToneSrv(q.mag),
+    DEPTH: Number.isFinite(q.depth) ? `${(Math.round(q.depth * 10) / 10).toLocaleString("tr-TR")} km` : "—",
+    COORDS: `${Number(q.lat).toFixed(2)}, ${Number(q.lon).toFixed(2)}`,
+    AREA: [q.neighborhood && `${q.neighborhood} Mah.`, q.district, prov].filter(Boolean).slice(0, 2).join(", ") || prov || "—",
+    URL: url, SHARE_TEXT: shareText,
+    SH_WA: `https://wa.me/?text=${enc(`${shareText} ${url}`)}`,
+    SH_X: `https://x.com/intent/post?text=${enc(shareText)}&url=${enc(url)}`,
+    SH_LI: `https://www.linkedin.com/sharing/share-offsite/?url=${enc(url)}`,
+    SH_FB: `https://www.facebook.com/sharer/sharer.php?u=${enc(url)}`,
+    SH_TG: `https://t.me/share/url?url=${enc(url)}&text=${enc(shareText)}`,
+  };
+  let html = fs.readFileSync(path.join(__dirname, "lib", "templates", "deprem.html"), "utf8");
+  for (const [k, v] of Object.entries(fill)) html = html.split(`{{${k}}}`).join(escHtml(v));
+  html = html.split("{{IL_LINK}}").join(ilSlug ? `<a class="btn btn-ghost btn-sm" href="/${ilSlug}">${escHtml(prov)} sayfası <span class="ic" data-icon="arrow-right" data-icon-size="14"></span></a>` : "");
+  HttpLib.send(req, res, 200, {
+    ...HttpLib.securityHeaders(true),
+    "Content-Type": "text/html; charset=utf-8",
+    "Cache-Control": "public, max-age=120",
+  }, fillPlaceholders(html, req));
+}
+
+const ogCache = new Map(); // "id|buyukluk" -> PNG (son 200)
+async function handleQuakeOg(req, res, id) {
+  const q = await findQuake(id);
+  if (!q) return sendJson(res, 404, { ok: false, reason: "not_found" });
+  const key = `${id}|${q.mag}|${q.magType}`;
+  let png = ogCache.get(key);
+  if (!png) {
+    try { png = await OgCard.quakeCardPng(q); } catch (err) {
+      console.error("[og] gorsel uretilemedi:", String(err.message).slice(0, 120));
+      return sendJson(res, 500, { ok: false, reason: "render_failed" });
+    }
+    ogCache.set(key, png);
+    if (ogCache.size > 200) ogCache.delete(ogCache.keys().next().value);
+  }
+  HttpLib.send(req, res, 200, { ...HttpLib.securityHeaders(false), "Content-Type": "image/png", "Cache-Control": "public, max-age=3600" }, png);
+}
+
 // ---------- statik dosya sunumu ----------
 function staticCacheControl(ext, filePath) {
   if (ext === ".html" || filePath.endsWith("sw.js")) return "no-cache";
@@ -1133,6 +1205,10 @@ function route(req, res) {
     return HttpLib.send(req, res, 405, { "Content-Type": "text/plain; charset=utf-8", Allow: "GET, HEAD" }, "Bu yöntem desteklenmiyor.");
   }
   if (pathname === "/iller") return handleIllerPage(req, res);
+  const qdMatch = /^\/deprem\/([A-Za-z0-9_-]{3,40})$/.exec(pathname);
+  if (qdMatch) return handleQuakePage(req, res, qdMatch[1]);
+  const ogMatch = /^\/og\/deprem\/([A-Za-z0-9_-]{3,40})\.png$/.exec(pathname);
+  if (ogMatch) return handleQuakeOg(req, res, ogMatch[1]);
   const ilMatch = /^\/([a-z-]{3,20})$/.exec(pathname);
   if (ilMatch && ilData().has(ilMatch[1])) return handleIlPage(req, res, ilMatch[1]);
   return serveStatic(req, res, pathname);

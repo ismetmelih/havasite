@@ -240,13 +240,14 @@
         <div class="lp-q-meta">${q.neighborhood ? `<span>${ic("home")} ${window.escapeHtml(q.neighborhood)} Mah.</span>` : ""}<span>${ic("ruler")} ${q.depth} km</span><span>${ic("clock")} ${window.timeAgoTR(q.date.replace(" ", "T"))}</span>${dist}<span class="lp-q-coord">${ic("map-pin")} ${q.lat.toFixed(2)}, ${q.lon.toFixed(2)}</span></div>
       </div>
       <div class="lp-q-time"><b>${(hms || "").slice(0, 5)}</b><span>${+d} ${AY[+mo - 1]}</span></div>
+      <a class="q-share" href="/deprem/${encodeURIComponent(q.id)}" title="Ayrıntı ve paylaş" aria-label="Ayrıntı ve paylaş">${ic("share")}</a>
     </div>`;
   }
   function bindRows(wrap) {
     wrap.querySelectorAll(".q-row").forEach((row) => {
       const go = () => { tabs.go("harita"); setTimeout(() => flyTo(row), 200); };
-      row.addEventListener("click", go);
-      row.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
+      row.addEventListener("click", (e) => { if (!e.target.closest(".q-share")) go(); });
+      row.addEventListener("keydown", (e) => { if ((e.key === "Enter" || e.key === " ") && !e.target.closest(".q-share")) { e.preventDefault(); go(); } });
     });
   }
   function renderMiniList(list) {
@@ -314,7 +315,7 @@
     [...list].sort((a, b) => a.mag - b.mag).forEach((q) => {
       const color = magColor(q.mag);
       const m = L.circleMarker([q.lat, q.lon], { pane: "points", radius: 3 + q.mag * 2.2, color: "#fff", weight: 1, opacity: 0.7, fillColor: color, fillOpacity: 0.85 }).addTo(state.layer);
-      m.bindPopup(`<div class="map-pop"><strong>${window.escapeHtml(q.magType || "M")} ${q.mag.toFixed(1)} — ${window.escapeHtml(q.title)}</strong>${q.neighborhood ? `<br/>${window.escapeHtml(q.neighborhood)} Mah.` : ""}<br/>Derinlik: ${q.depth} km · ${window.escapeHtml(window.timeAgoTR(q.date.replace(" ", "T")))}<br/>${window.escapeHtml(q.date)}${q.updated ? " · AFAD güncelledi" : ""}</div>`);
+      m.bindPopup(`<div class="map-pop"><strong>${window.escapeHtml(q.magType || "M")} ${q.mag.toFixed(1)} — ${window.escapeHtml(q.title)}</strong>${q.neighborhood ? `<br/>${window.escapeHtml(q.neighborhood)} Mah.` : ""}<br/>Derinlik: ${q.depth} km · ${window.escapeHtml(window.timeAgoTR(q.date.replace(" ", "T")))}<br/>${window.escapeHtml(q.date)}${q.updated ? " · AFAD güncelledi" : ""}<br/><a href="/deprem/${encodeURIComponent(q.id)}">Ayrıntı ve paylaş →</a></div>`);
       m._qid = q.id;
       if (q !== newest && now - new Date(q.date.replace(" ", "T")).getTime() < 3600000) {
         const s = Math.round(10 + q.mag * 5);

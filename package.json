@@ -13,6 +13,7 @@
     "node": ">=18"
   },
   "dependencies": {
+    "@resvg/resvg-wasm": "^2.6.2",
     "pg": "^8.13.1",
     "web-push": "^3.6.7"
   }

@@ -153,7 +153,7 @@
     if (list) {
       list.innerHTML = qs.slice(0, 5).map((q, i) => {
         const t = quakeTime(q);
-        return `<a class="lp-q${i === 0 ? " q-latest" : ""}" href="deprem.html?v=liste">
+        return `<a class="lp-q${i === 0 ? " q-latest" : ""}" href="/deprem/${encodeURIComponent(q.id)}">
           ${magSq(q.mag, q.magType)}
           <div class="lp-q-main">
             <b>${i === 0 ? '<em class="q-new"><i></i>SON</em>' : ""}${esc(q.title)}</b>

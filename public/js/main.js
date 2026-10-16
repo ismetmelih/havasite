@@ -282,30 +282,30 @@
     f.innerHTML = `
       <div class="container footer-grid">
         <div class="footer-brand">
-          <a class="brand" href="index.html"><img src="img/logo.svg" class="brand-logo" alt="" /> Türkiye<span class="text-quake">Canlı</span></a>
+          <a class="brand" href="/index.html"><img src="/img/logo.svg" class="brand-logo" alt="" /> Türkiye<span class="text-quake">Canlı</span></a>
           <p>Türkiye için canlı hava durumu, deprem ve uydu tabanlı yangın takibi. AFAD, NASA FIRMS ve Open-Meteo'nun açık verileriyle çalışan bağımsız bir panel.</p>
         </div>
         <nav class="footer-col" aria-label="Paneller">
           <h4>Paneller</h4>
-          <a href="hava.html">${ic("cloud-sun")} Hava durumu</a>
-          <a href="deprem.html">${ic("wave")} Depremler</a>
-          <a href="yangin.html">${ic("flame")} Yangınlar</a>
-          <a href="hava.html?v=modeller">${ic("layers")} Tahmin modelleri</a>
+          <a href="/hava.html">${ic("cloud-sun")} Hava durumu</a>
+          <a href="/deprem.html">${ic("wave")} Depremler</a>
+          <a href="/yangin.html">${ic("flame")} Yangınlar</a>
+          <a href="/hava.html?v=modeller">${ic("layers")} Tahmin modelleri</a>
           <a href="/iller">${ic("map-pin")} İl sayfaları</a>
         </nav>
         <nav class="footer-col" aria-label="Uygulama">
           <h4>Uygulama</h4>
-          <a href="uygulama.html">${ic("smartphone")} Mobil uygulama</a>
-          <a href="ayarlar.html#bildirimler">${ic("bell")} Bildirimler</a>
-          <a href="ayarlar.html#hazirlik">${ic("shield-check")} Deprem çantası</a>
-          <a href="ayarlar.html">${ic("settings")} Ayarlar</a>
+          <a href="/uygulama.html">${ic("smartphone")} Mobil uygulama</a>
+          <a href="/ayarlar.html#bildirimler">${ic("bell")} Bildirimler</a>
+          <a href="/ayarlar.html#hazirlik">${ic("shield-check")} Deprem çantası</a>
+          <a href="/ayarlar.html">${ic("settings")} Ayarlar</a>
         </nav>
         <nav class="footer-col" aria-label="Kaynaklar ve yasal">
           <h4>Kaynaklar</h4>
           <a href="https://deprem.afad.gov.tr" target="_blank" rel="noopener">AFAD Deprem Dairesi Başkanlığı</a>
           <a href="https://firms.modaps.eosdis.nasa.gov" target="_blank" rel="noopener">NASA FIRMS</a>
           <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo (CC BY 4.0)</a>
-          <a href="gizlilik.html">${ic("lock-key")} Gizlilik ve KVKK</a>
+          <a href="/gizlilik.html">${ic("lock-key")} Gizlilik ve KVKK</a>
         </nav>
       </div>
       <div class="container footer-bottom">
@@ -377,7 +377,7 @@
           <a class="em-number" href="tel:112"><div class="num">112</div><div class="lbl">Acil Çağrı Merkezi</div></a>
           <a class="em-number" href="tel:122"><div class="num">122</div><div class="lbl">AFAD İhbar Hattı</div></a>
         </div>
-        <a class="em-app" href="uygulama.html"><b>Fener SOS</b> ve kayıtlı kişilere SMS yalnızca mobil uygulamada — yakında App Store ve Google Play'de.</a>
+        <a class="em-app" href="/uygulama.html"><b>Fener SOS</b> ve kayıtlı kişilere SMS yalnızca mobil uygulamada — yakında App Store ve Google Play'de.</a>
         <div class="em-tools">
           <button class="em-tool" id="emSiren" type="button" aria-pressed="false">${window.HavaIcon("siren", { size: 22 })}<b>Siren</b><small>Yüksek sesli düdük</small></button>
           <button class="em-tool" id="emLight" type="button" aria-pressed="false">${window.HavaIcon("sun", { size: 22 })}<b>Işık sinyali</b><small>Ekran SOS yanıp söner</small></button>
@@ -705,7 +705,7 @@
   function setupNavAction() {
     const slot = document.getElementById("navUser");
     if (!slot) return;
-    slot.innerHTML = `<a class="btn btn-primary btn-sm nav-cta" href="ayarlar.html#bildirimler">${window.HavaIcon("bell", { size: 15 })}<span class="label">Bildirim al</span></a>`;
+    slot.innerHTML = `<a class="btn btn-primary btn-sm nav-cta" href="/ayarlar.html#bildirimler">${window.HavaIcon("bell", { size: 15 })}<span class="label">Bildirim al</span></a>`;
   }
 
   function escapeHtml(str) {

@@ -157,3 +157,8 @@
   .qs-wave { bottom: 2%; opacity: 0.6; }
 }
 .head-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+/* liste satirindaki "ayrinti ve paylas" baglantisi (deprem.html) */
+.q-share { flex: none; display: inline-grid; place-items: center; width: 32px; height: 32px; margin-left: 4px; border-radius: 10px; border: 1px solid var(--border); color: var(--text-muted); transition: color 0.2s ease, border-color 0.2s ease; }
+.q-share:hover { color: var(--text-primary); border-color: var(--border-strong); }
+
